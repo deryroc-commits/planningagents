@@ -143,16 +143,6 @@ function PlanningApp() {
             >
               <Upload /> Importer
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                exportToExcel({ codes, agents: [], planningByYear: {} } as never, year) // placeholder, replaced below
-              }
-              className="hidden"
-            >
-              <Download /> Export
-            </Button>
             <ExportButton />
           </div>
         </div>
