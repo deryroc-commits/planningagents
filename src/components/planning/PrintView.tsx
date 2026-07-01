@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Printer } from "lucide-react";
+import { ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
   agentHoursForIndices,
@@ -8,11 +8,14 @@ import {
   dayIndicesForMonth,
   dayLetter,
   fmtHours,
+  holidaysForYear,
   isInvalid,
   isWeekend,
+  selectableYears,
 } from "@/lib/planning/calc";
 import { MONTHS } from "@/lib/planning/calc";
 import { CATEGORY_META } from "@/lib/planning/types";
+import type { Agent } from "@/lib/planning/types";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -28,34 +31,80 @@ interface PrintViewProps {
 }
 
 export function PrintView({ month, setMonth }: PrintViewProps) {
-  const { year, agents, codes, planning } = usePlanning();
+  const { year, setYear, agents, codes, planning } = usePlanning();
   const map = useMemo(() => codesMap(codes), [codes]);
+  const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
     () => dayIndicesForMonth(year, month),
     [year, month],
   );
+  const years = useMemo(() => selectableYears(), []);
+
+  // Group agents by team, preserving order — inserts a section band per team.
+  const groups = useMemo(() => {
+    const out: { team: string; agents: Agent[] }[] = [];
+    for (const a of agents) {
+      const team = a.team?.trim() || "Sans équipe";
+      const last = out[out.length - 1];
+      if (last && last.team === team) last.agents.push(a);
+      else out.push({ team, agents: [a] });
+    }
+    return out;
+  }, [agents]);
+
+  const colCount = indices.length + 2;
 
   return (
     <div className="space-y-4">
       <div className="no-print flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Impression mensuelle</h2>
+          <h2 className="text-lg font-semibold">Aperçu avant impression</h2>
           <p className="text-sm text-muted-foreground">
-            Vue formatée prête à imprimer ou exporter en PDF.
+            Vue mensuelle formatée, prête à imprimer ou exporter en PDF.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Select
-            value={String(month)}
-            onValueChange={(v) => setMonth(Number(v))}
-          >
-            <SelectTrigger className="w-40">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setMonth((month + 11) % 12)}
+              aria-label="Mois précédent"
+            >
+              <ChevronLeft />
+            </Button>
+            <Select
+              value={String(month)}
+              onValueChange={(v) => setMonth(Number(v))}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((m, i) => (
+                  <SelectItem key={m} value={String(i)}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setMonth((month + 1) % 12)}
+              aria-label="Mois suivant"
+            >
+              <ChevronRight />
+            </Button>
+          </div>
+          <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+            <SelectTrigger className="w-28">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MONTHS.map((m, i) => (
-                <SelectItem key={m} value={String(i)}>
-                  {m}
+              {years.map((y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -66,78 +115,166 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
         </div>
       </div>
 
-      <div className="print-area rounded-lg border border-border bg-card p-4">
-        <div className="mb-3 text-center">
-          <h1 className="text-xl font-bold">Planning des agents — UCPA</h1>
-          <p className="text-sm text-muted-foreground">
-            {MONTHS[month]} {year}
-          </p>
+      <div className="print-area overflow-auto rounded-lg border border-border bg-card p-3">
+        {/* Title banner */}
+        <div className="mb-3 flex items-stretch gap-2">
+          <div className="flex min-w-[180px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
+            <div className="text-lg font-bold uppercase tracking-wide">
+              {MONTHS[month]}
+            </div>
+            <div className="text-sm font-semibold text-muted-foreground">
+              {year}
+            </div>
+          </div>
+          <div className="flex flex-1 items-center justify-center rounded bg-destructive px-4 py-1.5">
+            <h1 className="text-xl font-bold tracking-wide text-destructive-foreground">
+              PLANNING AGENTS UCPA
+            </h1>
+          </div>
         </div>
-        <div className="overflow-auto">
-          <table className="w-full border-collapse text-[11px]">
-            <thead>
-              <tr>
-                <th className="border border-border bg-muted px-2 py-1 text-left">
-                  Agent
-                </th>
-                {indices.map((i) => {
-                  const d = dateOfDayIndex(year, i);
-                  return (
-                    <th
-                      key={i}
-                      className={`w-7 border border-border px-0 py-1 text-center ${isWeekend(d) ? "cell-weekend" : "bg-muted"}`}
-                    >
-                      <div className="text-[9px] text-muted-foreground">
-                        {dayLetter(d)}
-                      </div>
-                      <div>{d.getDate()}</div>
-                    </th>
-                  );
-                })}
-                <th className="border border-border bg-accent px-1 py-1 text-center">
-                  H
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {agents.map((a) => {
-                const row = planning[a.id] ?? {};
+
+        <table className="w-full border-collapse text-[11px]">
+          <thead>
+            <tr>
+              <th className="w-[180px] min-w-[180px] border border-border bg-muted px-2 py-1 text-left">
+                Agent
+              </th>
+              {indices.map((i) => {
+                const d = dateOfDayIndex(year, i);
+                const hol = holidays[i];
                 return (
-                  <tr key={a.id}>
-                    <td className="border border-border px-2 py-1 font-medium">
-                      {a.name}
-                    </td>
-                    {indices.map((i) => {
-                      const v = row[i];
-                      const cat = v && map[v] ? map[v].category : null;
-                      const cls = isInvalid(v, map)
-                        ? "cat-error"
-                        : cat
-                          ? CATEGORY_META[cat].cls
-                          : isWeekend(dateOfDayIndex(year, i))
-                            ? "cell-weekend"
-                            : "";
-                      return (
-                        <td
-                          key={i}
-                          className={`border border-border px-0 py-1 text-center font-semibold ${cls}`}
-                        >
-                          {v ?? ""}
-                        </td>
-                      );
-                    })}
-                    <td className="border border-border bg-accent/40 px-1 text-center font-semibold tabular-nums">
-                      {fmtHours(agentHoursForIndices(planning, a.id, indices, map))}
-                    </td>
-                  </tr>
+                  <th
+                    key={`l-${i}`}
+                    title={hol}
+                    className={`w-7 border border-border px-0 py-0.5 text-center text-[9px] ${
+                      hol
+                        ? "cell-holiday"
+                        : isWeekend(d)
+                          ? "cell-weekend"
+                          : "bg-muted"
+                    }`}
+                  >
+                    {dayLetter(d)}
+                  </th>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+              <th className="border border-border bg-accent px-1 py-0.5 text-center">
+                H
+              </th>
+            </tr>
+            <tr>
+              <th className="border border-border bg-muted px-2 py-1 text-left text-[9px] uppercase text-muted-foreground">
+                Jour
+              </th>
+              {indices.map((i) => {
+                const d = dateOfDayIndex(year, i);
+                const hol = holidays[i];
+                return (
+                  <th
+                    key={`n-${i}`}
+                    title={hol}
+                    className={`w-7 border border-border px-0 py-0.5 text-center font-semibold ${
+                      hol
+                        ? "cell-holiday"
+                        : isWeekend(d)
+                          ? "cell-weekend"
+                          : "bg-muted"
+                    }`}
+                  >
+                    {d.getDate()}
+                  </th>
+                );
+              })}
+              <th className="border border-border bg-accent px-1 py-0.5" />
+            </tr>
+          </thead>
+          <tbody>
+            {groups.map((g) => (
+              <GroupRows
+                key={g.team}
+                team={g.team}
+                agents={g.agents}
+                indices={indices}
+                planning={planning}
+                map={map}
+                holidays={holidays}
+                year={year}
+                colCount={colCount}
+              />
+            ))}
+          </tbody>
+        </table>
         <Legend />
       </div>
     </div>
+  );
+}
+
+function GroupRows({
+  team,
+  agents,
+  indices,
+  planning,
+  map,
+  holidays,
+  year,
+  colCount,
+}: {
+  team: string;
+  agents: Agent[];
+  indices: number[];
+  planning: ReturnType<typeof usePlanning>["planning"];
+  map: ReturnType<typeof codesMap>;
+  holidays: Record<number, string>;
+  year: number;
+  colCount: number;
+}) {
+  return (
+    <>
+      <tr>
+        <td
+          colSpan={colCount}
+          className="border border-border bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-secondary-foreground"
+        >
+          {team}
+        </td>
+      </tr>
+      {agents.map((a) => {
+        const row = planning[a.id] ?? {};
+        return (
+          <tr key={a.id}>
+            <td className="border border-border px-2 py-0.5 font-medium uppercase">
+              {a.name}
+            </td>
+            {indices.map((i) => {
+              const v = row[i];
+              const cat = v && map[v] ? map[v].category : null;
+              const hol = holidays[i];
+              const cls = isInvalid(v, map)
+                ? "cat-error"
+                : cat
+                  ? CATEGORY_META[cat].cls
+                  : hol
+                    ? "cell-holiday"
+                    : isWeekend(dateOfDayIndex(year, i))
+                      ? "cell-weekend"
+                      : "";
+              return (
+                <td
+                  key={i}
+                  className={`border border-border px-0 py-0.5 text-center font-semibold ${cls}`}
+                >
+                  {v ?? ""}
+                </td>
+              );
+            })}
+            <td className="border border-border bg-accent/40 px-1 text-center font-semibold tabular-nums">
+              {fmtHours(agentHoursForIndices(planning, a.id, indices, map))}
+            </td>
+          </tr>
+        );
+      })}
+    </>
   );
 }
 
@@ -151,6 +288,14 @@ function Legend() {
           {meta.label}
         </div>
       ))}
+      <div className="flex items-center gap-1.5">
+        <span className="inline-block size-3 rounded cell-weekend" />
+        Week-end
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="inline-block size-3 rounded cell-holiday" />
+        Jour férié
+      </div>
       <div className="flex items-center gap-1.5">
         <span className="inline-block size-3 rounded cat-error" />
         Erreur / code invalide

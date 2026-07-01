@@ -8,6 +8,7 @@ import {
   dayIndicesForMonth,
   dayLetter,
   fmtHours,
+  holidaysForYear,
   hoursForCell,
   isInvalid,
   isWeekend,
@@ -30,6 +31,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
   const [active, setActive] = useState<ActiveCell | null>(null);
 
   const map = useMemo(() => codesMap(codes), [codes]);
+  const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
     () => dayIndicesForMonth(year, month),
     [year, month],
@@ -54,11 +56,13 @@ export function PlanningGrid({ month }: PlanningGridProps) {
             {indices.map((i) => {
               const d = dateOfDayIndex(year, i);
               const we = isWeekend(d);
+              const hol = holidays[i];
               return (
                 <th
                   key={i}
+                  title={hol}
                   className={`sticky top-0 z-20 w-10 min-w-10 border-b border-r border-border px-0 py-1 text-center font-medium ${
-                    we ? "cell-weekend" : "bg-muted"
+                    hol ? "cell-holiday" : we ? "cell-weekend" : "bg-muted"
                   }`}
                 >
                   <div className="text-[11px] leading-tight text-muted-foreground">
@@ -99,13 +103,16 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                   const cat = value && map[value] ? map[value].category : null;
                   const d = dateOfDayIndex(year, i);
                   const we = isWeekend(d);
+                  const hol = holidays[i];
                   const cls = invalid
                     ? "cat-error"
                     : cat
                       ? CATEGORY_META[cat].cls
-                      : we
-                        ? "cell-weekend"
-                        : "";
+                      : hol
+                        ? "cell-holiday"
+                        : we
+                          ? "cell-weekend"
+                          : "";
                   return (
                     <td
                       key={i}
@@ -113,7 +120,13 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                     >
                       <button
                         type="button"
-                        title={value && map[value] ? map[value].label : value}
+                        title={
+                          value && map[value]
+                            ? map[value].label
+                            : hol
+                              ? hol
+                              : value
+                        }
                         onClick={(e) =>
                           setActive({
                             agentId: a.id,

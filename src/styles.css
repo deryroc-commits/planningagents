@@ -99,6 +99,15 @@
   --cat-error-bg: oklch(0.9 0.11 27);
   --cat-error-fg: oklch(0.45 0.2 27);
   --cell-weekend: oklch(0.95 0.006 256);
+  --cell-holiday: oklch(0.9 0.09 95);
+  --cell-holiday-fg: oklch(0.42 0.11 75);
+
+  /* Home / brand (Excel-inspired) */
+  --brand-panel: oklch(0.9 0.045 240);
+  --brand-panel-2: oklch(0.84 0.06 240);
+  --brand-green: oklch(0.66 0.13 148);
+  --brand-green-hover: oklch(0.6 0.14 148);
+  --brand-green-fg: oklch(0.99 0.01 150);
 }
 
 .dark {
@@ -145,6 +154,8 @@
   --cat-error-bg: oklch(0.45 0.18 27);
   --cat-error-fg: oklch(0.97 0.04 27);
   --cell-weekend: oklch(0.25 0.02 256);
+  --cell-holiday: oklch(0.42 0.11 90);
+  --cell-holiday-fg: oklch(0.95 0.05 95);
 }
 
 @layer base {
@@ -172,11 +183,35 @@
     box-shadow: inset 0 0 0 1.5px var(--destructive);
   }
   .cell-weekend { background-color: var(--cell-weekend); }
+  .cell-holiday { background-color: var(--cell-holiday); color: var(--cell-holiday-fg); }
+
+  .home-bg {
+    background:
+      radial-gradient(1200px 600px at 80% -10%, var(--brand-panel-2), transparent 60%),
+      linear-gradient(180deg, var(--brand-panel), var(--background));
+  }
+
+  .home-btn {
+    background-color: var(--brand-green);
+    color: var(--brand-green-fg);
+    box-shadow: 0 2px 0 0 color-mix(in oklch, var(--brand-green-hover), black 15%);
+    transition: transform 0.12s ease, background-color 0.12s ease;
+  }
+  .home-btn:hover {
+    background-color: var(--brand-green-hover);
+    transform: translateY(-1px);
+  }
+  .home-btn:active { transform: translateY(1px); box-shadow: none; }
 }
 
 @media print {
   .no-print { display: none !important; }
   .print-area { display: block !important; }
   body { background: white; }
-  @page { size: landscape; margin: 10mm; }
+  @page { size: landscape; margin: 8mm; }
+  .print-area table { font-size: 9px; }
+  .print-area th, .print-area td {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

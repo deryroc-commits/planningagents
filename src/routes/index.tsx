@@ -1,264 +1,114 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  AlertTriangle,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  Upload,
-  Users,
+  CalendarRange,
   Settings2,
-  Table2,
+  Users,
   Printer,
+  ArrowRight,
 } from "lucide-react";
-import { PlanningProvider, usePlanning } from "@/lib/planning/store";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { PlanningGrid } from "@/components/planning/PlanningGrid";
-import { ParametersTab } from "@/components/planning/ParametersTab";
-import { AgentsTab } from "@/components/planning/AgentsTab";
-import { PrintView } from "@/components/planning/PrintView";
-import { CATEGORY_META } from "@/lib/planning/types";
-import { codesMap, countErrors, MONTHS } from "@/lib/planning/calc";
-import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
+import homeHero from "@/assets/home-hero.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Planning des agents — UCPA" },
+      { title: "Planning agents UCPA — Cuisine centrale" },
       {
         name: "description",
         content:
-          "Gestion du planning annuel des agents : grille type Excel, codes contrôlés, calcul automatique des heures, détection d'erreurs, import/export.",
+          "Application de gestion du planning annuel des agents de la cuisine centrale UCPA : planning général, paramètres, base agents et impression.",
       },
-      { property: "og:title", content: "Planning des agents — UCPA" },
+      { property: "og:title", content: "Planning agents UCPA — Cuisine centrale" },
       {
         property: "og:description",
         content:
-          "Planning annuel type Excel : saisie contrôlée, calcul des heures, détection d'erreurs, impression et export.",
+          "Gestion du planning annuel des agents UCPA : planning général, paramètres, base agents, impression.",
       },
     ],
   }),
-  component: () => (
-    <PlanningProvider>
-      <PlanningApp />
-    </PlanningProvider>
-  ),
+  component: HomePage,
 });
 
-const YEARS = Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - 2 + i);
+const NAV = [
+  {
+    label: "Planning Général",
+    description: "Grille annuelle, saisie contrôlée et calcul des heures.",
+    icon: CalendarRange,
+    tab: "planning",
+  },
+  {
+    label: "Paramètres",
+    description: "Codes, libellés, heures et catégories de couleur.",
+    icon: Settings2,
+    tab: "params",
+  },
+  {
+    label: "Base Agents",
+    description: "Gestion des agents et de leurs équipes.",
+    icon: Users,
+    tab: "agents",
+  },
+  {
+    label: "Impression",
+    description: "Aperçu mensuel prêt à imprimer ou exporter en PDF.",
+    icon: Printer,
+    tab: "print",
+  },
+] as const;
 
-function PlanningApp() {
-  const {
-    year,
-    setYear,
-    codes,
-    planning,
-    replaceState,
-  } = usePlanning();
-  const [month, setMonth] = useState(new Date().getMonth());
-  const [tab, setTab] = useState("planning");
-  const [status, setStatus] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const errors = countErrors(planning, codesMap(codes));
-
-  const onImport = async (file: File) => {
-    try {
-      const res = await importFromExcel(file, year);
-      replaceState(res.state);
-      setStatus(res.summary);
-    } catch (e) {
-      setStatus("Échec de l'import du fichier.");
-      console.error(e);
-    }
-    setTimeout(() => setStatus(null), 5000);
-  };
-
+function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
-      <header className="no-print sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <CalendarDays className="size-5" />
-            </div>
-            <div>
-              <h1 className="text-base font-bold leading-tight">
-                Planning des agents
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                Planification annuelle — UCPA
-              </p>
-            </div>
-          </div>
-
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            {errors > 0 && (
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-sm font-medium text-destructive">
-                <AlertTriangle className="size-4" />
-                {errors} erreur{errors > 1 ? "s" : ""}
-              </span>
-            )}
-            <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="w-28">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {YEARS.map((y) => (
-                  <SelectItem key={y} value={String(y)}>
-                    {y}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".xlsb,.xlsx,.xls"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onImport(f);
-                e.target.value = "";
-              }}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileRef.current?.click()}
-            >
-              <Upload /> Importer
-            </Button>
-            <ExportButton />
-          </div>
-        </div>
-        {status && (
-          <div className="border-t border-border bg-accent/50 px-4 py-1.5 text-center text-sm">
-            {status}
-          </div>
-        )}
-      </header>
-
-      <main className="mx-auto max-w-[1600px] px-4 py-5">
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="no-print">
-            <TabsTrigger value="planning">
-              <Table2 className="mr-1.5 size-4" /> Planning
-            </TabsTrigger>
-            <TabsTrigger value="params">
-              <Settings2 className="mr-1.5 size-4" /> Paramètres
-            </TabsTrigger>
-            <TabsTrigger value="agents">
-              <Users className="mr-1.5 size-4" /> Base agents
-            </TabsTrigger>
-            <TabsTrigger value="print">
-              <Printer className="mr-1.5 size-4" /> Impression
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="planning" className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setMonth((m) => (m + 11) % 12)}
-                >
-                  <ChevronLeft />
-                </Button>
-                <Select
-                  value={String(month)}
-                  onValueChange={(v) => setMonth(Number(v))}
-                >
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MONTHS.map((m, i) => (
-                      <SelectItem key={m} value={String(i)}>
-                        {m} {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setMonth((m) => (m + 1) % 12)}
-                >
-                  <ChevronRight />
-                </Button>
-              </div>
-              <Legend />
-            </div>
-            <PlanningGrid month={month} />
-            <p className="text-xs text-muted-foreground">
-              Cliquez sur une cellule pour choisir un code. Seules les valeurs
-              définies dans « Paramètres » sont autorisées — toute autre valeur
-              apparaît en rouge.
+    <div className="min-h-screen home-bg">
+      <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center lg:py-16">
+        {/* Navigation buttons */}
+        <div className="space-y-4">
+          <div className="mb-6">
+            <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+              Cuisine Centrale — UCPA
             </p>
-          </TabsContent>
+            <h1 className="mt-1 text-3xl font-bold leading-tight text-foreground sm:text-4xl">
+              Planning des agents
+            </h1>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              Planification annuelle type Excel : choisissez une section pour
+              commencer.
+            </p>
+          </div>
 
-          <TabsContent value="params">
-            <ParametersTab />
-          </TabsContent>
-
-          <TabsContent value="agents">
-            <AgentsTab />
-          </TabsContent>
-
-          <TabsContent value="print">
-            <PrintView month={month} setMonth={setMonth} />
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
-  );
-}
-
-function ExportButton() {
-  const { codes, agents, planning, year } = usePlanning();
-  return (
-    <Button
-      size="sm"
-      onClick={() =>
-        exportToExcel(
-          { codes, agents, planningByYear: { [year]: planning } },
-          year,
-        )
-      }
-    >
-      <Download /> Exporter
-    </Button>
-  );
-}
-
-function Legend() {
-  return (
-    <div className="flex flex-wrap items-center gap-2.5 text-xs">
-      {Object.entries(CATEGORY_META).map(([key, meta]) => (
-        <div key={key} className="flex items-center gap-1">
-          <span className={`inline-block size-3 rounded ${meta.cls}`} />
-          {meta.label}
+          {NAV.map((item) => (
+            <Link
+              key={item.tab}
+              to="/app"
+              search={{ tab: item.tab }}
+              className="home-btn group flex items-center gap-4 rounded-xl px-5 py-4"
+            >
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white/20">
+                <item.icon className="size-6" />
+              </span>
+              <span className="flex-1">
+                <span className="block text-lg font-bold leading-tight">
+                  {item.label}
+                </span>
+                <span className="block text-sm opacity-90">
+                  {item.description}
+                </span>
+              </span>
+              <ArrowRight className="size-5 shrink-0 opacity-70 transition-transform group-hover:translate-x-1" />
+            </Link>
+          ))}
         </div>
-      ))}
-      <div className="flex items-center gap-1">
-        <span className="inline-block size-3 rounded cat-error" />
-        Erreur
+
+        {/* Hero illustration */}
+        <div className="hidden lg:block">
+          <div className="rounded-3xl border border-white/60 bg-white/70 p-4 shadow-xl backdrop-blur">
+            <img
+              src={homeHero}
+              alt="Illustration planning cuisine centrale UCPA"
+              width={1024}
+              height={768}
+              className="w-full rounded-2xl"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
