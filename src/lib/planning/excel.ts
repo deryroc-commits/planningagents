@@ -108,7 +108,12 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
       names.some((q) => n.toLowerCase().includes(q.toLowerCase())),
     );
 
-  const planName = find("planning_général", "planning_general", "planning gé");
+  const planName = find(
+    "planning_général",
+    "planning_general",
+    "planning gé",
+    "planning",
+  );
   if (!planName) return null;
 
   const rows = XLSX.utils.sheet_to_json(wb.Sheets[planName], {
