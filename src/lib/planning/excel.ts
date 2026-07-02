@@ -163,9 +163,11 @@ export async function exportStyledMonthExcel(
   const merges: any[] = [];
 
   // Title banner mirroring the on-screen preview: a left "MONTH YEAR" box,
-  // the red centered title, and a right "Imprimé le …" box — all on one row.
+  // the red centered title, and the "Imprimé le …" text on the right — placed
+  // inside the same red banner so the full date is always visible.
   const leftSpan = Math.min(3, colCount);
-  const rightSpan = Math.min(4, Math.max(1, colCount - leftSpan - 1));
+  // Reserve enough columns on the right for the full "Imprimé le JJ/MM/AAAA".
+  const rightSpan = Math.min(7, Math.max(1, colCount - leftSpan - 1));
   const centerSpan = Math.max(1, colCount - leftSpan - rightSpan);
   const bannerBg = XLS_HEADER.bg;
   const titleRow: any[] = [];
@@ -188,15 +190,18 @@ export async function exportStyledMonthExcel(
   );
   for (let k = 1; k < centerSpan; k++)
     titleRow.push(cell("", { bg: XLS_TITLE.bg }));
+  // "Imprimé le …" sits on the red banner background, right-aligned.
   titleRow.push(
     cell(`Imprimé le ${printDate}`, {
-      bg: bannerBg,
-      fg: XLS_HEADER.fg,
+      bg: XLS_TITLE.bg,
+      fg: XLS_TITLE.fg,
       bold: true,
+      align: "right",
       size: 9,
     }),
   );
-  for (let k = 1; k < rightSpan; k++) titleRow.push(cell("", { bg: bannerBg }));
+  for (let k = 1; k < rightSpan; k++)
+    titleRow.push(cell("", { bg: XLS_TITLE.bg }));
   rows.push(titleRow);
   merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: leftSpan - 1 } });
   merges.push({
@@ -207,6 +212,7 @@ export async function exportStyledMonthExcel(
     s: { r: 0, c: leftSpan + centerSpan },
     e: { r: 0, c: colCount - 1 },
   });
+
 
   // Header row 1 — day letters.
   const hLetters = [cell("Jour", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" })];
