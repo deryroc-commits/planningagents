@@ -2,12 +2,10 @@ import { useMemo } from "react";
 import { ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
-  agentHoursForIndices,
   codesMap,
   dateOfDayIndex,
   dayIndicesForMonth,
   dayLetter,
-  fmtHours,
   holidaysForYear,
   isInvalid,
   isWeekend,
