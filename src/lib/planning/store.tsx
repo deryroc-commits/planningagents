@@ -71,12 +71,18 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
   // Hydrate from localStorage on client
   useEffect(() => {
     setState(loadState());
-    hydrated.current = true;
+    // Mark hydrated only AFTER the loaded state is committed, so the persist
+    // effect below never writes the pre-hydration default back to storage.
   }, []);
 
-  // Persist
+  // Persist — but skip the initial mount. Writing the default state before
+  // hydration finishes would fire a `storage` event that reverts other open
+  // viewers (Impression / Base agents) back to defaults.
   useEffect(() => {
-    if (!hydrated.current) return;
+    if (!hydrated.current) {
+      hydrated.current = true;
+      return;
+    }
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
