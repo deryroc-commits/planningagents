@@ -180,7 +180,6 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                   </th>
                 );
               })}
-              <th className="border border-border bg-accent px-1 py-0.5" />
             </tr>
           </thead>
           <tbody>
