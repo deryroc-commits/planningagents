@@ -156,9 +156,6 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                   </th>
                 );
               })}
-              <th className="border border-border bg-accent px-1 py-0.5 text-center">
-                H
-              </th>
             </tr>
             <tr>
               <th className="border border-border bg-muted px-2 py-1 text-left text-[9px] uppercase text-muted-foreground">
