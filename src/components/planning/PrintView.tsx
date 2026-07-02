@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { ChevronLeft, ChevronRight, FileSpreadsheet, Printer } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Download, FileSpreadsheet, Printer } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
   codesMap,
@@ -17,6 +17,14 @@ import type { Agent } from "@/lib/planning/types";
 import { exportStyledMonthExcel } from "@/lib/planning/excel";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -31,6 +39,8 @@ interface PrintViewProps {
 
 export function PrintView({ month, setMonth }: PrintViewProps) {
   const { year, setYear, agents, codes, planning } = usePlanning();
+  const [xlsxOpen, setXlsxOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
@@ -112,16 +122,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               ))}
             </SelectContent>
           </Select>
-          <Button
-            variant="outline"
-            onClick={() =>
-              exportStyledMonthExcel(
-                { codes, agents, planningByYear: { [year]: planning } },
-                year,
-                month,
-              )
-            }
-          >
+          <Button variant="outline" onClick={() => setXlsxOpen(true)}>
             <FileSpreadsheet /> Aperçu Excel (XLSX)
           </Button>
           <Button onClick={() => window.print()}>
@@ -131,99 +132,190 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
       </div>
 
       <div className="print-area overflow-auto rounded-lg border border-border bg-card p-3">
-        {/* Title banner */}
-        <div className="mb-3 flex items-stretch gap-2">
-          <div className="flex min-w-[180px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
-            <div className="text-lg font-bold uppercase tracking-wide">
-              {MONTHS[month]}
-            </div>
-            <div className="text-sm font-semibold text-muted-foreground">
-              {year}
-            </div>
+        <PlanningSheet
+          month={month}
+          year={year}
+          printDate={printDate}
+          groups={groups}
+          indices={indices}
+          planning={planning}
+          map={map}
+          holidays={holidays}
+          colCount={colCount}
+        />
+      </div>
+
+      <Dialog open={xlsxOpen} onOpenChange={setXlsxOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[95vw] max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="size-5" />
+              Aperçu du fichier Excel — {MONTHS[month]} {year}
+            </DialogTitle>
+            <DialogDescription>
+              Aperçu avant enregistrement. Le fichier XLSX conserve les mêmes
+              couleurs, colonnes et lignes. Imprimé le {printDate}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-auto rounded-lg border border-border bg-card p-3">
+            <PlanningSheet
+              month={month}
+              year={year}
+              printDate={printDate}
+              groups={groups}
+              indices={indices}
+              planning={planning}
+              map={map}
+              holidays={holidays}
+              colCount={colCount}
+            />
           </div>
-          <div className="flex flex-1 items-center justify-center rounded bg-destructive px-4 py-1.5">
-            <h1 className="text-xl font-bold tracking-wide text-destructive-foreground">
-              PLANNING AGENTS UCPA
-            </h1>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setXlsxOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              disabled={saving}
+              onClick={async () => {
+                setSaving(true);
+                try {
+                  await exportStyledMonthExcel(
+                    { codes, agents, planningByYear: { [year]: planning } },
+                    year,
+                    month,
+                  );
+                  setXlsxOpen(false);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+            >
+              <Download /> {saving ? "Enregistrement…" : "Enregistrer le fichier"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+interface SheetProps {
+  month: number;
+  year: number;
+  printDate: string;
+  groups: { team: string; agents: Agent[] }[];
+  indices: number[];
+  planning: ReturnType<typeof usePlanning>["planning"];
+  map: ReturnType<typeof codesMap>;
+  holidays: Record<number, string>;
+  colCount: number;
+}
+
+function PlanningSheet({
+  month,
+  year,
+  printDate,
+  groups,
+  indices,
+  planning,
+  map,
+  holidays,
+  colCount,
+}: SheetProps) {
+  return (
+    <>
+      {/* Title banner */}
+      <div className="mb-3 flex items-stretch gap-2">
+        <div className="flex min-w-[180px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
+          <div className="text-lg font-bold uppercase tracking-wide">
+            {MONTHS[month]}
           </div>
-          <div className="flex min-w-[150px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
-            <div className="text-[10px] font-semibold uppercase text-muted-foreground">
-              Imprimé le
-            </div>
-            <div className="text-sm font-bold">{printDate}</div>
+          <div className="text-sm font-semibold text-muted-foreground">
+            {year}
           </div>
         </div>
-
-        <table className="w-full border-collapse text-[11px]">
-          <thead>
-            <tr>
-              <th className="w-[180px] min-w-[180px] border border-border bg-muted px-2 py-1 text-left">
-                Agent
-              </th>
-              {indices.map((i) => {
-                const d = dateOfDayIndex(year, i);
-                const hol = holidays[i];
-                return (
-                  <th
-                    key={`l-${i}`}
-                    title={hol}
-                    className={`w-7 border border-border px-0 py-0.5 text-center text-[9px] ${
-                      hol
-                        ? "cell-holiday"
-                        : isWeekend(d)
-                          ? "cell-weekend"
-                          : "bg-muted"
-                    }`}
-                  >
-                    {dayLetter(d)}
-                  </th>
-                );
-              })}
-            </tr>
-            <tr>
-              <th className="border border-border bg-muted px-2 py-1 text-left text-[9px] uppercase text-muted-foreground">
-                Jour
-              </th>
-              {indices.map((i) => {
-                const d = dateOfDayIndex(year, i);
-                const hol = holidays[i];
-                return (
-                  <th
-                    key={`n-${i}`}
-                    title={hol}
-                    className={`w-7 border border-border px-0 py-0.5 text-center font-semibold ${
-                      hol
-                        ? "cell-holiday"
-                        : isWeekend(d)
-                          ? "cell-weekend"
-                          : "bg-muted"
-                    }`}
-                  >
-                    {d.getDate()}
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {groups.map((g) => (
-              <GroupRows
-                key={g.team}
-                team={g.team}
-                agents={g.agents}
-                indices={indices}
-                planning={planning}
-                map={map}
-                holidays={holidays}
-                year={year}
-                colCount={colCount}
-              />
-            ))}
-          </tbody>
-        </table>
-        <Legend />
+        <div className="flex flex-1 items-center justify-center rounded bg-destructive px-4 py-1.5">
+          <h1 className="text-xl font-bold tracking-wide text-destructive-foreground">
+            PLANNING AGENTS UCPA
+          </h1>
+        </div>
+        <div className="flex min-w-[150px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
+          <div className="text-[10px] font-semibold uppercase text-muted-foreground">
+            Imprimé le
+          </div>
+          <div className="text-sm font-bold">{printDate}</div>
+        </div>
       </div>
-    </div>
+
+      <table className="w-full border-collapse text-[11px]">
+        <thead>
+          <tr>
+            <th className="w-[180px] min-w-[180px] border border-border bg-muted px-2 py-1 text-left">
+              Agent
+            </th>
+            {indices.map((i) => {
+              const d = dateOfDayIndex(year, i);
+              const hol = holidays[i];
+              return (
+                <th
+                  key={`l-${i}`}
+                  title={hol}
+                  className={`w-7 border border-border px-0 py-0.5 text-center text-[9px] ${
+                    hol
+                      ? "cell-holiday"
+                      : isWeekend(d)
+                        ? "cell-weekend"
+                        : "bg-muted"
+                  }`}
+                >
+                  {dayLetter(d)}
+                </th>
+              );
+            })}
+          </tr>
+          <tr>
+            <th className="border border-border bg-muted px-2 py-1 text-left text-[9px] uppercase text-muted-foreground">
+              Jour
+            </th>
+            {indices.map((i) => {
+              const d = dateOfDayIndex(year, i);
+              const hol = holidays[i];
+              return (
+                <th
+                  key={`n-${i}`}
+                  title={hol}
+                  className={`w-7 border border-border px-0 py-0.5 text-center font-semibold ${
+                    hol
+                      ? "cell-holiday"
+                      : isWeekend(d)
+                        ? "cell-weekend"
+                        : "bg-muted"
+                  }`}
+                >
+                  {d.getDate()}
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {groups.map((g) => (
+            <GroupRows
+              key={g.team}
+              team={g.team}
+              agents={g.agents}
+              indices={indices}
+              planning={planning}
+              map={map}
+              holidays={holidays}
+              year={year}
+              colCount={colCount}
+            />
+          ))}
+        </tbody>
+      </table>
+      <Legend />
+    </>
   );
 }
 
