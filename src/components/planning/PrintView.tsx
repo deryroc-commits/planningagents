@@ -2,12 +2,10 @@ import { useMemo } from "react";
 import { ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
-  agentHoursForIndices,
   codesMap,
   dateOfDayIndex,
   dayIndicesForMonth,
   dayLetter,
-  fmtHours,
   holidaysForYear,
   isInvalid,
   isWeekend,
@@ -52,7 +50,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
     return out;
   }, [agents]);
 
-  const colCount = indices.length + 2;
+  const colCount = indices.length + 1;
 
   return (
     <div className="space-y-4">
@@ -158,9 +156,6 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                   </th>
                 );
               })}
-              <th className="border border-border bg-accent px-1 py-0.5 text-center">
-                H
-              </th>
             </tr>
             <tr>
               <th className="border border-border bg-muted px-2 py-1 text-left text-[9px] uppercase text-muted-foreground">
@@ -185,7 +180,6 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                   </th>
                 );
               })}
-              <th className="border border-border bg-accent px-1 py-0.5" />
             </tr>
           </thead>
           <tbody>
@@ -268,10 +262,8 @@ function GroupRows({
                 </td>
               );
             })}
-            <td className="border border-border bg-accent/40 px-1 text-center font-semibold tabular-nums">
-              {fmtHours(agentHoursForIndices(planning, a.id, indices, map))}
-            </td>
           </tr>
+
         );
       })}
     </>
