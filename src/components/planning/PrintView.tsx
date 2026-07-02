@@ -129,6 +129,12 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               PLANNING AGENTS UCPA
             </h1>
           </div>
+          <div className="flex min-w-[150px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
+            <div className="text-[10px] font-semibold uppercase text-muted-foreground">
+              Imprimé le
+            </div>
+            <div className="text-sm font-bold">{printDate}</div>
+          </div>
         </div>
 
         <table className="w-full border-collapse text-[11px]">
