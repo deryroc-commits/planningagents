@@ -229,11 +229,34 @@
 @media print {
   .no-print { display: none !important; }
   .print-area { display: block !important; }
-  body { background: white; }
-  @page { size: landscape; margin: 8mm; }
-  .print-area table { font-size: 9px; }
-  .print-area th, .print-area td {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  html, body { background: white; height: auto; }
+  @page { size: A4 landscape; margin: 6mm; }
+
+  /* Keep every application color when printing */
+  .print-area,
+  .print-area * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
+
+  /* Fit the whole planning on a single landscape sheet */
+  .print-area {
+    width: 100%;
+    border: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  .print-area table {
+    width: 100%;
+    font-size: 7px;
+    table-layout: fixed;
+    page-break-inside: avoid;
+  }
+  .print-area th,
+  .print-area td {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    page-break-inside: avoid;
+  }
+  .print-area tr { page-break-inside: avoid; }
 }
