@@ -51,12 +51,13 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     try {
       const res = await importFromExcel(file, year);
       replaceState(res.state);
+      if (res.year && res.year !== year) setYear(res.year);
       setStatus(res.summary);
     } catch (e) {
       setStatus("Échec de l'import du fichier.");
       console.error(e);
     }
-    setTimeout(() => setStatus(null), 5000);
+    setTimeout(() => setStatus(null), 6000);
   };
 
   return (
@@ -107,7 +108,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <input
               ref={fileRef}
               type="file"
-              accept=".xlsb,.xlsx,.xls"
+              accept=".xlsx,.xlsm,.xlsb,.xls,.csv"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
