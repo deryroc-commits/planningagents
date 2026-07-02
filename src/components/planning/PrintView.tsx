@@ -266,10 +266,8 @@ function GroupRows({
                 </td>
               );
             })}
-            <td className="border border-border bg-accent/40 px-1 text-center font-semibold tabular-nums">
-              {fmtHours(agentHoursForIndices(planning, a.id, indices, map))}
-            </td>
           </tr>
+
         );
       })}
     </>
