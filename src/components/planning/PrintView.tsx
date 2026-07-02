@@ -144,6 +144,57 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
           colCount={colCount}
         />
       </div>
+
+      <Dialog open={xlsxOpen} onOpenChange={setXlsxOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[95vw] max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="size-5" />
+              Aperçu du fichier Excel — {MONTHS[month]} {year}
+            </DialogTitle>
+            <DialogDescription>
+              Aperçu avant enregistrement. Le fichier XLSX conserve les mêmes
+              couleurs, colonnes et lignes. Imprimé le {printDate}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-auto rounded-lg border border-border bg-card p-3">
+            <PlanningSheet
+              month={month}
+              year={year}
+              printDate={printDate}
+              groups={groups}
+              indices={indices}
+              planning={planning}
+              map={map}
+              holidays={holidays}
+              colCount={colCount}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setXlsxOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              disabled={saving}
+              onClick={async () => {
+                setSaving(true);
+                try {
+                  await exportStyledMonthExcel(
+                    { codes, agents, planningByYear: { [year]: planning } },
+                    year,
+                    month,
+                  );
+                  setXlsxOpen(false);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+            >
+              <Download /> {saving ? "Enregistrement…" : "Enregistrer le fichier"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
