@@ -84,6 +84,18 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     }
   }, [state]);
 
+  // Keep every open view (other tabs/viewers) in sync: when the stored data
+  // changes elsewhere (e.g. an import), reload it so Impression & Base agents
+  // never stay out of date.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key && e.key !== STORAGE_KEY) return;
+      setState(loadState());
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const planning = state.planningByYear[year] ?? {};
 
   const setCell = useCallback(
