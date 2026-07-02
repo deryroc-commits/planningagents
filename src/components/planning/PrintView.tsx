@@ -146,8 +146,8 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
       </div>
 
       <Dialog open={xlsxOpen} onOpenChange={setXlsxOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[95vw] max-h-[90vh] overflow-hidden">
-          <DialogHeader>
+        <DialogContent className="flex h-[95vh] max-h-[95vh] w-[98vw] max-w-[98vw] flex-col overflow-hidden sm:max-w-[98vw]">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <FileSpreadsheet className="size-5" />
               Aperçu du fichier Excel — {MONTHS[month]} {year}
@@ -157,7 +157,8 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               couleurs, colonnes et lignes. Imprimé le {printDate}.
             </DialogDescription>
           </DialogHeader>
-          <div className="overflow-auto rounded-lg border border-border bg-card p-3">
+          <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border bg-card p-3">
+
             <PlanningSheet
               month={month}
               year={year}
@@ -170,7 +171,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               colCount={colCount}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             <Button variant="outline" onClick={() => setXlsxOpen(false)}>
               Annuler
             </Button>
