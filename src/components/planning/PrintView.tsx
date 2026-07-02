@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ChevronLeft, ChevronRight, Printer } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileSpreadsheet, Printer } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
   codesMap,
@@ -14,6 +14,7 @@ import {
 import { MONTHS } from "@/lib/planning/calc";
 import { CATEGORY_META } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
+import { exportStyledMonthExcel } from "@/lib/planning/excel";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -111,6 +112,18 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               ))}
             </SelectContent>
           </Select>
+          <Button
+            variant="outline"
+            onClick={() =>
+              exportStyledMonthExcel(
+                { codes, agents, planningByYear: { [year]: planning } },
+                year,
+                month,
+              )
+            }
+          >
+            <FileSpreadsheet /> Aperçu Excel (XLSX)
+          </Button>
           <Button onClick={() => window.print()}>
             <Printer /> Imprimer / PDF
           </Button>

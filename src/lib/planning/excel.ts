@@ -5,7 +5,18 @@ import type {
   PlanningState,
   YearPlanning,
 } from "./types";
-import { daysInYear, dateOfDayIndex, dayLetter } from "./calc";
+import { CATEGORY_META } from "./types";
+import {
+  codesMap,
+  dateOfDayIndex,
+  dayIndicesForMonth,
+  dayLetter,
+  daysInYear,
+  holidaysForYear,
+  isInvalid,
+  isWeekend,
+  MONTHS,
+} from "./calc";
 import { DEFAULT_AGENTS, DEFAULT_CODES } from "./defaults";
 
 const CATEGORIES: CodeCategory[] = [
@@ -70,6 +81,190 @@ export async function exportToExcel(
   );
 
   XLSX.writeFile(wb, `planning-ucpa-${year}.xlsx`);
+}
+
+// ---------------------------------------------------------------------------
+// Styled (colored) export that mirrors the print view: one landscape-friendly
+// sheet per month, colored cells matching each code category, weekends and
+// public holidays, team bands, and a legend — all as an Excel table with
+// borders, so the workbook looks like the application on screen.
+// ---------------------------------------------------------------------------
+
+/** Category / cell colors as ARGB hex (background + font), matching the app. */
+const XLS_COLORS: Record<CodeCategory, { bg: string; fg: string }> = {
+  travail: { bg: "CFEFD8", fg: "1F6B3A" },
+  poste: { bg: "CFDDF7", fg: "254690" },
+  repos: { bg: "EAEAEE", fg: "5C5C63" },
+  recup: { bg: "CCE8F1", fg: "1E5E75" },
+  absence: { bg: "F5E6C2", fg: "7A5A18" },
+  autre: { bg: "EEDAEC", fg: "6E2E68" },
+};
+const XLS_WEEKEND = "ECECF0";
+const XLS_HOLIDAY = { bg: "F6DE9A", fg: "6B5410" };
+const XLS_ERROR = { bg: "F4C6C6", fg: "8B1E1E" };
+const XLS_HEADER = { bg: "E7EAF0", fg: "222A38" };
+const XLS_TEAM = { bg: "D7DEEA", fg: "1E2A44" };
+const XLS_TITLE = { bg: "C0392B", fg: "FFFFFF" };
+const XLS_BORDER = "B7BDC7";
+
+const thin = { style: "thin", color: { rgb: XLS_BORDER } };
+const allBorders = { top: thin, bottom: thin, left: thin, right: thin };
+
+function cell(
+  value: string | number,
+  opts: {
+    bg?: string;
+    fg?: string;
+    bold?: boolean;
+    align?: "center" | "left";
+    size?: number;
+  } = {},
+) {
+  return {
+    v: value,
+    t: typeof value === "number" ? "n" : "s",
+    s: {
+      font: {
+        name: "Arial",
+        sz: opts.size ?? 9,
+        bold: !!opts.bold,
+        color: { rgb: opts.fg ?? "222A38" },
+      },
+      fill: opts.bg ? { patternType: "solid", fgColor: { rgb: opts.bg } } : undefined,
+      alignment: {
+        horizontal: opts.align ?? "center",
+        vertical: "center",
+      },
+      border: allBorders,
+    },
+  };
+}
+
+/**
+ * Export a single month as a styled worksheet that visually matches the
+ * on-screen / print planning (colors, columns, rows, table borders).
+ */
+export async function exportStyledMonthExcel(
+  state: PlanningState,
+  year: number,
+  month: number,
+): Promise<void> {
+  const XLSX = await import("xlsx-js-style");
+  const wb = XLSX.utils.book_new();
+
+  const map = codesMap(state.codes);
+  const holidays = holidaysForYear(year);
+  const indices = dayIndicesForMonth(year, month);
+  const planning = state.planningByYear[year] ?? {};
+  const colCount = indices.length + 1;
+
+  const rows: any[][] = [];
+  const merges: any[] = [];
+
+  // Title band (merged across all columns).
+  rows.push([
+    cell(`PLANNING AGENTS UCPA — ${MONTHS[month]} ${year}`, {
+      bg: XLS_TITLE.bg,
+      fg: XLS_TITLE.fg,
+      bold: true,
+      size: 13,
+    }),
+    ...Array.from({ length: colCount - 1 }, () =>
+      cell("", { bg: XLS_TITLE.bg }),
+    ),
+  ]);
+  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } });
+
+  // Header row 1 — day letters.
+  const hLetters = [cell("Jour", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" })];
+  const hNumbers = [cell("Agent", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" })];
+  for (const i of indices) {
+    const d = dateOfDayIndex(year, i);
+    const hol = holidays[i];
+    const bg = hol ? XLS_HOLIDAY.bg : isWeekend(d) ? XLS_WEEKEND : XLS_HEADER.bg;
+    const fg = hol ? XLS_HOLIDAY.fg : XLS_HEADER.fg;
+    hLetters.push(cell(dayLetter(d), { bg, fg, bold: true, size: 8 }));
+    hNumbers.push(cell(d.getDate(), { bg, fg, bold: true }));
+  }
+  rows.push(hLetters);
+  rows.push(hNumbers);
+
+  // Group agents by team, preserving order.
+  const groups: { team: string; agents: Agent[] }[] = [];
+  for (const a of state.agents) {
+    const team = a.team?.trim() || "Sans équipe";
+    const last = groups[groups.length - 1];
+    if (last && last.team === team) last.agents.push(a);
+    else groups.push({ team, agents: [a] });
+  }
+
+  for (const g of groups) {
+    const bandRow = rows.length;
+    rows.push([
+      cell(g.team, { bg: XLS_TEAM.bg, fg: XLS_TEAM.fg, bold: true, align: "left" }),
+      ...Array.from({ length: colCount - 1 }, () => cell("", { bg: XLS_TEAM.bg })),
+    ]);
+    merges.push({ s: { r: bandRow, c: 0 }, e: { r: bandRow, c: colCount - 1 } });
+
+    for (const a of g.agents) {
+      const row = planning[a.id] ?? {};
+      const line = [cell(a.name.toUpperCase(), { align: "left", bold: true })];
+      for (const i of indices) {
+        const v = row[i];
+        const d = dateOfDayIndex(year, i);
+        const hol = holidays[i];
+        let bg: string | undefined;
+        let fg = "222A38";
+        if (isInvalid(v, map)) {
+          bg = XLS_ERROR.bg;
+          fg = XLS_ERROR.fg;
+        } else if (v && map[v]) {
+          const meta = XLS_COLORS[map[v].category];
+          bg = meta.bg;
+          fg = meta.fg;
+        } else if (hol) {
+          bg = XLS_HOLIDAY.bg;
+          fg = XLS_HOLIDAY.fg;
+        } else if (isWeekend(d)) {
+          bg = XLS_WEEKEND;
+        }
+        line.push(cell(v ?? "", { bg, fg, bold: true }));
+      }
+      rows.push(line);
+    }
+  }
+
+  // Legend a couple of rows below the table.
+  rows.push([]);
+  const legend: [string, { bg: string; fg: string }][] = [
+    ...Object.entries(CATEGORY_META).map(
+      ([k, meta]) =>
+        [meta.label, { bg: XLS_COLORS[k as CodeCategory].bg, fg: XLS_COLORS[k as CodeCategory].fg }] as [
+          string,
+          { bg: string; fg: string },
+        ],
+    ),
+    ["Week-end", { bg: XLS_WEEKEND, fg: "222A38" }],
+    ["Jour férié", XLS_HOLIDAY],
+    ["Erreur / code invalide", XLS_ERROR],
+  ];
+  for (const [label, c] of legend) {
+    rows.push([cell(label, { bg: c.bg, fg: c.fg, bold: true, align: "left" })]);
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws["!merges"] = merges;
+  ws["!cols"] = [
+    { wch: 22 },
+    ...indices.map(() => ({ wch: 3.2 })),
+  ];
+  ws["!rows"] = rows.map((_, r) => ({ hpt: r === 0 ? 22 : 15 }));
+  // Freeze the agent column + header rows and print in landscape on one page.
+  ws["!freeze"] = { xSplit: 1, ySplit: 3 };
+  ws["!pageSetup"] = { orientation: "landscape", fitToWidth: 1, fitToHeight: 1 };
+
+  XLSX.utils.book_append_sheet(wb, ws, MONTHS[month].slice(0, 20));
+  XLSX.writeFile(wb, `planning-ucpa-${MONTHS[month].toLowerCase()}-${year}.xlsx`);
 }
 
 export interface ImportResult {
