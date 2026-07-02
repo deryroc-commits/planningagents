@@ -116,7 +116,7 @@ function cell(
     bg?: string;
     fg?: string;
     bold?: boolean;
-    align?: "center" | "left";
+    align?: "center" | "left" | "right";
     size?: number;
   } = {},
 ) {
