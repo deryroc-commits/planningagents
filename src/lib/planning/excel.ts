@@ -172,8 +172,10 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
     let codeCount = 0;
     for (const c of dateCols) {
       const v = row[c];
-      if (v != null && String(v).trim() !== "") {
-        cells[colDay[c]] = String(v).trim();
+      const s = v == null ? "" : String(v).trim();
+      // "0" is used to pad service-header rows; treat it as empty.
+      if (s !== "" && s !== "0") {
+        cells[colDay[c]] = s;
         codeCount++;
       }
     }
