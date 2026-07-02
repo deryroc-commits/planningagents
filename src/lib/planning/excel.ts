@@ -276,7 +276,7 @@ export async function exportStyledMonthExcel(
   ];
   ws["!rows"] = rows.map((_, r) => ({ hpt: r === 0 ? 22 : 15 }));
   // Freeze the agent column + header rows and print in landscape on one page.
-  ws["!freeze"] = { xSplit: 1, ySplit: 3 };
+  ws["!freeze"] = { xSplit: 1, ySplit: 4 };
   ws["!pageSetup"] = { orientation: "landscape", fitToWidth: 1, fitToHeight: 1 };
 
   XLSX.utils.book_append_sheet(wb, ws, MONTHS[month].slice(0, 20));
