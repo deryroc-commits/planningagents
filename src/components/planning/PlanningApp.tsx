@@ -108,7 +108,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <input
               ref={fileRef}
               type="file"
-              accept=".xlsb,.xlsx,.xls"
+              accept=".xlsx,.xlsm,.xlsb,.xls,.csv"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
