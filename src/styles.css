@@ -229,8 +229,15 @@
 @media print {
   .no-print { display: none !important; }
   .print-area { display: block !important; }
-  html, body { background: white; height: auto; }
-  @page { size: A4 landscape; margin: 6mm; }
+  html, body {
+    background: white;
+    height: auto;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  /* Full-bleed A4 landscape with no printer margins */
+  @page { size: A4 landscape; margin: 0; }
 
   /* Keep every application color when printing */
   .print-area,
@@ -239,12 +246,25 @@
     print-color-adjust: exact !important;
   }
 
-  /* Fit the whole planning on a single landscape sheet */
+  /* Center the whole planning on the sheet, edge to edge */
   .print-area {
+    box-sizing: border-box;
     width: 100%;
+    min-height: 100vh;
+    margin: 0 auto !important;
     border: none !important;
-    padding: 0 !important;
+    padding: 4mm !important;
     overflow: visible !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .print-area table {
+    width: 100%;
+    font-size: 7px;
+    table-layout: fixed;
+    page-break-inside: avoid;
+    margin: 0 auto;
   }
   .print-area table {
     width: 100%;
