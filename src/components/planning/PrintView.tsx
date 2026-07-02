@@ -37,6 +37,10 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
     [year, month],
   );
   const years = useMemo(() => selectableYears(), []);
+  const printDate = useMemo(
+    () => new Date().toLocaleDateString("fr-FR"),
+    [],
+  );
 
   // Group agents by team, preserving order — inserts a section band per team.
   const groups = useMemo(() => {
