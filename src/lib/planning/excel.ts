@@ -237,6 +237,33 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
   }
   if (!codes.length) codes = DEFAULT_CODES;
 
+  // Auto-register every code actually used in the planning that isn't defined
+  // in "Paramètres". In the source Excel these appear as red/manual cells;
+  // here we turn them into recognized "postes" so nothing is flagged as error.
+  const known = new Set(codes.map((c) => c.code.toUpperCase()));
+  const used = new Set<string>();
+  for (const agId of Object.keys(yp)) {
+    for (const day of Object.keys(yp[agId])) {
+      used.add(yp[agId][day as unknown as number]);
+    }
+  }
+  for (const raw of used) {
+    const code = raw.trim();
+    if (!code || known.has(code.toUpperCase())) continue;
+    known.add(code.toUpperCase());
+    const category = inferCategory(code, 0, "");
+    // A UCPA work shift (A6, S4, C6…) or a travail/poste code counts 7.5 h.
+    const isShift = /^[A-Z]+\d+$/i.test(code);
+    const hours =
+      category === "poste" || category === "travail" || isShift ? 7.5 : 0;
+    codes.push({
+      code,
+      label: code,
+      hours,
+      category: isShift ? "poste" : category,
+    });
+  }
+
   return {
     state: {
       codes,
