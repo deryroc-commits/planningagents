@@ -131,99 +131,139 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
       </div>
 
       <div className="print-area overflow-auto rounded-lg border border-border bg-card p-3">
-        {/* Title banner */}
-        <div className="mb-3 flex items-stretch gap-2">
-          <div className="flex min-w-[180px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
-            <div className="text-lg font-bold uppercase tracking-wide">
-              {MONTHS[month]}
-            </div>
-            <div className="text-sm font-semibold text-muted-foreground">
-              {year}
-            </div>
-          </div>
-          <div className="flex flex-1 items-center justify-center rounded bg-destructive px-4 py-1.5">
-            <h1 className="text-xl font-bold tracking-wide text-destructive-foreground">
-              PLANNING AGENTS UCPA
-            </h1>
-          </div>
-          <div className="flex min-w-[150px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
-            <div className="text-[10px] font-semibold uppercase text-muted-foreground">
-              Imprimé le
-            </div>
-            <div className="text-sm font-bold">{printDate}</div>
-          </div>
-        </div>
-
-        <table className="w-full border-collapse text-[11px]">
-          <thead>
-            <tr>
-              <th className="w-[180px] min-w-[180px] border border-border bg-muted px-2 py-1 text-left">
-                Agent
-              </th>
-              {indices.map((i) => {
-                const d = dateOfDayIndex(year, i);
-                const hol = holidays[i];
-                return (
-                  <th
-                    key={`l-${i}`}
-                    title={hol}
-                    className={`w-7 border border-border px-0 py-0.5 text-center text-[9px] ${
-                      hol
-                        ? "cell-holiday"
-                        : isWeekend(d)
-                          ? "cell-weekend"
-                          : "bg-muted"
-                    }`}
-                  >
-                    {dayLetter(d)}
-                  </th>
-                );
-              })}
-            </tr>
-            <tr>
-              <th className="border border-border bg-muted px-2 py-1 text-left text-[9px] uppercase text-muted-foreground">
-                Jour
-              </th>
-              {indices.map((i) => {
-                const d = dateOfDayIndex(year, i);
-                const hol = holidays[i];
-                return (
-                  <th
-                    key={`n-${i}`}
-                    title={hol}
-                    className={`w-7 border border-border px-0 py-0.5 text-center font-semibold ${
-                      hol
-                        ? "cell-holiday"
-                        : isWeekend(d)
-                          ? "cell-weekend"
-                          : "bg-muted"
-                    }`}
-                  >
-                    {d.getDate()}
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {groups.map((g) => (
-              <GroupRows
-                key={g.team}
-                team={g.team}
-                agents={g.agents}
-                indices={indices}
-                planning={planning}
-                map={map}
-                holidays={holidays}
-                year={year}
-                colCount={colCount}
-              />
-            ))}
-          </tbody>
-        </table>
-        <Legend />
+        <PlanningSheet
+          month={month}
+          year={year}
+          printDate={printDate}
+          groups={groups}
+          indices={indices}
+          planning={planning}
+          map={map}
+          holidays={holidays}
+          colCount={colCount}
+        />
       </div>
     </div>
+  );
+}
+
+interface SheetProps {
+  month: number;
+  year: number;
+  printDate: string;
+  groups: { team: string; agents: Agent[] }[];
+  indices: number[];
+  planning: ReturnType<typeof usePlanning>["planning"];
+  map: ReturnType<typeof codesMap>;
+  holidays: Record<number, string>;
+  colCount: number;
+}
+
+function PlanningSheet({
+  month,
+  year,
+  printDate,
+  groups,
+  indices,
+  planning,
+  map,
+  holidays,
+  colCount,
+}: SheetProps) {
+  return (
+    <>
+      {/* Title banner */}
+      <div className="mb-3 flex items-stretch gap-2">
+        <div className="flex min-w-[180px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
+          <div className="text-lg font-bold uppercase tracking-wide">
+            {MONTHS[month]}
+          </div>
+          <div className="text-sm font-semibold text-muted-foreground">
+            {year}
+          </div>
+        </div>
+        <div className="flex flex-1 items-center justify-center rounded bg-destructive px-4 py-1.5">
+          <h1 className="text-xl font-bold tracking-wide text-destructive-foreground">
+            PLANNING AGENTS UCPA
+          </h1>
+        </div>
+        <div className="flex min-w-[150px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
+          <div className="text-[10px] font-semibold uppercase text-muted-foreground">
+            Imprimé le
+          </div>
+          <div className="text-sm font-bold">{printDate}</div>
+        </div>
+      </div>
+
+      <table className="w-full border-collapse text-[11px]">
+        <thead>
+          <tr>
+            <th className="w-[180px] min-w-[180px] border border-border bg-muted px-2 py-1 text-left">
+              Agent
+            </th>
+            {indices.map((i) => {
+              const d = dateOfDayIndex(year, i);
+              const hol = holidays[i];
+              return (
+                <th
+                  key={`l-${i}`}
+                  title={hol}
+                  className={`w-7 border border-border px-0 py-0.5 text-center text-[9px] ${
+                    hol
+                      ? "cell-holiday"
+                      : isWeekend(d)
+                        ? "cell-weekend"
+                        : "bg-muted"
+                  }`}
+                >
+                  {dayLetter(d)}
+                </th>
+              );
+            })}
+          </tr>
+          <tr>
+            <th className="border border-border bg-muted px-2 py-1 text-left text-[9px] uppercase text-muted-foreground">
+              Jour
+            </th>
+            {indices.map((i) => {
+              const d = dateOfDayIndex(year, i);
+              const hol = holidays[i];
+              return (
+                <th
+                  key={`n-${i}`}
+                  title={hol}
+                  className={`w-7 border border-border px-0 py-0.5 text-center font-semibold ${
+                    hol
+                      ? "cell-holiday"
+                      : isWeekend(d)
+                        ? "cell-weekend"
+                        : "bg-muted"
+                  }`}
+                >
+                  {d.getDate()}
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {groups.map((g) => (
+            <GroupRows
+              key={g.team}
+              team={g.team}
+              agents={g.agents}
+              indices={indices}
+              planning={planning}
+              map={map}
+              holidays={holidays}
+              year={year}
+              colCount={colCount}
+            />
+          ))}
+        </tbody>
+      </table>
+      <Legend />
+    </>
   );
 }
 
