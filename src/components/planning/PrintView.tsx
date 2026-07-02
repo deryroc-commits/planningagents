@@ -171,7 +171,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               colCount={colCount}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             <Button variant="outline" onClick={() => setXlsxOpen(false)}>
               Annuler
             </Button>
