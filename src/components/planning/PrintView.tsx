@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ChevronLeft, ChevronRight, Printer } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileSpreadsheet, Printer } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
   codesMap,
