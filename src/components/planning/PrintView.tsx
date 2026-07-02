@@ -122,16 +122,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               ))}
             </SelectContent>
           </Select>
-          <Button
-            variant="outline"
-            onClick={() =>
-              exportStyledMonthExcel(
-                { codes, agents, planningByYear: { [year]: planning } },
-                year,
-                month,
-              )
-            }
-          >
+          <Button variant="outline" onClick={() => setXlsxOpen(true)}>
             <FileSpreadsheet /> Aperçu Excel (XLSX)
           </Button>
           <Button onClick={() => window.print()}>
