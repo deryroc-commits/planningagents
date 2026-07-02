@@ -51,12 +51,13 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     try {
       const res = await importFromExcel(file, year);
       replaceState(res.state);
+      if (res.year && res.year !== year) setYear(res.year);
       setStatus(res.summary);
     } catch (e) {
       setStatus("Échec de l'import du fichier.");
       console.error(e);
     }
-    setTimeout(() => setStatus(null), 5000);
+    setTimeout(() => setStatus(null), 6000);
   };
 
   return (
