@@ -157,6 +157,7 @@ export async function exportStyledMonthExcel(
   const indices = dayIndicesForMonth(year, month);
   const planning = state.planningByYear[year] ?? {};
   const colCount = indices.length + 1;
+  const printDate = new Date().toLocaleDateString("fr-FR");
 
   const rows: any[][] = [];
   const merges: any[] = [];
@@ -174,6 +175,21 @@ export async function exportStyledMonthExcel(
     ),
   ]);
   merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } });
+
+  // Print-date band (merged, right aligned) just under the title.
+  rows.push([
+    cell(`Imprimé le ${printDate}`, {
+      bg: XLS_HEADER.bg,
+      fg: XLS_HEADER.fg,
+      bold: true,
+      align: "right",
+      size: 9,
+    }),
+    ...Array.from({ length: colCount - 1 }, () =>
+      cell("", { bg: XLS_HEADER.bg }),
+    ),
+  ]);
+  merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: colCount - 1 } });
 
   // Header row 1 — day letters.
   const hLetters = [cell("Jour", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" })];
