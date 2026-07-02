@@ -50,7 +50,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
     return out;
   }, [agents]);
 
-  const colCount = indices.length + 2;
+  const colCount = indices.length + 1;
 
   return (
     <div className="space-y-4">
