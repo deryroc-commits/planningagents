@@ -180,9 +180,13 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({
       codes: s.codes ?? prev.codes,
       agents: s.agents ?? prev.agents,
-      planningByYear: s.planningByYear ?? prev.planningByYear,
+      // Merge per-year so importing one year never wipes other years.
+      planningByYear: s.planningByYear
+        ? { ...prev.planningByYear, ...s.planningByYear }
+        : prev.planningByYear,
     }));
   }, []);
+
 
   const resetAll = useCallback(() => {
     setState({
