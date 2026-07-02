@@ -14,6 +14,7 @@ import {
 import { MONTHS } from "@/lib/planning/calc";
 import { CATEGORY_META } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
+import { exportStyledMonthExcel } from "@/lib/planning/excel";
 import { Button } from "@/components/ui/button";
 import {
   Select,
