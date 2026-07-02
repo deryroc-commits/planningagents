@@ -162,34 +162,51 @@ export async function exportStyledMonthExcel(
   const rows: any[][] = [];
   const merges: any[] = [];
 
-  // Title band (merged across all columns).
-  rows.push([
-    cell(`PLANNING AGENTS UCPA — ${MONTHS[month]} ${year}`, {
+  // Title banner mirroring the on-screen preview: a left "MONTH YEAR" box,
+  // the red centered title, and a right "Imprimé le …" box — all on one row.
+  const leftSpan = Math.min(3, colCount);
+  const rightSpan = Math.min(4, Math.max(1, colCount - leftSpan - 1));
+  const centerSpan = Math.max(1, colCount - leftSpan - rightSpan);
+  const bannerBg = XLS_HEADER.bg;
+  const titleRow: any[] = [];
+  titleRow.push(
+    cell(`${MONTHS[month].toUpperCase()} ${year}`, {
+      bg: bannerBg,
+      fg: XLS_HEADER.fg,
+      bold: true,
+      size: 12,
+    }),
+  );
+  for (let k = 1; k < leftSpan; k++) titleRow.push(cell("", { bg: bannerBg }));
+  titleRow.push(
+    cell("PLANNING AGENTS UCPA", {
       bg: XLS_TITLE.bg,
       fg: XLS_TITLE.fg,
       bold: true,
-      size: 13,
+      size: 14,
     }),
-    ...Array.from({ length: colCount - 1 }, () =>
-      cell("", { bg: XLS_TITLE.bg }),
-    ),
-  ]);
-  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } });
-
-  // Print-date band (merged, right aligned) just under the title.
-  rows.push([
+  );
+  for (let k = 1; k < centerSpan; k++)
+    titleRow.push(cell("", { bg: XLS_TITLE.bg }));
+  titleRow.push(
     cell(`Imprimé le ${printDate}`, {
-      bg: XLS_HEADER.bg,
+      bg: bannerBg,
       fg: XLS_HEADER.fg,
       bold: true,
-      align: "right",
       size: 9,
     }),
-    ...Array.from({ length: colCount - 1 }, () =>
-      cell("", { bg: XLS_HEADER.bg }),
-    ),
-  ]);
-  merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: colCount - 1 } });
+  );
+  for (let k = 1; k < rightSpan; k++) titleRow.push(cell("", { bg: bannerBg }));
+  rows.push(titleRow);
+  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: leftSpan - 1 } });
+  merges.push({
+    s: { r: 0, c: leftSpan },
+    e: { r: 0, c: leftSpan + centerSpan - 1 },
+  });
+  merges.push({
+    s: { r: 0, c: leftSpan + centerSpan },
+    e: { r: 0, c: colCount - 1 },
+  });
 
   // Header row 1 — day letters.
   const hLetters = [cell("Jour", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" })];
@@ -204,6 +221,7 @@ export async function exportStyledMonthExcel(
   }
   rows.push(hLetters);
   rows.push(hNumbers);
+
 
   // Group agents by team, preserving order.
   const groups: { team: string; agents: Agent[] }[] = [];
