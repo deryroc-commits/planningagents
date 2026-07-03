@@ -1,4 +1,4 @@
-import type { Agent, ColorScheme, PlanningCode } from "./types";
+import type { Agent, ColorScheme, PlanningCode, RotationState } from "./types";
 
 /**
  * Default color scheme (hex) shared by the on-screen grid, the legend, the
@@ -44,5 +44,11 @@ export const DEFAULT_AGENTS: Agent[] = [
   { id: "ag-5", name: "Robert Julie", team: "Équipe B" },
   { id: "ag-6", name: "Richard Antoine", team: "Équipe B" },
 ];
+
+export const DEFAULT_ROTATION: RotationState = {
+  cycleWeeks: 5,
+  templates: [],
+  offsets: {},
+};
 
 export const STORAGE_KEY = "ucpa-planning-v1";

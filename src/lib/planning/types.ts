@@ -39,12 +39,29 @@ export type ColorScheme = Record<ColorKey, ColorPair>;
 /** agentId -> dayIndex (0-based day of year) -> code */
 export type YearPlanning = Record<string, Record<number, string>>;
 
+/**
+ * Base weekend-rotation model ("1 week-end sur N").
+ * The cycle spans `cycleWeeks` weeks; each week is a template of 7 codes
+ * (Monday..Sunday). Every agent starts the cycle at a given week offset so
+ * that the weekend duty rotates evenly across the team over the year.
+ */
+export interface RotationState {
+  /** Length of the cycle in weeks (e.g. 5 = 1 week-end sur 5). */
+  cycleWeeks: number;
+  /** [weekIndex 0..cycleWeeks-1][dayMon0 0..6] = code ("" when empty). */
+  templates: string[][];
+  /** agentId -> starting week offset (0-based) inside the cycle. */
+  offsets: Record<string, number>;
+}
+
 export interface PlanningState {
   codes: PlanningCode[];
   agents: Agent[];
   planningByYear: Record<number, YearPlanning>;
   /** Optional user color overrides; when absent the app uses DEFAULT_COLORS. */
   colors?: ColorScheme;
+  /** Optional weekend-rotation configuration. */
+  rotation?: RotationState;
 }
 
 /** Human labels for each colorable element (used by the color editor). */

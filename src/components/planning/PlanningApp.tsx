@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
+  BarChart3,
+  CalendarClock,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -31,6 +33,8 @@ import {
 import { PlanningGrid } from "@/components/planning/PlanningGrid";
 import { ParametersTab } from "@/components/planning/ParametersTab";
 import { AgentsTab } from "@/components/planning/AgentsTab";
+import { StatsTab } from "@/components/planning/StatsTab";
+import { RotationTab } from "@/components/planning/RotationTab";
 import { PrintView } from "@/components/planning/PrintView";
 import { CATEGORY_META } from "@/lib/planning/types";
 import { codesMap, countErrors, MONTHS, selectableYears } from "@/lib/planning/calc";
@@ -139,6 +143,12 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <TabsTrigger value="planning">
               <Table2 className="mr-1.5 size-4" /> Planning
             </TabsTrigger>
+            <TabsTrigger value="stats">
+              <BarChart3 className="mr-1.5 size-4" /> Statistiques
+            </TabsTrigger>
+            <TabsTrigger value="rotation">
+              <CalendarClock className="mr-1.5 size-4" /> Roulement WE
+            </TabsTrigger>
             <TabsTrigger value="params">
               <Settings2 className="mr-1.5 size-4" /> Paramètres
             </TabsTrigger>
@@ -191,6 +201,14 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               définies dans « Paramètres » sont autorisées — toute autre valeur
               apparaît en rouge.
             </p>
+          </TabsContent>
+
+          <TabsContent value="stats">
+            <StatsTab />
+          </TabsContent>
+
+          <TabsContent value="rotation">
+            <RotationTab />
           </TabsContent>
 
           <TabsContent value="params">
