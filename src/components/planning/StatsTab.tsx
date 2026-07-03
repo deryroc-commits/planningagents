@@ -156,9 +156,9 @@ export function StatsTab() {
                 <th className="border-b border-r border-border bg-accent px-2 py-1.5 text-center font-semibold">
                   Année
                 </th>
-                {MONTH_SHORT.map((m) => (
+                {MONTH_SHORT.map((m, i) => (
                   <th
-                    key={m}
+                    key={i}
                     className="min-w-[52px] border-b border-r border-border px-2 py-1.5 text-center font-medium"
                   >
                     {m}
