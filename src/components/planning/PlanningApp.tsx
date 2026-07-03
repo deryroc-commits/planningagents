@@ -259,6 +259,33 @@ function ExportButton() {
   );
 }
 
+function ResetDialog({ onReset }: { onReset: () => void }) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+          <Trash2 /> Tout remettre à zéro
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Tout remettre à zéro ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Cette action est irréversible. Elle supprimera tout le planning,
+            la base agents, les codes et les paramètres personnalisés.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction onClick={onReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Confirmer la réinitialisation
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 function Legend() {
   return (
     <div className="flex flex-wrap items-center gap-2.5 text-xs">
