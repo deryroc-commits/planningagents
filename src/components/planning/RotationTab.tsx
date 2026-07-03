@@ -284,7 +284,7 @@ export function RotationTab() {
                       </tr>
                     );
                   })}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
