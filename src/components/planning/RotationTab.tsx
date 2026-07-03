@@ -15,9 +15,16 @@ import {
 } from "@/components/ui/toggle-group";
 import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
-import { codesMap, dateOfDayIndex, daysInYear } from "@/lib/planning/calc";
+import {
+  MONTHS,
+  codesMap,
+  dateOfDayIndex,
+  dayIndicesForMonth,
+  daysInYear,
+} from "@/lib/planning/calc";
 import {
   WEEK_DAYS,
+  WEEKEND_DEFAULT_CODE,
   codeForCell,
   getAgentTemplate,
 } from "@/lib/planning/rotation";
