@@ -1,4 +1,21 @@
-import type { Agent, PlanningCode } from "./types";
+import type { Agent, ColorScheme, PlanningCode } from "./types";
+
+/**
+ * Default color scheme (hex) shared by the on-screen grid, the legend, the
+ * print view and the Excel export. Users can override any of these.
+ */
+export const DEFAULT_COLORS: ColorScheme = {
+  travail: { bg: "#CFEFD8", fg: "#1F6B3A" },
+  poste: { bg: "#CFDDF7", fg: "#254690" },
+  repos: { bg: "#EAEAEE", fg: "#5C5C63" },
+  recup: { bg: "#CCE8F1", fg: "#1E5E75" },
+  absence: { bg: "#F5E6C2", fg: "#7A5A18" },
+  autre: { bg: "#EEDAEC", fg: "#6E2E68" },
+  weekend: { bg: "#ECECF0", fg: "#5C5C63" },
+  holiday: { bg: "#F6DE9A", fg: "#6B5410" },
+  error: { bg: "#F4C6C6", fg: "#8B1E1E" },
+};
+
 
 export const DEFAULT_CODES: PlanningCode[] = [
   { code: "T", label: "Travail", hours: 7.5, category: "travail" },
