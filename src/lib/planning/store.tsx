@@ -54,6 +54,10 @@ interface PlanningContextValue {
   colors: ColorScheme;
   setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
   resetColors: () => void;
+  // rotation
+  rotation: RotationState;
+  setRotation: (r: RotationState) => void;
+  applyRotation: (mode: "replace" | "fill") => number;
 }
 
 const PlanningContext = createContext<PlanningContextValue | null>(null);
