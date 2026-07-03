@@ -72,6 +72,8 @@ export function ParametersTab() {
         )}
       </div>
 
+      <ColorSettings />
+
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <table className="w-full text-sm">
           <thead>
