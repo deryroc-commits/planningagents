@@ -37,6 +37,25 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     [year, month],
   );
 
+  const posteCodes = useMemo(
+    () => codes.filter((c) => c.category === "poste"),
+    [codes],
+  );
+  const posteCounts = useMemo(() => {
+    const res: Record<string, number[]> = {};
+    for (const c of posteCodes) res[c.code] = indices.map(() => 0);
+    for (const a of agents) {
+      const row = planning[a.id];
+      if (!row) continue;
+      indices.forEach((di, col) => {
+        const v = row[di];
+        if (v && res[v]) res[v][col]++;
+      });
+    }
+    return res;
+  }, [posteCodes, agents, planning, indices]);
+
+
   if (agents.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
@@ -188,7 +207,82 @@ export function PlanningGrid({ month }: PlanningGridProps) {
               )}
             </td>
           </tr>
+
+          {posteCodes.length > 0 && (
+            <>
+              <tr className="no-print">
+                <td
+                  colSpan={indices.length + 3}
+                  className="sticky left-0 border-t-2 border-border bg-muted px-3 py-1.5 text-xs font-bold uppercase tracking-wide"
+                >
+                  Nombre de postes par jour
+                </td>
+              </tr>
+              {posteCodes.map((c) => {
+                const counts = posteCounts[c.code];
+                const monthTotal = counts.reduce((s, n) => s + n, 0);
+                return (
+                  <tr key={c.code} className="no-print">
+                    <td
+                      title={c.label}
+                      className="sticky left-0 z-10 border-b border-r border-border bg-card px-3 py-0.5 text-xs font-medium"
+                    >
+                      {c.code}
+                    </td>
+                    {counts.map((n, col) => (
+                      <td
+                        key={col}
+                        className={`border-b border-r border-border px-0 py-0.5 text-center text-[11px] tabular-nums ${
+                          n > 1
+                            ? "bg-destructive font-bold text-destructive-foreground"
+                            : n === 0
+                              ? "text-muted-foreground/30"
+                              : ""
+                        }`}
+                      >
+                        {n > 0 ? n : ""}
+                      </td>
+                    ))}
+                    <td
+                      colSpan={2}
+                      className="border-b border-l border-r border-border bg-accent/40 px-2 text-center text-xs font-semibold tabular-nums"
+                    >
+                      {monthTotal > 0 ? monthTotal : ""}
+                    </td>
+                  </tr>
+                );
+              })}
+              <tr className="no-print font-bold">
+                <td className="sticky left-0 z-10 border-r border-t border-border bg-destructive px-3 py-1 text-xs uppercase text-destructive-foreground">
+                  Total de postes
+                </td>
+                {indices.map((_, col) => {
+                  let sum = 0;
+                  for (const c of posteCodes) sum += posteCounts[c.code][col];
+                  return (
+                    <td
+                      key={col}
+                      className="border-r border-t border-border bg-destructive/90 px-0 py-1 text-center text-[11px] tabular-nums text-destructive-foreground"
+                    >
+                      {sum > 0 ? sum : ""}
+                    </td>
+                  );
+                })}
+                <td
+                  colSpan={2}
+                  className="border-r border-t border-border bg-destructive px-2 text-center text-xs tabular-nums text-destructive-foreground"
+                >
+                  {posteCodes.reduce(
+                    (s, c) =>
+                      s + posteCounts[c.code].reduce((a, n) => a + n, 0),
+                    0,
+                  )}
+                </td>
+              </tr>
+            </>
+          )}
         </tfoot>
+
       </table>
 
       {active && (
