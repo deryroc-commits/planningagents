@@ -15,9 +15,16 @@ import {
 } from "@/components/ui/toggle-group";
 import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
-import { codesMap, dateOfDayIndex, daysInYear } from "@/lib/planning/calc";
+import {
+  MONTHS,
+  codesMap,
+  dateOfDayIndex,
+  dayIndicesForMonth,
+  daysInYear,
+} from "@/lib/planning/calc";
 import {
   WEEK_DAYS,
+  WEEKEND_DEFAULT_CODE,
   codeForCell,
   getAgentTemplate,
 } from "@/lib/planning/rotation";
@@ -38,6 +45,7 @@ export function RotationTab() {
   const map = useMemo(() => codesMap(codes), [codes]);
   const [active, setActive] = useState<ActiveCell | null>(null);
   const [mode, setMode] = useState<"replace" | "fill">("fill");
+  const [fromMonth, setFromMonth] = useState<number>(0);
   const [status, setStatus] = useState<string | null>(null);
 
   const cycle = rotation.cycleWeeks;
@@ -65,13 +73,39 @@ export function RotationTab() {
     setRotation({ ...rotation, agentTemplates: next });
   };
 
+  /** Remet toutes les cases de week-end (S/D) au poste RH pour chaque agent. */
+  const resetWeekendsToRH = () => {
+    if (
+      !window.confirm(
+        `Réinitialiser tous les week-ends (samedi & dimanche) au poste ${WEEKEND_DEFAULT_CODE} ?\nLes semaines (L→V) ne sont pas modifiées.`,
+      )
+    )
+      return;
+    const next: Record<string, string[][]> = {};
+    for (const a of agents) {
+      const tpl = getAgentTemplate(rotation, a.id).map((row, _w) =>
+        row.map((code, d) => (d >= 5 ? WEEKEND_DEFAULT_CODE : code)),
+      );
+      next[a.id] = tpl;
+    }
+    setRotation({ ...rotation, agentTemplates: next });
+    setStatus(`Week-ends réinitialisés au poste ${WEEKEND_DEFAULT_CODE}.`);
+    setTimeout(() => setStatus(null), 6000);
+  };
+
   const doApply = () => {
+    const fromDayIndex =
+      fromMonth > 0 ? dayIndicesForMonth(year, fromMonth)[0] ?? 0 : 0;
+    const scope =
+      fromMonth > 0
+        ? ` à partir de ${MONTHS[fromMonth]} (les mois précédents ne seront pas modifiés)`
+        : " sur toute l'année";
     const msg =
       mode === "replace"
-        ? `Remplacer le planning ${year} par le roulement généré ?\nLes saisies manuelles des cases concernées seront écrasées.`
-        : `Compléter les cases vides du planning ${year} avec le roulement ?\nLes saisies existantes seront conservées.`;
+        ? `Remplacer le planning ${year}${scope} par le roulement généré ?\nLes saisies manuelles des cases concernées seront écrasées.`
+        : `Compléter les cases vides du planning ${year}${scope} avec le roulement ?\nLes saisies existantes seront conservées.`;
     if (!window.confirm(msg)) return;
-    const n = applyRotation(mode);
+    const n = applyRotation(mode, fromDayIndex);
     setStatus(
       `Roulement appliqué : ${n} case${n > 1 ? "s" : ""} mise${n > 1 ? "s" : ""} à jour.`,
     );
@@ -175,6 +209,15 @@ export function RotationTab() {
         <span className="text-sm text-muted-foreground">
           {cycle} semaine{cycle > 1 ? "s" : ""} de base
         </span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={resetWeekendsToRH}
+          title={`Remettre tous les week-ends au poste ${WEEKEND_DEFAULT_CODE}`}
+        >
+          <RotateCcw /> Réinitialiser les week-ends ({WEEKEND_DEFAULT_CODE})
+        </Button>
       </section>
 
       {/* Per-agent base weeks grid */}
@@ -369,9 +412,34 @@ export function RotationTab() {
           <ToggleGroupItem value="fill">Compléter les vides</ToggleGroupItem>
           <ToggleGroupItem value="replace">Remplacer</ToggleGroupItem>
         </ToggleGroup>
+        <span className="text-sm font-medium">À partir de :</span>
+        <Select
+          value={String(fromMonth)}
+          onValueChange={(v) => setFromMonth(Number(v))}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">Toute l'année (janvier)</SelectItem>
+            {MONTHS.map((m, i) =>
+              i === 0 ? null : (
+                <SelectItem key={i} value={String(i)}>
+                  {m}
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
         <Button onClick={doApply}>
           <Wand2 /> Générer le roulement
         </Button>
+        {fromMonth > 0 && (
+          <span className="w-full text-xs text-muted-foreground">
+            Les mois avant {MONTHS[fromMonth]} ne seront pas modifiés — pratique
+            pour changer le roulement en cours d'année.
+          </span>
+        )}
         {status && (
           <span className="inline-flex items-center gap-1.5 text-sm text-primary">
             <RotateCcw className="size-4" /> {status}
