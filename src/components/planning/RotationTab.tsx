@@ -15,11 +15,7 @@ import {
 } from "@/components/ui/toggle-group";
 import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
 import { codesMap, dateOfDayIndex, daysInYear } from "@/lib/planning/calc";
-import {
-  WEEK_DAYS,
-  WEEK_DAYS_LONG,
-  codeForCell,
-} from "@/lib/planning/rotation";
+import { WEEK_DAYS, codeForCell } from "@/lib/planning/rotation";
 import { CodePicker } from "./CodePicker";
 
 interface ActiveTpl {
