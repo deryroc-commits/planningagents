@@ -17,7 +17,11 @@ import {
   isWeekend,
   MONTHS,
 } from "./calc";
-import { DEFAULT_AGENTS, DEFAULT_CODES } from "./defaults";
+import { DEFAULT_AGENTS, DEFAULT_CODES, DEFAULT_COLORS } from "./defaults";
+import type { ColorScheme } from "./types";
+
+/** Strip a leading '#' so a hex color is valid as an Excel ARGB rgb value. */
+const hx = (c: string) => c.replace(/^#/, "").toUpperCase();
 
 const CATEGORIES: CodeCategory[] = [
   "travail",
