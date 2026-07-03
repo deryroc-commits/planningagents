@@ -41,17 +41,17 @@ export type YearPlanning = Record<string, Record<number, string>>;
 
 /**
  * Base weekend-rotation model ("1 week-end sur N").
- * The cycle spans `cycleWeeks` weeks; each week is a template of 7 codes
- * (Monday..Sunday). Every agent starts the cycle at a given week offset so
- * that the weekend duty rotates evenly across the team over the year.
+ * The cycle spans `cycleWeeks` weeks. Each AGENT has their own template of
+ * `cycleWeeks` weeks of 7 codes (Monday..Sunday): weekdays are usually a fixed
+ * post (or left empty) and the weekend cells (Sat/Sun) hold the duty code on
+ * the week the agent is on duty and "RH" (rest) otherwise. Repeating each
+ * agent's template across the year produces the yearly rotation.
  */
 export interface RotationState {
   /** Length of the cycle in weeks (e.g. 5 = 1 week-end sur 5). */
   cycleWeeks: number;
-  /** [weekIndex 0..cycleWeeks-1][dayMon0 0..6] = code ("" when empty). */
-  templates: string[][];
-  /** agentId -> starting week offset (0-based) inside the cycle. */
-  offsets: Record<string, number>;
+  /** agentId -> [weekIndex 0..cycleWeeks-1][dayMon0 0..6] = code ("" empty). */
+  agentTemplates: Record<string, string[][]>;
 }
 
 export interface PlanningState {
