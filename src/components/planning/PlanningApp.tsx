@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
+  BarChart3,
+  CalendarClock,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -31,6 +33,8 @@ import {
 import { PlanningGrid } from "@/components/planning/PlanningGrid";
 import { ParametersTab } from "@/components/planning/ParametersTab";
 import { AgentsTab } from "@/components/planning/AgentsTab";
+import { StatsTab } from "@/components/planning/StatsTab";
+import { RotationTab } from "@/components/planning/RotationTab";
 import { PrintView } from "@/components/planning/PrintView";
 import { CATEGORY_META } from "@/lib/planning/types";
 import { codesMap, countErrors, MONTHS, selectableYears } from "@/lib/planning/calc";
