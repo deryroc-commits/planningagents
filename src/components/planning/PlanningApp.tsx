@@ -143,6 +143,12 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <TabsTrigger value="planning">
               <Table2 className="mr-1.5 size-4" /> Planning
             </TabsTrigger>
+            <TabsTrigger value="stats">
+              <BarChart3 className="mr-1.5 size-4" /> Statistiques
+            </TabsTrigger>
+            <TabsTrigger value="rotation">
+              <CalendarClock className="mr-1.5 size-4" /> Roulement WE
+            </TabsTrigger>
             <TabsTrigger value="params">
               <Settings2 className="mr-1.5 size-4" /> Paramètres
             </TabsTrigger>
