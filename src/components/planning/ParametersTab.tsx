@@ -96,6 +96,7 @@ export function ParametersTab() {
               <th className="px-3 py-2 font-medium">Libellé</th>
               <th className="px-3 py-2 font-medium">Heures</th>
               <th className="px-3 py-2 font-medium">Catégorie</th>
+              <th className="px-3 py-2 font-medium">Couleur</th>
               <th className="px-3 py-2 text-right font-medium">Actions</th>
             </tr>
           </thead>
