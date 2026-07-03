@@ -265,6 +265,10 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const clearPlanning = useCallback(() => {
+    setState((prev) => ({ ...prev, planningByYear: {} }));
+  }, []);
+
   const colors = state.colors ?? DEFAULT_COLORS;
 
   const setColor = useCallback(
