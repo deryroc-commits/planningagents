@@ -41,7 +41,22 @@ export interface PlanningState {
   codes: PlanningCode[];
   agents: Agent[];
   planningByYear: Record<number, YearPlanning>;
+  /** Optional user color overrides; when absent the app uses DEFAULT_COLORS. */
+  colors?: ColorScheme;
 }
+
+/** Human labels for each colorable element (used by the color editor). */
+export const COLOR_LABELS: Record<ColorKey, string> = {
+  travail: "Travail",
+  poste: "Poste",
+  repos: "Repos",
+  recup: "Récupération",
+  absence: "Absence",
+  autre: "Autre",
+  weekend: "Week-end",
+  holiday: "Jour férié",
+  error: "Erreur / code invalide",
+};
 
 export const CATEGORY_META: Record<
   CodeCategory,
