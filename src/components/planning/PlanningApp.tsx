@@ -83,7 +83,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           </Link>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
+            <Button size="sm" className="nav-btn nav-emerald border-0" asChild>
               <Link to="/">
                 <Home /> Accueil
               </Link>
@@ -117,7 +117,11 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 e.target.value = "";
               }}
             />
-            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+            <Button
+              size="sm"
+              className="nav-btn nav-indigo border-0"
+              onClick={() => fileRef.current?.click()}
+            >
               <Upload /> Importer
             </Button>
             <ExportButton />
@@ -167,7 +171,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="planning" className="space-y-3">
+          <TabsContent value="planning" className="tab-surface tint-planning space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-1">
                 <Button
@@ -202,23 +206,23 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             </p>
           </TabsContent>
 
-          <TabsContent value="stats">
+          <TabsContent value="stats" className="tab-surface tint-stats">
             <StatsTab />
           </TabsContent>
 
-          <TabsContent value="rotation">
+          <TabsContent value="rotation" className="tab-surface tint-rotation">
             <RotationTab />
           </TabsContent>
 
-          <TabsContent value="params">
+          <TabsContent value="params" className="tab-surface tint-params">
             <ParametersTab />
           </TabsContent>
 
-          <TabsContent value="agents">
+          <TabsContent value="agents" className="tab-surface tint-agents">
             <AgentsTab />
           </TabsContent>
 
-          <TabsContent value="print">
+          <TabsContent value="print" className="tab-surface tint-print">
             <PrintView month={month} setMonth={setMonth} />
           </TabsContent>
         </Tabs>

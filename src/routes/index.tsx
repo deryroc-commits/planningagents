@@ -82,7 +82,7 @@ function HomePage() {
       style={{ backgroundImage: `url(${homeBg.url})` }}
     >
       {/* Readability overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/70 to-white/40 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/65 via-white/45 to-white/20 backdrop-blur-[1px]" />
 
       <div className="relative mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-5 py-12">
         <div className="mb-8 text-center">
