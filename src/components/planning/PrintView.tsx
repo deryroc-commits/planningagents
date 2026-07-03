@@ -358,9 +358,11 @@ function GroupRows({
             </td>
             {indices.map((i) => {
               const v = row[i];
-              const cat = v && map[v] ? map[v].category : null;
+              const codeDef = v ? map[v] : undefined;
+              const cat = codeDef ? codeDef.category : null;
               const hol = holidays[i];
-              const cls = isInvalid(v, map)
+              const invalid = isInvalid(v, map);
+              const cls = invalid
                 ? "cat-error"
                 : cat
                   ? CATEGORY_META[cat].cls
@@ -369,10 +371,12 @@ function GroupRows({
                     : isWeekend(dateOfDayIndex(year, i))
                       ? "cell-weekend"
                       : "";
+              const style = invalid ? undefined : codeInlineStyle(codeDef);
               return (
                 <td
                   key={i}
                   className={`border border-border px-0 py-0.5 text-center font-semibold ${cls}`}
+                  style={style}
                 >
                   {v ?? ""}
                 </td>
