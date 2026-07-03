@@ -134,7 +134,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 setTimeout(() => setStatus(null), 4000);
               }}
             />
-            {void clearPlanning}
+
           </div>
         </div>
         {status && (
