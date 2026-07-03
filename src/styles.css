@@ -224,6 +224,19 @@
   .nav-indigo { --nav-c1: oklch(0.6 0.17 265); --nav-c2: oklch(0.48 0.16 275); }
   .nav-amber { --nav-c1: oklch(0.78 0.15 70); --nav-c2: oklch(0.66 0.16 55); }
   .nav-rose { --nav-c1: oklch(0.68 0.19 15); --nav-c2: oklch(0.57 0.2 8); }
+
+  /* Light tinted surface for each tab / page */
+  .tab-surface {
+    border-radius: 0.75rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid color-mix(in oklch, var(--color-border), transparent 30%);
+  }
+  .tint-planning { background-color: oklch(0.975 0.02 245); }
+  .tint-stats { background-color: oklch(0.975 0.025 155); }
+  .tint-rotation { background-color: oklch(0.975 0.03 70); }
+  .tint-params { background-color: oklch(0.975 0.02 320); }
+  .tint-agents { background-color: oklch(0.975 0.025 15); }
+  .tint-print { background-color: oklch(0.98 0.008 256); }
 }
 
 @media print {
