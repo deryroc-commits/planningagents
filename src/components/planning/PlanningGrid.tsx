@@ -100,7 +100,8 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                 {indices.map((i) => {
                   const value = row[i];
                   const invalid = isInvalid(value, map);
-                  const cat = value && map[value] ? map[value].category : null;
+                  const codeDef = value ? map[value] : undefined;
+                  const cat = codeDef ? codeDef.category : null;
                   const d = dateOfDayIndex(year, i);
                   const we = isWeekend(d);
                   const hol = holidays[i];
@@ -113,6 +114,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                         : we
                           ? "cell-weekend"
                           : "";
+                  const style = invalid ? undefined : codeInlineStyle(codeDef);
                   return (
                     <td
                       key={i}
