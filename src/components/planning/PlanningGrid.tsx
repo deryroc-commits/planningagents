@@ -37,6 +37,25 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     [year, month],
   );
 
+  const posteCodes = useMemo(
+    () => codes.filter((c) => c.category === "poste"),
+    [codes],
+  );
+  const posteCounts = useMemo(() => {
+    const res: Record<string, number[]> = {};
+    for (const c of posteCodes) res[c.code] = indices.map(() => 0);
+    for (const a of agents) {
+      const row = planning[a.id];
+      if (!row) continue;
+      indices.forEach((di, col) => {
+        const v = row[di];
+        if (v && res[v]) res[v][col]++;
+      });
+    }
+    return res;
+  }, [posteCodes, agents, planning, indices]);
+
+
   if (agents.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
