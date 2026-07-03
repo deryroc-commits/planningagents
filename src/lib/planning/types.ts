@@ -71,3 +71,22 @@ export const CATEGORY_META: Record<
   absence: { label: "Absence", cls: "cat-absence" },
   autre: { label: "Autre", cls: "cat-autre" },
 };
+
+/**
+ * Inline style for a code badge/cell when it has a custom color override.
+ * Returns undefined when the code uses its category color (handled by CSS class).
+ */
+export function codeInlineStyle(
+  code?: { color?: ColorPair } | null,
+): { backgroundColor: string; color: string } | undefined {
+  if (code?.color) return { backgroundColor: code.color.bg, color: code.color.fg };
+  return undefined;
+}
+
+/** Effective color of a code: its own override, otherwise the scheme category color. */
+export function resolveCodeColor(
+  code: PlanningCode,
+  colors: ColorScheme,
+): ColorPair {
+  return code.color ?? colors[code.category];
+}
