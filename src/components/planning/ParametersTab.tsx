@@ -266,30 +266,26 @@ function CodeEditorRow({
       </td>
       <td className="px-3 py-2">
         <div className="flex items-center gap-1.5">
-          <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             Fond
-            <input
-              type="color"
+            <ColorPalette
               value={eff.bg}
-              onChange={(e) =>
-                setDraft({ ...draft, color: { ...eff, bg: e.target.value } })
+              onChange={(hex) =>
+                setDraft({ ...draft, color: { ...eff, bg: hex } })
               }
-              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
-              aria-label="Couleur de fond du code"
+              title="Couleur de fond du code"
             />
-          </label>
-          <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          </span>
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             Texte
-            <input
-              type="color"
+            <ColorPalette
               value={eff.fg}
-              onChange={(e) =>
-                setDraft({ ...draft, color: { ...eff, fg: e.target.value } })
+              onChange={(hex) =>
+                setDraft({ ...draft, color: { ...eff, fg: hex } })
               }
-              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
-              aria-label="Couleur du texte du code"
+              title="Couleur du texte du code"
             />
-          </label>
+          </span>
           {draft.color && (
             <Button
               variant="ghost"
