@@ -17,7 +17,11 @@ import {
   isWeekend,
   MONTHS,
 } from "./calc";
-import { DEFAULT_AGENTS, DEFAULT_CODES } from "./defaults";
+import { DEFAULT_AGENTS, DEFAULT_CODES, DEFAULT_COLORS } from "./defaults";
+import type { ColorScheme } from "./types";
+
+/** Strip a leading '#' so a hex color is valid as an Excel ARGB rgb value. */
+const hx = (c: string) => c.replace(/^#/, "").toUpperCase();
 
 const CATEGORIES: CodeCategory[] = [
   "travail",
@@ -90,18 +94,7 @@ export async function exportToExcel(
 // borders, so the workbook looks like the application on screen.
 // ---------------------------------------------------------------------------
 
-/** Category / cell colors as ARGB hex (background + font), matching the app. */
-const XLS_COLORS: Record<CodeCategory, { bg: string; fg: string }> = {
-  travail: { bg: "CFEFD8", fg: "1F6B3A" },
-  poste: { bg: "CFDDF7", fg: "254690" },
-  repos: { bg: "EAEAEE", fg: "5C5C63" },
-  recup: { bg: "CCE8F1", fg: "1E5E75" },
-  absence: { bg: "F5E6C2", fg: "7A5A18" },
-  autre: { bg: "EEDAEC", fg: "6E2E68" },
-};
-const XLS_WEEKEND = "ECECF0";
-const XLS_HOLIDAY = { bg: "F6DE9A", fg: "6B5410" };
-const XLS_ERROR = { bg: "F4C6C6", fg: "8B1E1E" };
+/** Static banner / structural colors as ARGB hex (not user-customizable). */
 const XLS_HEADER = { bg: "E7EAF0", fg: "222A38" };
 const XLS_TEAM = { bg: "D7DEEA", fg: "1E2A44" };
 const XLS_TITLE = { bg: "C0392B", fg: "FFFFFF" };
@@ -158,6 +151,20 @@ export async function exportStyledMonthExcel(
   const planning = state.planningByYear[year] ?? {};
   const colCount = indices.length + 1;
   const printDate = new Date().toLocaleDateString("fr-FR");
+
+  // Resolve the (possibly customized) color scheme into ARGB hex values.
+  const scheme: ColorScheme = { ...DEFAULT_COLORS, ...(state.colors ?? {}) };
+  const catColors: Record<CodeCategory, { bg: string; fg: string }> = {
+    travail: { bg: hx(scheme.travail.bg), fg: hx(scheme.travail.fg) },
+    poste: { bg: hx(scheme.poste.bg), fg: hx(scheme.poste.fg) },
+    repos: { bg: hx(scheme.repos.bg), fg: hx(scheme.repos.fg) },
+    recup: { bg: hx(scheme.recup.bg), fg: hx(scheme.recup.fg) },
+    absence: { bg: hx(scheme.absence.bg), fg: hx(scheme.absence.fg) },
+    autre: { bg: hx(scheme.autre.bg), fg: hx(scheme.autre.fg) },
+  };
+  const weekendBg = hx(scheme.weekend.bg);
+  const holidayColor = { bg: hx(scheme.holiday.bg), fg: hx(scheme.holiday.fg) };
+  const errorColor = { bg: hx(scheme.error.bg), fg: hx(scheme.error.fg) };
 
   const rows: any[][] = [];
   const merges: any[] = [];
@@ -220,8 +227,8 @@ export async function exportStyledMonthExcel(
   for (const i of indices) {
     const d = dateOfDayIndex(year, i);
     const hol = holidays[i];
-    const bg = hol ? XLS_HOLIDAY.bg : isWeekend(d) ? XLS_WEEKEND : XLS_HEADER.bg;
-    const fg = hol ? XLS_HOLIDAY.fg : XLS_HEADER.fg;
+    const bg = hol ? holidayColor.bg : isWeekend(d) ? weekendBg : XLS_HEADER.bg;
+    const fg = hol ? holidayColor.fg : XLS_HEADER.fg;
     hLetters.push(cell(dayLetter(d), { bg, fg, bold: true, size: 8 }));
     hNumbers.push(cell(d.getDate(), { bg, fg, bold: true }));
   }
@@ -256,17 +263,17 @@ export async function exportStyledMonthExcel(
         let bg: string | undefined;
         let fg = "222A38";
         if (isInvalid(v, map)) {
-          bg = XLS_ERROR.bg;
-          fg = XLS_ERROR.fg;
+          bg = errorColor.bg;
+          fg = errorColor.fg;
         } else if (v && map[v]) {
-          const meta = XLS_COLORS[map[v].category];
+          const meta = catColors[map[v].category];
           bg = meta.bg;
           fg = meta.fg;
         } else if (hol) {
-          bg = XLS_HOLIDAY.bg;
-          fg = XLS_HOLIDAY.fg;
+          bg = holidayColor.bg;
+          fg = holidayColor.fg;
         } else if (isWeekend(d)) {
-          bg = XLS_WEEKEND;
+          bg = weekendBg;
         }
         line.push(cell(v ?? "", { bg, fg, bold: true }));
       }
@@ -279,14 +286,14 @@ export async function exportStyledMonthExcel(
   const legend: [string, { bg: string; fg: string }][] = [
     ...Object.entries(CATEGORY_META).map(
       ([k, meta]) =>
-        [meta.label, { bg: XLS_COLORS[k as CodeCategory].bg, fg: XLS_COLORS[k as CodeCategory].fg }] as [
+        [meta.label, { bg: catColors[k as CodeCategory].bg, fg: catColors[k as CodeCategory].fg }] as [
           string,
           { bg: string; fg: string },
         ],
     ),
-    ["Week-end", { bg: XLS_WEEKEND, fg: "222A38" }],
-    ["Jour férié", XLS_HOLIDAY],
-    ["Erreur / code invalide", XLS_ERROR],
+    ["Week-end", { bg: weekendBg, fg: "222A38" }],
+    ["Jour férié", holidayColor],
+    ["Erreur / code invalide", errorColor],
   ];
   for (const [label, c] of legend) {
     rows.push([cell(label, { bg: c.bg, fg: c.fg, bold: true, align: "left" })]);

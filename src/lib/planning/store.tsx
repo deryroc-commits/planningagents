@@ -8,8 +8,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Agent, PlanningCode, PlanningState, YearPlanning } from "./types";
-import { DEFAULT_AGENTS, DEFAULT_CODES, STORAGE_KEY } from "./defaults";
+import type {
+  Agent,
+  ColorKey,
+  ColorScheme,
+  PlanningCode,
+  PlanningState,
+  YearPlanning,
+} from "./types";
+import { DEFAULT_AGENTS, DEFAULT_CODES, DEFAULT_COLORS, STORAGE_KEY } from "./defaults";
 
 interface PlanningContextValue {
   year: number;
@@ -34,15 +41,35 @@ interface PlanningContextValue {
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
   resetAll: () => void;
+  // colors
+  colors: ColorScheme;
+  setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
+  resetColors: () => void;
 }
 
 const PlanningContext = createContext<PlanningContextValue | null>(null);
+
+/** Build a <style> string that maps the color scheme onto the CSS variables. */
+function colorsToCss(colors: ColorScheme): string {
+  return `:root{
+    --cat-travail-bg:${colors.travail.bg};--cat-travail-fg:${colors.travail.fg};
+    --cat-poste-bg:${colors.poste.bg};--cat-poste-fg:${colors.poste.fg};
+    --cat-repos-bg:${colors.repos.bg};--cat-repos-fg:${colors.repos.fg};
+    --cat-recup-bg:${colors.recup.bg};--cat-recup-fg:${colors.recup.fg};
+    --cat-absence-bg:${colors.absence.bg};--cat-absence-fg:${colors.absence.fg};
+    --cat-autre-bg:${colors.autre.bg};--cat-autre-fg:${colors.autre.fg};
+    --cat-error-bg:${colors.error.bg};--cat-error-fg:${colors.error.fg};
+    --cell-weekend:${colors.weekend.bg};
+    --cell-holiday:${colors.holiday.bg};--cell-holiday-fg:${colors.holiday.fg};
+  }`;
+}
 
 function loadState(): PlanningState {
   const base: PlanningState = {
     codes: DEFAULT_CODES,
     agents: DEFAULT_AGENTS,
     planningByYear: {},
+    colors: DEFAULT_COLORS,
   };
   if (typeof window === "undefined") return base;
   try {
@@ -53,6 +80,8 @@ function loadState(): PlanningState {
       codes: parsed.codes?.length ? parsed.codes : DEFAULT_CODES,
       agents: parsed.agents ?? DEFAULT_AGENTS,
       planningByYear: parsed.planningByYear ?? {},
+      // Merge stored overrides over defaults so newly added keys always exist.
+      colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
     };
   } catch {
     return base;
@@ -65,6 +94,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     codes: DEFAULT_CODES,
     agents: DEFAULT_AGENTS,
     planningByYear: {},
+    colors: DEFAULT_COLORS,
   }));
   const hydrated = useRef(false);
 
@@ -202,6 +232,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       planningByYear: s.planningByYear
         ? { ...prev.planningByYear, ...s.planningByYear }
         : prev.planningByYear,
+      colors: s.colors ?? prev.colors,
     }));
   }, []);
 
@@ -211,7 +242,30 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       codes: DEFAULT_CODES,
       agents: DEFAULT_AGENTS,
       planningByYear: {},
+      colors: DEFAULT_COLORS,
     });
+  }, []);
+
+  const colors = state.colors ?? DEFAULT_COLORS;
+
+  const setColor = useCallback(
+    (key: ColorKey, part: "bg" | "fg", hex: string) => {
+      setState((prev) => {
+        const current = prev.colors ?? DEFAULT_COLORS;
+        return {
+          ...prev,
+          colors: {
+            ...current,
+            [key]: { ...current[key], [part]: hex },
+          },
+        };
+      });
+    },
+    [],
+  );
+
+  const resetColors = useCallback(() => {
+    setState((prev) => ({ ...prev, colors: DEFAULT_COLORS }));
   }, []);
 
   const value = useMemo<PlanningContextValue>(
@@ -230,6 +284,9 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       removeAgent,
       replaceState,
       resetAll,
+      colors,
+      setColor,
+      resetColors,
     }),
     [
       year,
@@ -245,11 +302,15 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       removeAgent,
       replaceState,
       resetAll,
+      colors,
+      setColor,
+      resetColors,
     ],
   );
 
   return (
     <PlanningContext.Provider value={value}>
+      <style>{colorsToCss(colors)}</style>
       {children}
     </PlanningContext.Provider>
   );

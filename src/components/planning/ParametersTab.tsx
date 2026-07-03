@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ColorSettings } from "./ColorSettings";
 import { usePlanning } from "@/lib/planning/store";
 import {
   CATEGORY_META,
@@ -70,6 +71,8 @@ export function ParametersTab() {
           </Button>
         )}
       </div>
+
+      <ColorSettings />
 
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <table className="w-full text-sm">
