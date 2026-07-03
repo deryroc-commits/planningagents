@@ -107,6 +107,7 @@ export function ParametersTab() {
                 setDraft={setDraft}
                 onSave={save}
                 onCancel={cancel}
+                colors={colors}
               />
             )}
             {codes.map((c) =>
@@ -117,6 +118,7 @@ export function ParametersTab() {
                   setDraft={setDraft}
                   onSave={save}
                   onCancel={cancel}
+                  colors={colors}
                 />
               ) : (
                 <tr key={c.code} className="border-b border-border last:border-0">
