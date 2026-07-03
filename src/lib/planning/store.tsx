@@ -15,6 +15,7 @@ import type {
   PlanningCode,
   PlanningState,
   RotationState,
+  YearChanges,
   YearPlanning,
 } from "./types";
 import {
@@ -26,6 +27,32 @@ import {
 } from "./defaults";
 import { codeForCell, normalizeRotation } from "./rotation";
 import { daysInYear } from "./calc";
+
+/**
+ * Record (or clear) a change for one cell, relative to the original value the
+ * cell held before editing started. Reverting a cell to its original value
+ * removes the entry. Returns a NEW map (never mutates the input).
+ */
+function recordChange(
+  prev: YearChanges,
+  agentId: string,
+  dayIndex: number,
+  before: string | undefined,
+  after: string | undefined,
+): YearChanges {
+  const key = `${agentId}:${dayIndex}`;
+  const b = before ?? "";
+  const a = after ?? "";
+  const existing = prev[key];
+  const origin = existing ? existing.from : b;
+  const next = { ...prev };
+  if (a === origin) {
+    delete next[key];
+  } else {
+    next[key] = { agentId, dayIndex, from: origin, to: a, at: Date.now() };
+  }
+  return next;
+}
 
 interface PlanningContextValue {
   year: number;
@@ -48,6 +75,9 @@ interface PlanningContextValue {
   resetAll: () => void;
   clearPlanning: () => void;
   clearYear: (year: number) => void;
+  // changes (Modifications tab)
+  changes: YearChanges;
+  clearChanges: (year: number) => void;
   // colors
   colors: ColorScheme;
   setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
@@ -95,6 +125,7 @@ function loadState(): PlanningState {
       // Merge stored overrides over defaults so newly added keys always exist.
       colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
       rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
+      changesByYear: parsed.changesByYear ?? {},
     };
   } catch {
     return base;
@@ -153,12 +184,22 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       setState((prev) => {
         const yp = { ...(prev.planningByYear[year] ?? {}) };
         const row = { ...(yp[agentId] ?? {}) };
-        if (code === null || code === "") delete row[dayIndex];
-        else row[dayIndex] = code;
+        const before = row[dayIndex];
+        const after = code === null || code === "" ? undefined : code;
+        if (after === undefined) delete row[dayIndex];
+        else row[dayIndex] = after;
         yp[agentId] = row;
+        const yc = recordChange(
+          prev.changesByYear?.[year] ?? {},
+          agentId,
+          dayIndex,
+          before,
+          after,
+        );
         return {
           ...prev,
           planningByYear: { ...prev.planningByYear, [year]: yp },
+          changesByYear: { ...prev.changesByYear, [year]: yc },
         };
       });
     },
@@ -170,14 +211,19 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       setState((prev) => {
         const yp = { ...(prev.planningByYear[year] ?? {}) };
         const row = { ...(yp[agentId] ?? {}) };
+        let yc = prev.changesByYear?.[year] ?? {};
+        const after = code === null || code === "" ? undefined : code;
         for (const i of indices) {
-          if (code === null || code === "") delete row[i];
-          else row[i] = code;
+          const before = row[i];
+          if (after === undefined) delete row[i];
+          else row[i] = after;
+          yc = recordChange(yc, agentId, i, before, after);
         }
         yp[agentId] = row;
         return {
           ...prev,
           planningByYear: { ...prev.planningByYear, [year]: yp },
+          changesByYear: { ...prev.changesByYear, [year]: yc },
         };
       });
     },
@@ -245,6 +291,9 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
         : prev.planningByYear,
       colors: s.colors ?? prev.colors,
       rotation: s.rotation ? normalizeRotation(s.rotation) : prev.rotation,
+      changesByYear: s.changesByYear
+        ? { ...prev.changesByYear, ...s.changesByYear }
+        : prev.changesByYear,
     }));
   }, []);
 
@@ -255,6 +304,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       planningByYear: {},
       colors: DEFAULT_COLORS,
       rotation: DEFAULT_ROTATION,
+      changesByYear: {},
     });
   }, []);
 
@@ -266,9 +316,21 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     setState((prev) => {
       const next = { ...prev.planningByYear };
       delete next[y];
-      return { ...prev, planningByYear: next };
+      const nextChanges = { ...prev.changesByYear };
+      delete nextChanges[y];
+      return { ...prev, planningByYear: next, changesByYear: nextChanges };
     });
   }, []);
+
+  const clearChanges = useCallback((y: number) => {
+    setState((prev) => {
+      const nextChanges = { ...prev.changesByYear };
+      delete nextChanges[y];
+      return { ...prev, changesByYear: nextChanges };
+    });
+  }, []);
+
+  const changes = state.changesByYear?.[year] ?? {};
 
   const colors = state.colors ?? DEFAULT_COLORS;
 
@@ -348,6 +410,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       resetAll,
       clearPlanning,
       clearYear,
+      changes,
+      clearChanges,
       colors,
       setColor,
       resetColors,
@@ -371,6 +435,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       resetAll,
       clearPlanning,
       clearYear,
+      changes,
+      clearChanges,
       colors,
       setColor,
       resetColors,

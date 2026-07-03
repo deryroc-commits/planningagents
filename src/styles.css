@@ -185,6 +185,18 @@
   .cell-weekend { background-color: var(--cell-weekend); }
   .cell-holiday { background-color: var(--cell-holiday); color: var(--cell-holiday-fg); }
 
+  /* Flashy highlight for a modified cell (Modifications tab & main grid) */
+  .cell-changed {
+    box-shadow: inset 0 0 0 2.5px var(--change-flash);
+  }
+  .change-flash {
+    background-color: var(--change-flash) !important;
+    color: #1a1a1a !important;
+    font-weight: 800 !important;
+  }
+  :root { --change-flash: oklch(0.8 0.29 135); }
+  .dark { --change-flash: oklch(0.85 0.3 130); }
+
   .home-bg {
     background:
       radial-gradient(1200px 600px at 80% -10%, var(--brand-panel-2), transparent 60%),
@@ -236,6 +248,7 @@
   .tint-rotation { background-color: oklch(0.975 0.03 70); }
   .tint-params { background-color: oklch(0.975 0.02 320); }
   .tint-agents { background-color: oklch(0.975 0.025 15); }
+  .tint-mods { background-color: oklch(0.975 0.04 135); }
   .tint-print { background-color: oklch(0.98 0.008 256); }
 
   /* Colored tab triggers */
@@ -254,6 +267,7 @@
   .tt-rotation { --tt-c: oklch(0.68 0.16 60); }
   .tt-params { --tt-c: oklch(0.62 0.2 350); }
   .tt-agents { --tt-c: oklch(0.62 0.2 20); }
+  .tt-mods { --tt-c: oklch(0.62 0.22 140); }
   .tt-print { --tt-c: oklch(0.55 0.14 285); }
 }
 

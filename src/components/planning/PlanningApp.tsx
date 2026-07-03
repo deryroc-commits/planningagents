@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Download,
   Home,
+  PencilLine,
   Trash2,
   Upload,
   Users,
@@ -40,6 +41,7 @@ import { AgentsTab } from "@/components/planning/AgentsTab";
 import { StatsTab } from "@/components/planning/StatsTab";
 import { RotationTab } from "@/components/planning/RotationTab";
 import { PrintView } from "@/components/planning/PrintView";
+import { ModificationsTab } from "@/components/planning/ModificationsTab";
 import { CATEGORY_META } from "@/lib/planning/types";
 import { codesMap, countErrors, MONTHS, selectableYears } from "@/lib/planning/calc";
 import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
@@ -166,6 +168,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <TabsTrigger value="agents" className="tt tt-agents">
               <Users className="mr-1.5 size-4" /> Base agents
             </TabsTrigger>
+            <TabsTrigger value="mods" className="tt tt-mods">
+              <PencilLine className="mr-1.5 size-4" /> Modifications
+            </TabsTrigger>
             <TabsTrigger value="print" className="tt tt-print">
               <Printer className="mr-1.5 size-4" /> Impression
             </TabsTrigger>
@@ -220,6 +225,10 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
           <TabsContent value="agents" className="tab-surface tint-agents">
             <AgentsTab />
+          </TabsContent>
+
+          <TabsContent value="mods" className="tab-surface tint-mods">
+            <ModificationsTab />
           </TabsContent>
 
           <TabsContent value="print" className="tab-surface tint-print">
