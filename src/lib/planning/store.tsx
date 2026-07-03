@@ -370,6 +370,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       replaceState,
       resetAll,
       clearPlanning,
+      clearYear,
       colors,
       setColor,
       resetColors,
