@@ -237,6 +237,24 @@
   .tint-params { background-color: oklch(0.975 0.02 320); }
   .tint-agents { background-color: oklch(0.975 0.025 15); }
   .tint-print { background-color: oklch(0.98 0.008 256); }
+
+  /* Colored tab triggers */
+  .tt {
+    color: var(--tt-c);
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .tt:hover { background-color: color-mix(in oklch, var(--tt-c), transparent 88%); }
+  .tt[data-state="active"] {
+    background-color: var(--tt-c) !important;
+    color: white !important;
+    box-shadow: 0 6px 16px -6px color-mix(in oklch, var(--tt-c), transparent 45%);
+  }
+  .tt-planning { --tt-c: oklch(0.6 0.17 245); }
+  .tt-stats { --tt-c: oklch(0.6 0.15 165); }
+  .tt-rotation { --tt-c: oklch(0.68 0.16 60); }
+  .tt-params { --tt-c: oklch(0.62 0.2 350); }
+  .tt-agents { --tt-c: oklch(0.62 0.2 20); }
+  .tt-print { --tt-c: oklch(0.55 0.14 285); }
 }
 
 @media print {
