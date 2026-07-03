@@ -286,6 +286,46 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, colors: DEFAULT_COLORS }));
   }, []);
 
+  const rotation = normalizeRotation(state.rotation ?? DEFAULT_ROTATION);
+
+  const setRotation = useCallback((r: RotationState) => {
+    setState((prev) => ({ ...prev, rotation: normalizeRotation(r) }));
+  }, []);
+
+  /**
+   * Generate the weekend rotation into the current year's planning.
+   * "replace" overwrites every cell the rotation produces; "fill" only writes
+   * into empty cells. Returns the number of cells written.
+   */
+  const applyRotation = useCallback(
+    (mode: "replace" | "fill") => {
+      let written = 0;
+      setState((prev) => {
+        const rot = normalizeRotation(prev.rotation ?? DEFAULT_ROTATION);
+        const total = daysInYear(year);
+        const yp = { ...(prev.planningByYear[year] ?? {}) };
+        for (const a of prev.agents) {
+          const offset = rot.offsets[a.id] ?? 0;
+          const row = { ...(yp[a.id] ?? {}) };
+          for (let i = 0; i < total; i++) {
+            const code = codeForCell(rot, offset, year, i);
+            if (!code) continue;
+            if (mode === "fill" && row[i]) continue;
+            row[i] = code;
+            written++;
+          }
+          yp[a.id] = row;
+        }
+        return {
+          ...prev,
+          planningByYear: { ...prev.planningByYear, [year]: yp },
+        };
+      });
+      return written;
+    },
+    [year],
+  );
+
   const value = useMemo<PlanningContextValue>(
     () => ({
       year,
