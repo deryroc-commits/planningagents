@@ -150,23 +150,23 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
       <main className="mx-auto max-w-[1600px] px-4 py-5">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="no-print">
-            <TabsTrigger value="planning">
+          <TabsList className="no-print flex-wrap h-auto">
+            <TabsTrigger value="planning" className="tt tt-planning">
               <Table2 className="mr-1.5 size-4" /> Planning
             </TabsTrigger>
-            <TabsTrigger value="stats">
+            <TabsTrigger value="stats" className="tt tt-stats">
               <BarChart3 className="mr-1.5 size-4" /> Statistiques
             </TabsTrigger>
-            <TabsTrigger value="rotation">
+            <TabsTrigger value="rotation" className="tt tt-rotation">
               <CalendarClock className="mr-1.5 size-4" /> Roulement WE
             </TabsTrigger>
-            <TabsTrigger value="params">
+            <TabsTrigger value="params" className="tt tt-params">
               <Settings2 className="mr-1.5 size-4" /> Paramètres
             </TabsTrigger>
-            <TabsTrigger value="agents">
+            <TabsTrigger value="agents" className="tt tt-agents">
               <Users className="mr-1.5 size-4" /> Base agents
             </TabsTrigger>
-            <TabsTrigger value="print">
+            <TabsTrigger value="print" className="tt tt-print">
               <Printer className="mr-1.5 size-4" /> Impression
             </TabsTrigger>
           </TabsList>
