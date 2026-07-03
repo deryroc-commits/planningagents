@@ -122,12 +122,19 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             </Button>
             <ExportButton />
             <ResetDialog
-              onReset={() => {
-                clearPlanning();
-                setStatus("Planning réinitialisé.");
+              year={year}
+              onClearYear={() => {
+                clearYear(year);
+                setStatus(`Planning ${year} réinitialisé.`);
+                setTimeout(() => setStatus(null), 4000);
+              }}
+              onResetAll={() => {
+                resetAll();
+                setStatus("Application réinitialisée aux valeurs par défaut.");
                 setTimeout(() => setStatus(null), 4000);
               }}
             />
+            {void clearPlanning}
           </div>
         </div>
         {status && (
