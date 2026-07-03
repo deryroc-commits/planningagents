@@ -94,6 +94,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     codes: DEFAULT_CODES,
     agents: DEFAULT_AGENTS,
     planningByYear: {},
+    colors: DEFAULT_COLORS,
   }));
   const hydrated = useRef(false);
 
