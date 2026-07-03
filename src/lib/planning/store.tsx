@@ -50,6 +50,7 @@ interface PlanningContextValue {
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
   resetAll: () => void;
+  clearPlanning: () => void;
   // colors
   colors: ColorScheme;
   setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
