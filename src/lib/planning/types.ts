@@ -11,6 +11,8 @@ export interface PlanningCode {
   label: string;
   hours: number;
   category: CodeCategory;
+  /** Optional per-code color override; falls back to the category color. */
+  color?: ColorPair;
 }
 
 export interface Agent {
