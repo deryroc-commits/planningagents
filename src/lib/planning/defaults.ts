@@ -45,4 +45,10 @@ export const DEFAULT_AGENTS: Agent[] = [
   { id: "ag-6", name: "Richard Antoine", team: "Équipe B" },
 ];
 
+export const DEFAULT_ROTATION: RotationState = {
+  cycleWeeks: 5,
+  templates: [],
+  offsets: {},
+};
+
 export const STORAGE_KEY = "ucpa-planning-v1";
