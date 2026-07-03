@@ -2,6 +2,7 @@ import { RotateCcw } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { COLOR_LABELS, type ColorKey } from "@/lib/planning/types";
 import { Button } from "@/components/ui/button";
+import { ColorPalette } from "./ColorPalette";
 
 // Order shown in the editor — mirrors the legend.
 const KEYS: ColorKey[] = [
