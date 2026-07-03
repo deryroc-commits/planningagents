@@ -227,8 +227,8 @@ export function RotationTab() {
             </thead>
             <tbody>
               {groups.map((g) => (
-                <>
-                  <tr key={`team-${g.team}`} className="bg-muted/70">
+                <Fragment key={`team-${g.team}`}>
+                  <tr className="bg-muted/70">
                     <td
                       colSpan={cycle * 7 + 1}
                       className="sticky left-0 border-b border-border px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-muted-foreground"
