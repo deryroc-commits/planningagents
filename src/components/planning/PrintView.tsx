@@ -38,7 +38,7 @@ interface PrintViewProps {
 }
 
 export function PrintView({ month, setMonth }: PrintViewProps) {
-  const { year, setYear, agents, codes, planning } = usePlanning();
+  const { year, setYear, agents, codes, planning, colors } = usePlanning();
   const [xlsxOpen, setXlsxOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const map = useMemo(() => codesMap(codes), [codes]);
