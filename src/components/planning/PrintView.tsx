@@ -12,7 +12,7 @@ import {
   selectableYears,
 } from "@/lib/planning/calc";
 import { MONTHS } from "@/lib/planning/calc";
-import { CATEGORY_META } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
 import { exportStyledMonthExcel } from "@/lib/planning/excel";
 import { Button } from "@/components/ui/button";
