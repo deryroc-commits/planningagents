@@ -94,18 +94,7 @@ export async function exportToExcel(
 // borders, so the workbook looks like the application on screen.
 // ---------------------------------------------------------------------------
 
-/** Category / cell colors as ARGB hex (background + font), matching the app. */
-const XLS_COLORS: Record<CodeCategory, { bg: string; fg: string }> = {
-  travail: { bg: "CFEFD8", fg: "1F6B3A" },
-  poste: { bg: "CFDDF7", fg: "254690" },
-  repos: { bg: "EAEAEE", fg: "5C5C63" },
-  recup: { bg: "CCE8F1", fg: "1E5E75" },
-  absence: { bg: "F5E6C2", fg: "7A5A18" },
-  autre: { bg: "EEDAEC", fg: "6E2E68" },
-};
-const XLS_WEEKEND = "ECECF0";
-const XLS_HOLIDAY = { bg: "F6DE9A", fg: "6B5410" };
-const XLS_ERROR = { bg: "F4C6C6", fg: "8B1E1E" };
+/** Static banner / structural colors as ARGB hex (not user-customizable). */
 const XLS_HEADER = { bg: "E7EAF0", fg: "222A38" };
 const XLS_TEAM = { bg: "D7DEEA", fg: "1E2A44" };
 const XLS_TITLE = { bg: "C0392B", fg: "FFFFFF" };
