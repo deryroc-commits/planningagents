@@ -83,6 +83,7 @@ function loadState(): PlanningState {
     agents: DEFAULT_AGENTS,
     planningByYear: {},
     colors: DEFAULT_COLORS,
+    rotation: DEFAULT_ROTATION,
   };
   if (typeof window === "undefined") return base;
   try {
@@ -95,6 +96,7 @@ function loadState(): PlanningState {
       planningByYear: parsed.planningByYear ?? {},
       // Merge stored overrides over defaults so newly added keys always exist.
       colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
+      rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
     };
   } catch {
     return base;
@@ -108,6 +110,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     agents: DEFAULT_AGENTS,
     planningByYear: {},
     colors: DEFAULT_COLORS,
+    rotation: DEFAULT_ROTATION,
   }));
   const hydrated = useRef(false);
 
