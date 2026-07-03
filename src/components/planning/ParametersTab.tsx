@@ -218,12 +218,15 @@ function CodeEditorRow({
   setDraft,
   onSave,
   onCancel,
+  colors,
 }: {
   draft: PlanningCode;
   setDraft: (c: PlanningCode) => void;
   onSave: () => void;
   onCancel: () => void;
+  colors: ColorScheme;
 }) {
+  const eff = resolveCodeColor(draft, colors);
   return (
     <tr className="border-b border-border bg-accent/30">
       <td className="px-3 py-2">
