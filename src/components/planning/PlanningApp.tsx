@@ -31,6 +31,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PlanningGrid } from "@/components/planning/PlanningGrid";
 import { ParametersTab } from "@/components/planning/ParametersTab";
 import { AgentsTab } from "@/components/planning/AgentsTab";
