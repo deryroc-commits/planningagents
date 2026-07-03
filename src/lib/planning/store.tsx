@@ -47,6 +47,7 @@ interface PlanningContextValue {
   replaceState: (s: Partial<PlanningState>) => void;
   resetAll: () => void;
   clearPlanning: () => void;
+  clearYear: (year: number) => void;
   // colors
   colors: ColorScheme;
   setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
@@ -261,6 +262,14 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, planningByYear: {} }));
   }, []);
 
+  const clearYear = useCallback((y: number) => {
+    setState((prev) => {
+      const next = { ...prev.planningByYear };
+      delete next[y];
+      return { ...prev, planningByYear: next };
+    });
+  }, []);
+
   const colors = state.colors ?? DEFAULT_COLORS;
 
   const setColor = useCallback((key: ColorKey, part: "bg" | "fg", hex: string) => {
@@ -338,6 +347,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       replaceState,
       resetAll,
       clearPlanning,
+      clearYear,
       colors,
       setColor,
       resetColors,
@@ -360,6 +370,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       replaceState,
       resetAll,
       clearPlanning,
+      clearYear,
       colors,
       setColor,
       resetColors,

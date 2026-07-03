@@ -47,7 +47,7 @@ import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
 const YEARS = selectableYears();
 
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
-  const { year, setYear, codes, planning, replaceState, clearPlanning } = usePlanning();
+  const { year, setYear, codes, planning, replaceState, clearYear, resetAll } = usePlanning();
   const [month, setMonth] = useState(new Date().getMonth());
   const [tab, setTab] = useState(initialTab);
   const [status, setStatus] = useState<string | null>(null);
@@ -122,12 +122,19 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             </Button>
             <ExportButton />
             <ResetDialog
-              onReset={() => {
-                clearPlanning();
-                setStatus("Planning réinitialisé.");
+              year={year}
+              onClearYear={() => {
+                clearYear(year);
+                setStatus(`Planning ${year} réinitialisé.`);
+                setTimeout(() => setStatus(null), 4000);
+              }}
+              onResetAll={() => {
+                resetAll();
+                setStatus("Application réinitialisée aux valeurs par défaut.");
                 setTimeout(() => setStatus(null), 4000);
               }}
             />
+
           </div>
         </div>
         {status && (
@@ -232,7 +239,15 @@ function ExportButton() {
   );
 }
 
-function ResetDialog({ onReset }: { onReset: () => void }) {
+function ResetDialog({
+  year,
+  onClearYear,
+  onResetAll,
+}: {
+  year: number;
+  onClearYear: () => void;
+  onResetAll: () => void;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -242,30 +257,56 @@ function ResetDialog({ onReset }: { onReset: () => void }) {
         className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
         onClick={() => setOpen(true)}
       >
-        <Trash2 /> Tout remettre à zéro
+        <Trash2 /> Réinitialiser
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remettre le planning à zéro ?</DialogTitle>
+            <DialogTitle>Réinitialiser</DialogTitle>
             <DialogDescription>
-              Cette action est irréversible. Elle effacera toutes les valeurs saisies dans le
-              planning (toutes les années), sans toucher à la base agents, aux codes ni aux
-              paramètres.
+              Choisissez ce que vous souhaitez effacer. Ces actions sont irréversibles.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-sm font-medium">Effacer le planning {year}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Efface uniquement les valeurs saisies pour l'année {year}. Les autres années,
+                les agents, les codes et les paramètres sont conservés.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                onClick={() => {
+                  onClearYear();
+                  setOpen(false);
+                }}
+              >
+                Effacer l'année {year}
+              </Button>
+            </div>
+            <div className="rounded-lg border border-destructive/40 p-3">
+              <p className="text-sm font-medium">Tout remettre à zéro</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Réinitialise l'application entière aux valeurs par défaut : plannings (toutes
+                années), agents, codes, couleurs, roulement et paramètres.
+              </p>
+              <Button
+                size="sm"
+                className="mt-2 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  onResetAll();
+                  setOpen(false);
+                }}
+              >
+                Tout réinitialiser par défaut
+              </Button>
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Annuler
-            </Button>
-            <Button
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                onReset();
-                setOpen(false);
-              }}
-            >
-              Confirmer la réinitialisation
             </Button>
           </DialogFooter>
         </DialogContent>
