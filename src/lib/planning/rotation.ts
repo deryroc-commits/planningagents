@@ -13,6 +13,9 @@ export const WEEK_DAYS_LONG = [
   "Dimanche",
 ] as const;
 
+/** Default code applied to weekend cells (Saturday & Sunday) when unset. */
+export const WEEKEND_DEFAULT_CODE = "RH";
+
 /** Normalize a single agent template to exactly `cycle` rows of 7 codes. */
 export function normalizeAgentTemplate(
   rows: string[][] | undefined,
@@ -20,9 +23,17 @@ export function normalizeAgentTemplate(
 ): string[][] {
   const out: string[][] = [];
   for (let w = 0; w < cycle; w++) {
-    const src = rows?.[w] ?? [];
+    const src = rows?.[w];
     const row: string[] = [];
-    for (let d = 0; d < 7; d++) row.push(src[d] ?? "");
+    for (let d = 0; d < 7; d++) {
+      const cell = src?.[d];
+      // Weekend days (Samedi = 5, Dimanche = 6) default to RH when never set.
+      if (cell === undefined) {
+        row.push(d >= 5 ? WEEKEND_DEFAULT_CODE : "");
+      } else {
+        row.push(cell);
+      }
+    }
     out.push(row);
   }
   return out;
