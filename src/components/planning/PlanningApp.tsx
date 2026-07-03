@@ -137,7 +137,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               <Upload /> Importer
             </Button>
             <ExportButton />
-            <ResetDialog onReset={resetAll} />
+            <ResetDialog onReset={clearPlanning} />
           </div>
         </div>
         {status && (
