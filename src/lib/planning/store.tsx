@@ -249,6 +249,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
         ? { ...prev.planningByYear, ...s.planningByYear }
         : prev.planningByYear,
       colors: s.colors ?? prev.colors,
+      rotation: s.rotation ? normalizeRotation(s.rotation) : prev.rotation,
     }));
   }, []);
 
@@ -259,6 +260,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       agents: DEFAULT_AGENTS,
       planningByYear: {},
       colors: DEFAULT_COLORS,
+      rotation: DEFAULT_ROTATION,
     });
   }, []);
 
