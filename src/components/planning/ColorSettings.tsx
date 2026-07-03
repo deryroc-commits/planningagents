@@ -2,6 +2,7 @@ import { RotateCcw } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { COLOR_LABELS, type ColorKey } from "@/lib/planning/types";
 import { Button } from "@/components/ui/button";
+import { ColorPalette } from "./ColorPalette";
 
 // Order shown in the editor — mirrors the legend.
 const KEYS: ColorKey[] = [
@@ -67,27 +68,23 @@ export function ColorSettings() {
                   {COLOR_LABELS[key]}
                 </div>
                 <div className="mt-1 flex items-center gap-3">
-                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     Fond
-                    <input
-                      type="color"
+                    <ColorPalette
                       value={c.bg}
-                      onChange={(e) => setColor(key, "bg", e.target.value)}
-                      className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
-                      aria-label={`Couleur de fond — ${COLOR_LABELS[key]}`}
+                      onChange={(hex) => setColor(key, "bg", hex)}
+                      title={`Couleur de fond — ${COLOR_LABELS[key]}`}
                     />
-                  </label>
+                  </span>
                   {HAS_TEXT[key] && (
-                    <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       Texte
-                      <input
-                        type="color"
+                      <ColorPalette
                         value={c.fg}
-                        onChange={(e) => setColor(key, "fg", e.target.value)}
-                        className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
-                        aria-label={`Couleur du texte — ${COLOR_LABELS[key]}`}
+                        onChange={(hex) => setColor(key, "fg", hex)}
+                        title={`Couleur du texte — ${COLOR_LABELS[key]}`}
                       />
-                    </label>
+                    </span>
                   )}
                 </div>
               </div>
