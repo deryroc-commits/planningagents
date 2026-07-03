@@ -45,6 +45,7 @@ export function RotationTab() {
   const map = useMemo(() => codesMap(codes), [codes]);
   const [active, setActive] = useState<ActiveCell | null>(null);
   const [mode, setMode] = useState<"replace" | "fill">("fill");
+  const [fromMonth, setFromMonth] = useState<number>(0);
   const [status, setStatus] = useState<string | null>(null);
 
   const cycle = rotation.cycleWeeks;
