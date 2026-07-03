@@ -345,6 +345,9 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       colors,
       setColor,
       resetColors,
+      rotation,
+      setRotation,
+      applyRotation,
     }),
     [
       year,
@@ -363,6 +366,9 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       colors,
       setColor,
       resetColors,
+      rotation,
+      setRotation,
+      applyRotation,
     ],
   );
 
