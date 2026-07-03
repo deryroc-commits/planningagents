@@ -8,8 +8,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Agent, PlanningCode, PlanningState, YearPlanning } from "./types";
-import { DEFAULT_AGENTS, DEFAULT_CODES, STORAGE_KEY } from "./defaults";
+import type {
+  Agent,
+  ColorKey,
+  ColorScheme,
+  PlanningCode,
+  PlanningState,
+  YearPlanning,
+} from "./types";
+import { DEFAULT_AGENTS, DEFAULT_CODES, DEFAULT_COLORS, STORAGE_KEY } from "./defaults";
 
 interface PlanningContextValue {
   year: number;
