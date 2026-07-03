@@ -278,6 +278,49 @@ function CodeEditorRow({
         </Select>
       </td>
       <td className="px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            Fond
+            <input
+              type="color"
+              value={eff.bg}
+              onChange={(e) =>
+                setDraft({ ...draft, color: { ...eff, bg: e.target.value } })
+              }
+              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
+              aria-label="Couleur de fond du code"
+            />
+          </label>
+          <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            Texte
+            <input
+              type="color"
+              value={eff.fg}
+              onChange={(e) =>
+                setDraft({ ...draft, color: { ...eff, fg: e.target.value } })
+              }
+              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
+              aria-label="Couleur du texte du code"
+            />
+          </label>
+          {draft.color && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              title="Revenir à la couleur de la catégorie"
+              onClick={() => {
+                const { color, ...rest } = draft;
+                void color;
+                setDraft(rest);
+              }}
+            >
+              <RotateCcw className="size-3.5" />
+            </Button>
+          )}
+        </div>
+      </td>
+      <td className="px-3 py-2">
         <div className="flex justify-end gap-1">
           <Button size="icon" className="size-8" onClick={onSave}>
             <Save />
