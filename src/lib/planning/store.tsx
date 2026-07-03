@@ -35,11 +35,7 @@ interface PlanningContextValue {
   planning: YearPlanning;
   // cell
   setCell: (agentId: string, dayIndex: number, code: string | null) => void;
-  fillRange: (
-    agentId: string,
-    indices: number[],
-    code: string | null,
-  ) => void;
+  fillRange: (agentId: string, indices: number[], code: string | null) => void;
   // codes
   upsertCode: (code: PlanningCode, originalCode?: string) => void;
   removeCode: (code: string) => void;
@@ -215,15 +211,12 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const updateAgent = useCallback(
-    (id: string, patch: Partial<Omit<Agent, "id">>) => {
-      setState((prev) => ({
-        ...prev,
-        agents: prev.agents.map((a) => (a.id === id ? { ...a, ...patch } : a)),
-      }));
-    },
-    [],
-  );
+  const updateAgent = useCallback((id: string, patch: Partial<Omit<Agent, "id">>) => {
+    setState((prev) => ({
+      ...prev,
+      agents: prev.agents.map((a) => (a.id === id ? { ...a, ...patch } : a)),
+    }));
+  }, []);
 
   const removeAgent = useCallback((id: string) => {
     setState((prev) => {
@@ -254,7 +247,6 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-
   const resetAll = useCallback(() => {
     setState({
       codes: DEFAULT_CODES,
@@ -271,21 +263,18 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
 
   const colors = state.colors ?? DEFAULT_COLORS;
 
-  const setColor = useCallback(
-    (key: ColorKey, part: "bg" | "fg", hex: string) => {
-      setState((prev) => {
-        const current = prev.colors ?? DEFAULT_COLORS;
-        return {
-          ...prev,
-          colors: {
-            ...current,
-            [key]: { ...current[key], [part]: hex },
-          },
-        };
-      });
-    },
-    [],
-  );
+  const setColor = useCallback((key: ColorKey, part: "bg" | "fg", hex: string) => {
+    setState((prev) => {
+      const current = prev.colors ?? DEFAULT_COLORS;
+      return {
+        ...prev,
+        colors: {
+          ...current,
+          [key]: { ...current[key], [part]: hex },
+        },
+      };
+    });
+  }, []);
 
   const resetColors = useCallback(() => {
     setState((prev) => ({ ...prev, colors: DEFAULT_COLORS }));

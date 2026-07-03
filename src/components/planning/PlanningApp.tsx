@@ -17,12 +17,7 @@ import {
   Printer,
 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -77,20 +72,13 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     <div className="min-h-screen bg-background">
       <header className="no-print sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3">
-          <Link
-            to="/"
-            className="flex items-center gap-2 rounded-md px-1 py-0.5 hover:bg-accent"
-          >
+          <Link to="/" className="flex items-center gap-2 rounded-md px-1 py-0.5 hover:bg-accent">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <CalendarDays className="size-5" />
             </div>
             <div>
-              <h1 className="text-base font-bold leading-tight">
-                Planning des agents
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                Planification annuelle — UCPA
-              </p>
+              <h1 className="text-base font-bold leading-tight">Planning des agents</h1>
+              <p className="text-xs text-muted-foreground">Planification annuelle — UCPA</p>
             </div>
           </Link>
 
@@ -129,11 +117,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 e.target.value = "";
               }}
             />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileRef.current?.click()}
-            >
+            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
               <Upload /> Importer
             </Button>
             <ExportButton />
@@ -186,10 +170,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 >
                   <ChevronLeft />
                 </Button>
-                <Select
-                  value={String(month)}
-                  onValueChange={(v) => setMonth(Number(v))}
-                >
+                <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
@@ -201,11 +182,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                     ))}
                   </SelectContent>
                 </Select>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setMonth((m) => (m + 1) % 12)}
-                >
+                <Button variant="outline" size="icon" onClick={() => setMonth((m) => (m + 1) % 12)}>
                   <ChevronRight />
                 </Button>
               </div>
@@ -213,9 +190,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             </div>
             <PlanningGrid month={month} />
             <p className="text-xs text-muted-foreground">
-              Cliquez sur une cellule pour choisir un code. Seules les valeurs
-              définies dans « Paramètres » sont autorisées — toute autre valeur
-              apparaît en rouge.
+              Cliquez sur une cellule pour choisir un code. Seules les valeurs définies dans «
+              Paramètres » sont autorisées — toute autre valeur apparaît en rouge.
             </p>
           </TabsContent>
 
@@ -249,12 +225,7 @@ function ExportButton() {
   return (
     <Button
       size="sm"
-      onClick={() =>
-        exportToExcel(
-          { codes, agents, planningByYear: { [year]: planning } },
-          year,
-        )
-      }
+      onClick={() => exportToExcel({ codes, agents, planningByYear: { [year]: planning } }, year)}
     >
       <Download /> Exporter
     </Button>
@@ -278,9 +249,9 @@ function ResetDialog({ onReset }: { onReset: () => void }) {
           <DialogHeader>
             <DialogTitle>Remettre le planning à zéro ?</DialogTitle>
             <DialogDescription>
-              Cette action est irréversible. Elle effacera toutes les valeurs
-              saisies dans le planning (toutes les années), sans toucher à la
-              base agents, aux codes ni aux paramètres.
+              Cette action est irréversible. Elle effacera toutes les valeurs saisies dans le
+              planning (toutes les années), sans toucher à la base agents, aux codes ni aux
+              paramètres.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
