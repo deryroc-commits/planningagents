@@ -270,10 +270,11 @@ function ResetDialog({ onReset }: { onReset: () => void }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tout remettre à zéro ?</DialogTitle>
+            <DialogTitle>Remettre le planning à zéro ?</DialogTitle>
             <DialogDescription>
-              Cette action est irréversible. Elle supprimera tout le planning,
-              la base agents, les codes et les paramètres personnalisés.
+              Cette action est irréversible. Elle effacera toutes les valeurs
+              saisies dans le planning (toutes les années), sans toucher à la
+              base agents, aux codes ni aux paramètres.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
