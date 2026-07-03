@@ -137,6 +137,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                           })
                         }
                         className={`h-9 w-10 cursor-pointer text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls}`}
+                        style={style}
                       >
                         {value ?? ""}
                       </button>
