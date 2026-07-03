@@ -41,9 +41,28 @@ interface PlanningContextValue {
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
   resetAll: () => void;
+  // colors
+  colors: ColorScheme;
+  setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
+  resetColors: () => void;
 }
 
 const PlanningContext = createContext<PlanningContextValue | null>(null);
+
+/** Build a <style> string that maps the color scheme onto the CSS variables. */
+function colorsToCss(colors: ColorScheme): string {
+  return `:root{
+    --cat-travail-bg:${colors.travail.bg};--cat-travail-fg:${colors.travail.fg};
+    --cat-poste-bg:${colors.poste.bg};--cat-poste-fg:${colors.poste.fg};
+    --cat-repos-bg:${colors.repos.bg};--cat-repos-fg:${colors.repos.fg};
+    --cat-recup-bg:${colors.recup.bg};--cat-recup-fg:${colors.recup.fg};
+    --cat-absence-bg:${colors.absence.bg};--cat-absence-fg:${colors.absence.fg};
+    --cat-autre-bg:${colors.autre.bg};--cat-autre-fg:${colors.autre.fg};
+    --cat-error-bg:${colors.error.bg};--cat-error-fg:${colors.error.fg};
+    --cell-weekend:${colors.weekend.bg};
+    --cell-holiday:${colors.holiday.bg};--cell-holiday-fg:${colors.holiday.fg};
+  }`;
+}
 
 function loadState(): PlanningState {
   const base: PlanningState = {
