@@ -87,8 +87,8 @@ export function codeForCell(
   year: number,
   dayIndex: number,
 ): string | undefined {
-  const tpl = r.agentTemplates[agentId];
-  if (!tpl) return undefined;
+  if (!r.agentTemplates[agentId]) return undefined;
+  const tpl = getAgentTemplate(r, agentId);
   const pos = cyclePosition(year, dayIndex, r.cycleWeeks);
   const d = dateOfDayIndex(year, dayIndex);
   const code = tpl[pos]?.[mondayIndex(d)];
