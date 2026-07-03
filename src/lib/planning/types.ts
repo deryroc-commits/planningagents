@@ -19,6 +19,21 @@ export interface Agent {
   team?: string;
 }
 
+/** Keys for every colorable element shown in the legend. */
+export type ColorKey =
+  | CodeCategory
+  | "weekend"
+  | "holiday"
+  | "error";
+
+/** Background + foreground (text) color pair, stored as hex (#rrggbb). */
+export interface ColorPair {
+  bg: string;
+  fg: string;
+}
+
+export type ColorScheme = Record<ColorKey, ColorPair>;
+
 /** agentId -> dayIndex (0-based day of year) -> code */
 export type YearPlanning = Record<string, Record<number, string>>;
 
