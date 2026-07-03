@@ -73,13 +73,39 @@ export function RotationTab() {
     setRotation({ ...rotation, agentTemplates: next });
   };
 
+  /** Remet toutes les cases de week-end (S/D) au poste RH pour chaque agent. */
+  const resetWeekendsToRH = () => {
+    if (
+      !window.confirm(
+        `Réinitialiser tous les week-ends (samedi & dimanche) au poste ${WEEKEND_DEFAULT_CODE} ?\nLes semaines (L→V) ne sont pas modifiées.`,
+      )
+    )
+      return;
+    const next: Record<string, string[][]> = {};
+    for (const a of agents) {
+      const tpl = getAgentTemplate(rotation, a.id).map((row, _w) =>
+        row.map((code, d) => (d >= 5 ? WEEKEND_DEFAULT_CODE : code)),
+      );
+      next[a.id] = tpl;
+    }
+    setRotation({ ...rotation, agentTemplates: next });
+    setStatus(`Week-ends réinitialisés au poste ${WEEKEND_DEFAULT_CODE}.`);
+    setTimeout(() => setStatus(null), 6000);
+  };
+
   const doApply = () => {
+    const fromDayIndex =
+      fromMonth > 0 ? dayIndicesForMonth(year, fromMonth)[0] ?? 0 : 0;
+    const scope =
+      fromMonth > 0
+        ? ` à partir de ${MONTHS[fromMonth]} (les mois précédents ne seront pas modifiés)`
+        : " sur toute l'année";
     const msg =
       mode === "replace"
-        ? `Remplacer le planning ${year} par le roulement généré ?\nLes saisies manuelles des cases concernées seront écrasées.`
-        : `Compléter les cases vides du planning ${year} avec le roulement ?\nLes saisies existantes seront conservées.`;
+        ? `Remplacer le planning ${year}${scope} par le roulement généré ?\nLes saisies manuelles des cases concernées seront écrasées.`
+        : `Compléter les cases vides du planning ${year}${scope} avec le roulement ?\nLes saisies existantes seront conservées.`;
     if (!window.confirm(msg)) return;
-    const n = applyRotation(mode);
+    const n = applyRotation(mode, fromDayIndex);
     setStatus(
       `Roulement appliqué : ${n} case${n > 1 ? "s" : ""} mise${n > 1 ? "s" : ""} à jour.`,
     );
