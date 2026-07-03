@@ -47,7 +47,7 @@ import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
 const YEARS = selectableYears();
 
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
-  const { year, setYear, codes, planning, replaceState, clearPlanning, clearYear, resetAll } = usePlanning();
+  const { year, setYear, codes, planning, replaceState, clearYear, resetAll } = usePlanning();
   const [month, setMonth] = useState(new Date().getMonth());
   const [tab, setTab] = useState(initialTab);
   const [status, setStatus] = useState<string | null>(null);
