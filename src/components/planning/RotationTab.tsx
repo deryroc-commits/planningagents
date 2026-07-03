@@ -412,9 +412,34 @@ export function RotationTab() {
           <ToggleGroupItem value="fill">Compléter les vides</ToggleGroupItem>
           <ToggleGroupItem value="replace">Remplacer</ToggleGroupItem>
         </ToggleGroup>
+        <span className="text-sm font-medium">À partir de :</span>
+        <Select
+          value={String(fromMonth)}
+          onValueChange={(v) => setFromMonth(Number(v))}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">Toute l'année (janvier)</SelectItem>
+            {MONTHS.map((m, i) =>
+              i === 0 ? null : (
+                <SelectItem key={i} value={String(i)}>
+                  {m}
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
         <Button onClick={doApply}>
           <Wand2 /> Générer le roulement
         </Button>
+        {fromMonth > 0 && (
+          <span className="w-full text-xs text-muted-foreground">
+            Les mois avant {MONTHS[fromMonth]} ne seront pas modifiés — pratique
+            pour changer le roulement en cours d'année.
+          </span>
+        )}
         {status && (
           <span className="inline-flex items-center gap-1.5 text-sm text-primary">
             <RotateCcw className="size-4" /> {status}
