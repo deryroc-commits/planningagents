@@ -232,6 +232,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       planningByYear: s.planningByYear
         ? { ...prev.planningByYear, ...s.planningByYear }
         : prev.planningByYear,
+      colors: s.colors ?? prev.colors,
     }));
   }, []);
 
@@ -241,7 +242,30 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       codes: DEFAULT_CODES,
       agents: DEFAULT_AGENTS,
       planningByYear: {},
+      colors: DEFAULT_COLORS,
     });
+  }, []);
+
+  const colors = state.colors ?? DEFAULT_COLORS;
+
+  const setColor = useCallback(
+    (key: ColorKey, part: "bg" | "fg", hex: string) => {
+      setState((prev) => {
+        const current = prev.colors ?? DEFAULT_COLORS;
+        return {
+          ...prev,
+          colors: {
+            ...current,
+            [key]: { ...current[key], [part]: hex },
+          },
+        };
+      });
+    },
+    [],
+  );
+
+  const resetColors = useCallback(() => {
+    setState((prev) => ({ ...prev, colors: DEFAULT_COLORS }));
   }, []);
 
   const value = useMemo<PlanningContextValue>(
