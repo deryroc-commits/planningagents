@@ -92,6 +92,7 @@ export function CodePicker({
           >
             <span
               className={`inline-flex min-w-9 justify-center rounded px-1.5 py-0.5 text-xs font-semibold ${CATEGORY_META[c.category].cls}`}
+              style={codeInlineStyle(c)}
             >
               {c.code}
             </span>
