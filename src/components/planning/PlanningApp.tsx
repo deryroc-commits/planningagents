@@ -137,7 +137,13 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               <Upload /> Importer
             </Button>
             <ExportButton />
-            <ResetDialog onReset={clearPlanning} />
+            <ResetDialog
+              onReset={() => {
+                clearPlanning();
+                setStatus("Planning réinitialisé.");
+                setTimeout(() => setStatus(null), 4000);
+              }}
+            />
           </div>
         </div>
         {status && (
