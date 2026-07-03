@@ -298,16 +298,17 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
    * into empty cells. Returns the number of cells written.
    */
   const applyRotation = useCallback(
-    (mode: "replace" | "fill") => {
+    (mode: "replace" | "fill", fromDayIndex = 0) => {
       let written = 0;
       setState((prev) => {
         const rot = normalizeRotation(prev.rotation ?? DEFAULT_ROTATION);
         const total = daysInYear(year);
+        const start = Math.max(0, fromDayIndex);
         const yp = { ...(prev.planningByYear[year] ?? {}) };
         for (const a of prev.agents) {
           if (!rot.agentTemplates[a.id]) continue;
           const row = { ...(yp[a.id] ?? {}) };
-          for (let i = 0; i < total; i++) {
+          for (let i = start; i < total; i++) {
             const code = codeForCell(rot, a.id, year, i);
             if (!code) continue;
             if (mode === "fill" && row[i]) continue;
