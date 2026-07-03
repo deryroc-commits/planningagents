@@ -305,10 +305,10 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
         const total = daysInYear(year);
         const yp = { ...(prev.planningByYear[year] ?? {}) };
         for (const a of prev.agents) {
-          const offset = rot.offsets[a.id] ?? 0;
+          if (!rot.agentTemplates[a.id]) continue;
           const row = { ...(yp[a.id] ?? {}) };
           for (let i = 0; i < total; i++) {
-            const code = codeForCell(rot, offset, year, i);
+            const code = codeForCell(rot, a.id, year, i);
             if (!code) continue;
             if (mode === "fill" && row[i]) continue;
             row[i] = code;
