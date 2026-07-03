@@ -274,17 +274,17 @@ export async function exportStyledMonthExcel(
         let bg: string | undefined;
         let fg = "222A38";
         if (isInvalid(v, map)) {
-          bg = XLS_ERROR.bg;
-          fg = XLS_ERROR.fg;
+          bg = errorColor.bg;
+          fg = errorColor.fg;
         } else if (v && map[v]) {
-          const meta = XLS_COLORS[map[v].category];
+          const meta = catColors[map[v].category];
           bg = meta.bg;
           fg = meta.fg;
         } else if (hol) {
-          bg = XLS_HOLIDAY.bg;
-          fg = XLS_HOLIDAY.fg;
+          bg = holidayColor.bg;
+          fg = holidayColor.fg;
         } else if (isWeekend(d)) {
-          bg = XLS_WEEKEND;
+          bg = weekendBg;
         }
         line.push(cell(v ?? "", { bg, fg, bold: true }));
       }
