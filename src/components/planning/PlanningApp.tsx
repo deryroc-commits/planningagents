@@ -83,7 +83,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           </Link>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
+            <Button size="sm" className="nav-btn nav-emerald border-0" asChild>
               <Link to="/">
                 <Home /> Accueil
               </Link>
