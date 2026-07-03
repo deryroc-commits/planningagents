@@ -141,36 +141,22 @@ export function ParametersTab() {
                       const eff = resolveCodeColor(c, colors);
                       return (
                         <div className="flex items-center gap-1.5">
-                          <label
-                            className="flex items-center gap-1 text-[11px] text-muted-foreground"
-                            title="Couleur de fond"
-                          >
+                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                             Fond
-                            <input
-                              type="color"
+                            <ColorPalette
                               value={eff.bg}
-                              onChange={(e) =>
-                                setCodeColor(c, "bg", e.target.value)
-                              }
-                              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
-                              aria-label={`Couleur de fond — ${c.code}`}
+                              onChange={(hex) => setCodeColor(c, "bg", hex)}
+                              title={`Couleur de fond — ${c.code}`}
                             />
-                          </label>
-                          <label
-                            className="flex items-center gap-1 text-[11px] text-muted-foreground"
-                            title="Couleur du texte"
-                          >
+                          </span>
+                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                             Texte
-                            <input
-                              type="color"
+                            <ColorPalette
                               value={eff.fg}
-                              onChange={(e) =>
-                                setCodeColor(c, "fg", e.target.value)
-                              }
-                              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
-                              aria-label={`Couleur du texte — ${c.code}`}
+                              onChange={(hex) => setCodeColor(c, "fg", hex)}
+                              title={`Couleur du texte — ${c.code}`}
                             />
-                          </label>
+                          </span>
                           {c.color && (
                             <Button
                               variant="ghost"
