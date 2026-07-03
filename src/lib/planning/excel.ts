@@ -238,8 +238,8 @@ export async function exportStyledMonthExcel(
   for (const i of indices) {
     const d = dateOfDayIndex(year, i);
     const hol = holidays[i];
-    const bg = hol ? XLS_HOLIDAY.bg : isWeekend(d) ? XLS_WEEKEND : XLS_HEADER.bg;
-    const fg = hol ? XLS_HOLIDAY.fg : XLS_HEADER.fg;
+    const bg = hol ? holidayColor.bg : isWeekend(d) ? weekendBg : XLS_HEADER.bg;
+    const fg = hol ? holidayColor.fg : XLS_HEADER.fg;
     hLetters.push(cell(dayLetter(d), { bg, fg, bold: true, size: 8 }));
     hNumbers.push(cell(d.getDate(), { bg, fg, bold: true }));
   }
