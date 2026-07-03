@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { ColorSettings } from "./ColorSettings";
 import { usePlanning } from "@/lib/planning/store";
 import {
   CATEGORY_META,
+  codeInlineStyle,
+  resolveCodeColor,
+  type ColorScheme,
   type CodeCategory,
   type PlanningCode,
 } from "@/lib/planning/types";
@@ -28,7 +31,7 @@ const EMPTY: PlanningCode = {
 };
 
 export function ParametersTab() {
-  const { codes, upsertCode, removeCode } = usePlanning();
+  const { codes, upsertCode, removeCode, colors } = usePlanning();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<PlanningCode>(EMPTY);
   const [adding, setAdding] = useState(false);
@@ -53,6 +56,17 @@ export function ParametersTab() {
     if (!code) return;
     upsertCode({ ...draft, code }, editing ?? undefined);
     cancel();
+  };
+
+  // Quick per-code color change directly from the list (no edit mode needed).
+  const setCodeColor = (c: PlanningCode, part: "bg" | "fg", hex: string) => {
+    const base = resolveCodeColor(c, colors);
+    upsertCode({ ...c, color: { ...base, [part]: hex } }, c.code);
+  };
+  const clearCodeColor = (c: PlanningCode) => {
+    const { color, ...rest } = c;
+    void color;
+    upsertCode(rest, c.code);
   };
 
   return (
@@ -82,6 +96,7 @@ export function ParametersTab() {
               <th className="px-3 py-2 font-medium">Libellé</th>
               <th className="px-3 py-2 font-medium">Heures</th>
               <th className="px-3 py-2 font-medium">Catégorie</th>
+              <th className="px-3 py-2 font-medium">Couleur</th>
               <th className="px-3 py-2 text-right font-medium">Actions</th>
             </tr>
           </thead>
@@ -92,6 +107,7 @@ export function ParametersTab() {
                 setDraft={setDraft}
                 onSave={save}
                 onCancel={cancel}
+                colors={colors}
               />
             )}
             {codes.map((c) =>
@@ -102,12 +118,14 @@ export function ParametersTab() {
                   setDraft={setDraft}
                   onSave={save}
                   onCancel={cancel}
+                  colors={colors}
                 />
               ) : (
                 <tr key={c.code} className="border-b border-border last:border-0">
                   <td className="px-3 py-2">
                     <span
                       className={`inline-flex min-w-9 justify-center rounded px-1.5 py-0.5 text-xs font-semibold ${CATEGORY_META[c.category].cls}`}
+                      style={codeInlineStyle(c)}
                     >
                       {c.code}
                     </span>
@@ -116,6 +134,56 @@ export function ParametersTab() {
                   <td className="px-3 py-2 tabular-nums">{fmtHours(c.hours)} h</td>
                   <td className="px-3 py-2 text-muted-foreground">
                     {CATEGORY_META[c.category].label}
+                  </td>
+                  <td className="px-3 py-2">
+                    {(() => {
+                      const eff = resolveCodeColor(c, colors);
+                      return (
+                        <div className="flex items-center gap-1.5">
+                          <label
+                            className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                            title="Couleur de fond"
+                          >
+                            Fond
+                            <input
+                              type="color"
+                              value={eff.bg}
+                              onChange={(e) =>
+                                setCodeColor(c, "bg", e.target.value)
+                              }
+                              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
+                              aria-label={`Couleur de fond — ${c.code}`}
+                            />
+                          </label>
+                          <label
+                            className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                            title="Couleur du texte"
+                          >
+                            Texte
+                            <input
+                              type="color"
+                              value={eff.fg}
+                              onChange={(e) =>
+                                setCodeColor(c, "fg", e.target.value)
+                              }
+                              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
+                              aria-label={`Couleur du texte — ${c.code}`}
+                            />
+                          </label>
+                          {c.color && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 text-muted-foreground"
+                              title="Revenir à la couleur de la catégorie"
+                              onClick={() => clearCodeColor(c)}
+                            >
+                              <RotateCcw className="size-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-1">
@@ -152,12 +220,15 @@ function CodeEditorRow({
   setDraft,
   onSave,
   onCancel,
+  colors,
 }: {
   draft: PlanningCode;
   setDraft: (c: PlanningCode) => void;
   onSave: () => void;
   onCancel: () => void;
+  colors: ColorScheme;
 }) {
+  const eff = resolveCodeColor(draft, colors);
   return (
     <tr className="border-b border-border bg-accent/30">
       <td className="px-3 py-2">
@@ -205,6 +276,49 @@ function CodeEditorRow({
             ))}
           </SelectContent>
         </Select>
+      </td>
+      <td className="px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            Fond
+            <input
+              type="color"
+              value={eff.bg}
+              onChange={(e) =>
+                setDraft({ ...draft, color: { ...eff, bg: e.target.value } })
+              }
+              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
+              aria-label="Couleur de fond du code"
+            />
+          </label>
+          <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            Texte
+            <input
+              type="color"
+              value={eff.fg}
+              onChange={(e) =>
+                setDraft({ ...draft, color: { ...eff, fg: e.target.value } })
+              }
+              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
+              aria-label="Couleur du texte du code"
+            />
+          </label>
+          {draft.color && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground"
+              title="Revenir à la couleur de la catégorie"
+              onClick={() => {
+                const { color, ...rest } = draft;
+                void color;
+                setDraft(rest);
+              }}
+            >
+              <RotateCcw className="size-3.5" />
+            </Button>
+          )}
+        </div>
       </td>
       <td className="px-3 py-2">
         <div className="flex justify-end gap-1">

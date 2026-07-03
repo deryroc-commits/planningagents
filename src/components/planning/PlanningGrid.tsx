@@ -13,7 +13,7 @@ import {
   isInvalid,
   isWeekend,
 } from "@/lib/planning/calc";
-import { CATEGORY_META } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
 import { CodePicker } from "./CodePicker";
 
 interface PlanningGridProps {
@@ -100,7 +100,8 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                 {indices.map((i) => {
                   const value = row[i];
                   const invalid = isInvalid(value, map);
-                  const cat = value && map[value] ? map[value].category : null;
+                  const codeDef = value ? map[value] : undefined;
+                  const cat = codeDef ? codeDef.category : null;
                   const d = dateOfDayIndex(year, i);
                   const we = isWeekend(d);
                   const hol = holidays[i];
@@ -113,6 +114,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                         : we
                           ? "cell-weekend"
                           : "";
+                  const style = invalid ? undefined : codeInlineStyle(codeDef);
                   return (
                     <td
                       key={i}
@@ -135,6 +137,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                           })
                         }
                         className={`h-9 w-10 cursor-pointer text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls}`}
+                        style={style}
                       >
                         {value ?? ""}
                       </button>

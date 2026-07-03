@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Search, X } from "lucide-react";
 import type { PlanningCode } from "@/lib/planning/types";
-import { CATEGORY_META } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
 import { fmtHours } from "@/lib/planning/calc";
 
 interface CodePickerProps {
@@ -92,6 +92,7 @@ export function CodePicker({
           >
             <span
               className={`inline-flex min-w-9 justify-center rounded px-1.5 py-0.5 text-xs font-semibold ${CATEGORY_META[c.category].cls}`}
+              style={codeInlineStyle(c)}
             >
               {c.code}
             </span>

@@ -12,7 +12,7 @@ import {
   selectableYears,
 } from "@/lib/planning/calc";
 import { MONTHS } from "@/lib/planning/calc";
-import { CATEGORY_META } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
 import { exportStyledMonthExcel } from "@/lib/planning/excel";
 import { Button } from "@/components/ui/button";
@@ -358,9 +358,11 @@ function GroupRows({
             </td>
             {indices.map((i) => {
               const v = row[i];
-              const cat = v && map[v] ? map[v].category : null;
+              const codeDef = v ? map[v] : undefined;
+              const cat = codeDef ? codeDef.category : null;
               const hol = holidays[i];
-              const cls = isInvalid(v, map)
+              const invalid = isInvalid(v, map);
+              const cls = invalid
                 ? "cat-error"
                 : cat
                   ? CATEGORY_META[cat].cls
@@ -369,10 +371,12 @@ function GroupRows({
                     : isWeekend(dateOfDayIndex(year, i))
                       ? "cell-weekend"
                       : "";
+              const style = invalid ? undefined : codeInlineStyle(codeDef);
               return (
                 <td
                   key={i}
                   className={`border border-border px-0 py-0.5 text-center font-semibold ${cls}`}
+                  style={style}
                 >
                   {v ?? ""}
                 </td>

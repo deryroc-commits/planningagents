@@ -266,7 +266,10 @@ export async function exportStyledMonthExcel(
           bg = errorColor.bg;
           fg = errorColor.fg;
         } else if (v && map[v]) {
-          const meta = catColors[map[v].category];
+          const def = map[v];
+          const meta = def.color
+            ? { bg: hx(def.color.bg), fg: hx(def.color.fg) }
+            : catColors[def.category];
           bg = meta.bg;
           fg = meta.fg;
         } else if (hol) {
