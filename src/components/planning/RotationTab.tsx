@@ -209,6 +209,15 @@ export function RotationTab() {
         <span className="text-sm text-muted-foreground">
           {cycle} semaine{cycle > 1 ? "s" : ""} de base
         </span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={resetWeekendsToRH}
+          title={`Remettre tous les week-ends au poste ${WEEKEND_DEFAULT_CODE}`}
+        >
+          <RotateCcw /> Réinitialiser les week-ends ({WEEKEND_DEFAULT_CODE})
+        </Button>
       </section>
 
       {/* Per-agent base weeks grid */}
