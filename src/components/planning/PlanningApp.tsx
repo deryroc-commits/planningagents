@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Download,
   Home,
-  RotateCcw,
   Trash2,
   Upload,
   Users,
