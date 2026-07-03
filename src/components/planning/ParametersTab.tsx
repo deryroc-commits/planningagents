@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { ColorSettings } from "./ColorSettings";
 import { usePlanning } from "@/lib/planning/store";
 import {
   CATEGORY_META,
+  codeInlineStyle,
+  resolveCodeColor,
+  type ColorScheme,
   type CodeCategory,
   type PlanningCode,
 } from "@/lib/planning/types";
@@ -28,7 +31,7 @@ const EMPTY: PlanningCode = {
 };
 
 export function ParametersTab() {
-  const { codes, upsertCode, removeCode } = usePlanning();
+  const { codes, upsertCode, removeCode, colors } = usePlanning();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<PlanningCode>(EMPTY);
   const [adding, setAdding] = useState(false);
@@ -53,6 +56,17 @@ export function ParametersTab() {
     if (!code) return;
     upsertCode({ ...draft, code }, editing ?? undefined);
     cancel();
+  };
+
+  // Quick per-code color change directly from the list (no edit mode needed).
+  const setCodeColor = (c: PlanningCode, part: "bg" | "fg", hex: string) => {
+    const base = resolveCodeColor(c, colors);
+    upsertCode({ ...c, color: { ...base, [part]: hex } }, c.code);
+  };
+  const clearCodeColor = (c: PlanningCode) => {
+    const { color, ...rest } = c;
+    void color;
+    upsertCode(rest, c.code);
   };
 
   return (
