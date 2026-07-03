@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ColorSettings } from "./ColorSettings";
 import { usePlanning } from "@/lib/planning/store";
 import {
   CATEGORY_META,
