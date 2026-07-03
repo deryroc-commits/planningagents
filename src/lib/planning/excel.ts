@@ -163,6 +163,20 @@ export async function exportStyledMonthExcel(
   const colCount = indices.length + 1;
   const printDate = new Date().toLocaleDateString("fr-FR");
 
+  // Resolve the (possibly customized) color scheme into ARGB hex values.
+  const scheme: ColorScheme = { ...DEFAULT_COLORS, ...(state.colors ?? {}) };
+  const catColors: Record<CodeCategory, { bg: string; fg: string }> = {
+    travail: { bg: hx(scheme.travail.bg), fg: hx(scheme.travail.fg) },
+    poste: { bg: hx(scheme.poste.bg), fg: hx(scheme.poste.fg) },
+    repos: { bg: hx(scheme.repos.bg), fg: hx(scheme.repos.fg) },
+    recup: { bg: hx(scheme.recup.bg), fg: hx(scheme.recup.fg) },
+    absence: { bg: hx(scheme.absence.bg), fg: hx(scheme.absence.fg) },
+    autre: { bg: hx(scheme.autre.bg), fg: hx(scheme.autre.fg) },
+  };
+  const weekendBg = hx(scheme.weekend.bg);
+  const holidayColor = { bg: hx(scheme.holiday.bg), fg: hx(scheme.holiday.fg) };
+  const errorColor = { bg: hx(scheme.error.bg), fg: hx(scheme.error.fg) };
+
   const rows: any[][] = [];
   const merges: any[] = [];
 
