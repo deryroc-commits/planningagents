@@ -69,6 +69,7 @@ function loadState(): PlanningState {
     codes: DEFAULT_CODES,
     agents: DEFAULT_AGENTS,
     planningByYear: {},
+    colors: DEFAULT_COLORS,
   };
   if (typeof window === "undefined") return base;
   try {
@@ -79,6 +80,8 @@ function loadState(): PlanningState {
       codes: parsed.codes?.length ? parsed.codes : DEFAULT_CODES,
       agents: parsed.agents ?? DEFAULT_AGENTS,
       planningByYear: parsed.planningByYear ?? {},
+      // Merge stored overrides over defaults so newly added keys always exist.
+      colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
     };
   } catch {
     return base;
