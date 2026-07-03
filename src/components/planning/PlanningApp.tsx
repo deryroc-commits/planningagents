@@ -117,7 +117,11 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 e.target.value = "";
               }}
             />
-            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+            <Button
+              size="sm"
+              className="nav-btn nav-indigo border-0"
+              onClick={() => fileRef.current?.click()}
+            >
               <Upload /> Importer
             </Button>
             <ExportButton />
