@@ -40,6 +40,22 @@ export type ColorScheme = Record<ColorKey, ColorPair>;
 export type YearPlanning = Record<string, Record<number, string>>;
 
 /**
+ * A single tracked planning modification, relative to the value that was in
+ * the cell before the user started editing. `from`/`to` use "" for an empty
+ * cell. Used by the "Modifications" tab to highlight & print every change.
+ */
+export interface PlanningChange {
+  agentId: string;
+  dayIndex: number;
+  from: string;
+  to: string;
+  at: number;
+}
+
+/** key `${agentId}:${dayIndex}` -> change (for one year). */
+export type YearChanges = Record<string, PlanningChange>;
+
+/**
  * Base weekend-rotation model ("1 week-end sur N").
  * The cycle spans `cycleWeeks` weeks. Each AGENT has their own template of
  * `cycleWeeks` weeks of 7 codes (Monday..Sunday): weekdays are usually a fixed
@@ -62,6 +78,8 @@ export interface PlanningState {
   colors?: ColorScheme;
   /** Optional weekend-rotation configuration. */
   rotation?: RotationState;
+  /** Tracked manual modifications per year (for the "Modifications" tab). */
+  changesByYear?: Record<number, YearChanges>;
 }
 
 /** Human labels for each colorable element (used by the color editor). */

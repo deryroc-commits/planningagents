@@ -27,7 +27,7 @@ interface ActiveCell {
 }
 
 export function PlanningGrid({ month }: PlanningGridProps) {
-  const { year, agents, codes, planning, setCell } = usePlanning();
+  const { year, agents, codes, planning, changes, setCell } = usePlanning();
   const [active, setActive] = useState<ActiveCell | null>(null);
 
   const map = useMemo(() => codesMap(codes), [codes]);
@@ -134,6 +134,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                           ? "cell-weekend"
                           : "";
                   const style = invalid ? undefined : codeInlineStyle(codeDef);
+                  const changed = !!changes[`${a.id}:${i}`];
                   return (
                     <td
                       key={i}
@@ -155,7 +156,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                             rect: e.currentTarget.getBoundingClientRect(),
                           })
                         }
-                        className={`h-9 w-10 cursor-pointer text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls}`}
+                        className={`h-9 w-10 cursor-pointer text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls} ${changed ? "cell-changed" : ""}`}
                         style={style}
                       >
                         {value ?? ""}
