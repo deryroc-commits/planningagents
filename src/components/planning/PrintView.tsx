@@ -181,7 +181,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                 setSaving(true);
                 try {
                   await exportStyledMonthExcel(
-                    { codes, agents, planningByYear: { [year]: planning } },
+                    { codes, agents, planningByYear: { [year]: planning }, colors },
                     year,
                     month,
                   );
