@@ -260,31 +260,17 @@ function ExportButton() {
 
 function ResetDialog({ onReset }: { onReset: () => void }) {
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <button
-          type="button"
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-destructive shadow-sm transition-colors hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-        >
-          <Trash2 className="size-4" /> Tout remettre à zéro
-        </button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Tout remettre à zéro ?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Cette action est irréversible. Elle supprimera tout le planning,
-            la base agents, les codes et les paramètres personnalisés.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction onClick={onReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            Confirmer la réinitialisation
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <button
+      type="button"
+      className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-destructive shadow-sm transition-colors hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+      onClick={() => {
+        if (window.confirm("Tout remettre à zéro ? Cette action est irréversible.")) {
+          onReset();
+        }
+      }}
+    >
+      <Trash2 className="size-4" /> Tout remettre à zéro
+    </button>
   );
 }
 
