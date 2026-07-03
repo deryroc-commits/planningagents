@@ -123,6 +123,7 @@ export function ParametersTab() {
                   <td className="px-3 py-2">
                     <span
                       className={`inline-flex min-w-9 justify-center rounded px-1.5 py-0.5 text-xs font-semibold ${CATEGORY_META[c.category].cls}`}
+                      style={codeInlineStyle(c)}
                     >
                       {c.code}
                     </span>
@@ -131,6 +132,56 @@ export function ParametersTab() {
                   <td className="px-3 py-2 tabular-nums">{fmtHours(c.hours)} h</td>
                   <td className="px-3 py-2 text-muted-foreground">
                     {CATEGORY_META[c.category].label}
+                  </td>
+                  <td className="px-3 py-2">
+                    {(() => {
+                      const eff = resolveCodeColor(c, colors);
+                      return (
+                        <div className="flex items-center gap-1.5">
+                          <label
+                            className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                            title="Couleur de fond"
+                          >
+                            Fond
+                            <input
+                              type="color"
+                              value={eff.bg}
+                              onChange={(e) =>
+                                setCodeColor(c, "bg", e.target.value)
+                              }
+                              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
+                              aria-label={`Couleur de fond — ${c.code}`}
+                            />
+                          </label>
+                          <label
+                            className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                            title="Couleur du texte"
+                          >
+                            Texte
+                            <input
+                              type="color"
+                              value={eff.fg}
+                              onChange={(e) =>
+                                setCodeColor(c, "fg", e.target.value)
+                              }
+                              className="size-6 cursor-pointer rounded border border-border bg-transparent p-0"
+                              aria-label={`Couleur du texte — ${c.code}`}
+                            />
+                          </label>
+                          {c.color && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 text-muted-foreground"
+                              title="Revenir à la couleur de la catégorie"
+                              onClick={() => clearCodeColor(c)}
+                            >
+                              <RotateCcw className="size-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-1">
