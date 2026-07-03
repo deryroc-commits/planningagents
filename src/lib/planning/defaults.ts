@@ -1,4 +1,4 @@
-import type { Agent, ColorScheme, PlanningCode } from "./types";
+import type { Agent, ColorScheme, PlanningCode, RotationState } from "./types";
 
 /**
  * Default color scheme (hex) shared by the on-screen grid, the legend, the
