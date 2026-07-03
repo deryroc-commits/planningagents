@@ -297,14 +297,14 @@ export async function exportStyledMonthExcel(
   const legend: [string, { bg: string; fg: string }][] = [
     ...Object.entries(CATEGORY_META).map(
       ([k, meta]) =>
-        [meta.label, { bg: XLS_COLORS[k as CodeCategory].bg, fg: XLS_COLORS[k as CodeCategory].fg }] as [
+        [meta.label, { bg: catColors[k as CodeCategory].bg, fg: catColors[k as CodeCategory].fg }] as [
           string,
           { bg: string; fg: string },
         ],
     ),
-    ["Week-end", { bg: XLS_WEEKEND, fg: "222A38" }],
-    ["Jour férié", XLS_HOLIDAY],
-    ["Erreur / code invalide", XLS_ERROR],
+    ["Week-end", { bg: weekendBg, fg: "222A38" }],
+    ["Jour férié", holidayColor],
+    ["Erreur / code invalide", errorColor],
   ];
   for (const [label, c] of legend) {
     rows.push([cell(label, { bg: c.bg, fg: c.fg, bold: true, align: "left" })]);
