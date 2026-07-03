@@ -284,6 +284,9 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       removeAgent,
       replaceState,
       resetAll,
+      colors,
+      setColor,
+      resetColors,
     }),
     [
       year,
@@ -299,11 +302,15 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       removeAgent,
       replaceState,
       resetAll,
+      colors,
+      setColor,
+      resetColors,
     ],
   );
 
   return (
     <PlanningContext.Provider value={value}>
+      <style>{colorsToCss(colors)}</style>
       {children}
     </PlanningContext.Provider>
   );
