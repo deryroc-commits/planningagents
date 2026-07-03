@@ -203,6 +203,14 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             </p>
           </TabsContent>
 
+          <TabsContent value="stats">
+            <StatsTab />
+          </TabsContent>
+
+          <TabsContent value="rotation">
+            <RotationTab />
+          </TabsContent>
+
           <TabsContent value="params">
             <ParametersTab />
           </TabsContent>
