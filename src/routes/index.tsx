@@ -5,6 +5,8 @@ import {
   Users,
   Printer,
   ArrowRight,
+  BarChart3,
+  CalendarClock,
 } from "lucide-react";
 import homeBg from "@/assets/home-bg.png.asset.json";
 
@@ -15,13 +17,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Application de gestion du planning annuel des agents de la cuisine centrale UCPA : planning général, paramètres, base agents et impression.",
+          "Application de gestion du planning annuel des agents de la cuisine centrale UCPA : planning général, statistiques, roulement des week-ends, paramètres, base agents et impression.",
       },
       { property: "og:title", content: "Planning agents UCPA — Cuisine centrale" },
       {
         property: "og:description",
         content:
-          "Gestion du planning annuel des agents UCPA : planning général, paramètres, base agents, impression.",
+          "Gestion du planning annuel des agents UCPA : planning général, statistiques, roulement des week-ends, paramètres, base agents, impression.",
       },
     ],
   }),
@@ -37,25 +39,39 @@ const NAV = [
     color: "nav-emerald",
   },
   {
+    label: "Statistiques",
+    description: "Heures et postes analysés par agent, par mois et semaine.",
+    icon: BarChart3,
+    tab: "stats",
+    color: "nav-indigo",
+  },
+  {
+    label: "Roulement week-ends",
+    description: "Cycle de base (1 week-end sur N) généré sur l'année.",
+    icon: CalendarClock,
+    tab: "rotation",
+    color: "nav-amber",
+  },
+  {
     label: "Paramètres",
     description: "Codes, libellés, heures et catégories de couleur.",
     icon: Settings2,
     tab: "params",
-    color: "nav-indigo",
+    color: "nav-rose",
   },
   {
     label: "Base Agents",
     description: "Gestion des agents et de leurs équipes.",
     icon: Users,
     tab: "agents",
-    color: "nav-amber",
+    color: "nav-emerald",
   },
   {
     label: "Impression",
     description: "Aperçu mensuel prêt à imprimer ou exporter en PDF.",
     icon: Printer,
     tab: "print",
-    color: "nav-rose",
+    color: "nav-indigo",
   },
 ] as const;
 
