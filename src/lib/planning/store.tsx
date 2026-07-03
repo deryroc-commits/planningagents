@@ -57,7 +57,7 @@ interface PlanningContextValue {
   // rotation
   rotation: RotationState;
   setRotation: (r: RotationState) => void;
-  applyRotation: (mode: "replace" | "fill") => number;
+  applyRotation: (mode: "replace" | "fill", fromDayIndex?: number) => number;
 }
 
 const PlanningContext = createContext<PlanningContextValue | null>(null);
