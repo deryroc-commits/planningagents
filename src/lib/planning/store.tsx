@@ -105,6 +105,19 @@ function colorsToCss(colors: ColorScheme): string {
   }`;
 }
 
+function hasExampleAgents(agents: Agent[] | undefined): boolean {
+  if (!agents?.length) return false;
+  const exampleNames = new Set([
+    "Dupont Marie",
+    "Martin Lucas",
+    "Bernard Sophie",
+    "Petit Thomas",
+    "Robert Julie",
+    "Richard Antoine",
+  ]);
+  return agents.some((agent) => exampleNames.has(agent.name));
+}
+
 function loadState(): PlanningState {
   const base: PlanningState = {
     codes: DEFAULT_CODES,
@@ -118,9 +131,10 @@ function loadState(): PlanningState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return base;
     const parsed = JSON.parse(raw) as Partial<PlanningState>;
+    const agents = hasExampleAgents(parsed.agents) ? DEFAULT_AGENTS : parsed.agents;
     return {
       codes: parsed.codes?.length ? parsed.codes : DEFAULT_CODES,
-      agents: parsed.agents ?? DEFAULT_AGENTS,
+      agents: agents?.length ? agents : DEFAULT_AGENTS,
       planningByYear: parsed.planningByYear ?? {},
       // Merge stored overrides over defaults so newly added keys always exist.
       colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
