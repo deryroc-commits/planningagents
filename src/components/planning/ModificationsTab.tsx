@@ -211,7 +211,7 @@ export function ModificationsTab() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button
             onClick={applyBulk}
-            disabled={!agentId || selected.size === 0}
+            disabled={!agentId || selected.size === 0 || !codeValue}
             className="bg-primary"
           >
             <Sparkles className="size-4" /> Appliquer aux {selected.size} jour(s)
