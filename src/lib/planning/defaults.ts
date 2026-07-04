@@ -37,12 +37,32 @@ export const DEFAULT_CODES: PlanningCode[] = [
 ];
 
 export const DEFAULT_AGENTS: Agent[] = [
-  { id: "ag-1", name: "Dupont Marie", team: "Équipe A" },
-  { id: "ag-2", name: "Martin Lucas", team: "Équipe A" },
-  { id: "ag-3", name: "Bernard Sophie", team: "Équipe A" },
-  { id: "ag-4", name: "Petit Thomas", team: "Équipe B" },
-  { id: "ag-5", name: "Robert Julie", team: "Équipe B" },
-  { id: "ag-6", name: "Richard Antoine", team: "Équipe B" },
+  { id: "ag-1-lrlg", name: "ALIS STEPHANE" },
+  { id: "ag-2-kgjh", name: "LECLERC CYRIL" },
+  { id: "ag-3-yuey", name: "CAHOREAU DAVID", team: "PRODUCTION" },
+  { id: "ag-4-5dt4", name: "DUCHENE TEDDY", team: "PRODUCTION" },
+  { id: "ag-5-akex", name: "BRIERE  ALLAN", team: "PRODUCTION" },
+  { id: "ag-6-lnfd", name: "LAIGLE  LOIC", team: "PRODUCTION" },
+  { id: "ag-7-io36", name: "LEMARIE DAVID", team: "PRODUCTION" },
+  { id: "ag-8-cdjj", name: "MONNERIE JEROME", team: "PRODUCTION" },
+  { id: "ag-9-i0lf", name: "VINCELOT ANTHONY", team: "PRODUCTION" },
+  { id: "ag-10-ixdz", name: "STAGIAIRE", team: "PRODUCTION" },
+  { id: "ag-11-uwyc", name: "LEBLANC AMELIE", team: "PRODUCTION" },
+  { id: "ag-12-qx9r", name: "CHERIE KELLY", team: "ALLOTISSEMENT" },
+  { id: "ag-13-b2ge", name: "BREUX BARBARA", team: "ALLOTISSEMENT" },
+  { id: "ag-14-3pdu", name: "JEUSSE AURELIE", team: "ALLOTISSEMENT" },
+  { id: "ag-15-s2ra", name: "JOURDAN MARYLISE", team: "ALLOTISSEMENT" },
+  { id: "ag-16-7bgv", name: "POLLAS MARTINE", team: "ALLOTISSEMENT" },
+  { id: "ag-17-13eh", name: "LESAGE  NADINE", team: "ALLOTISSEMENT" },
+  { id: "ag-18-ehc2", name: "MONNIER  MARINA", team: "ALLOTISSEMENT" },
+  { id: "ag-19-ns94", name: "COMTE  THAÏS", team: "ALLOTISSEMENT" },
+  { id: "ag-20-x8g8", name: "GAHERY PHILIPPE", team: "MAGASIN/ PLONGE" },
+  { id: "ag-21-di1q", name: "FORVEILLE STEPHANE", team: "MAGASIN/ PLONGE" },
+  { id: "ag-22-vhiz", name: "GARETTE ERIC", team: "MAGASIN/ PLONGE" },
+  { id: "ag-23-kepa", name: "LAOUENAN YANN", team: "MAGASIN/ PLONGE" },
+  { id: "ag-24-2c4b", name: "LHUISSIER ARNAUD", team: "MAGASIN/ PLONGE" },
+  { id: "ag-25-xdma", name: "BERTTHELOT  MICKAEL", team: "MAGASIN/ PLONGE" },
+  { id: "ag-26-1nw8", name: "BOISMAL  BAPTISTE", team: "MAGASIN/ PLONGE" },
 ];
 
 export const DEFAULT_ROTATION: RotationState = {
