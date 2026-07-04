@@ -75,8 +75,9 @@ export function ModificationsTab() {
   const applyBulk = () => {
     if (!agentId) return;
     if (selected.size === 0) return;
+    if (!codeValue) return;
     const indicesArr = Array.from(selected);
-    const code = codeValue === "__clear" ? null : codeValue || null;
+    const code = codeValue === "__clear" ? null : codeValue;
     fillRange(agentId, indicesArr, code);
     setSelected(new Set());
     setStatus(`${indicesArr.length} cellule(s) modifiée(s).`);
@@ -210,7 +211,7 @@ export function ModificationsTab() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button
             onClick={applyBulk}
-            disabled={!agentId || selected.size === 0}
+            disabled={!agentId || selected.size === 0 || !codeValue}
             className="bg-primary"
           >
             <Sparkles className="size-4" /> Appliquer aux {selected.size} jour(s)
