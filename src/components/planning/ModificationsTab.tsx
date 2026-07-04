@@ -75,8 +75,9 @@ export function ModificationsTab() {
   const applyBulk = () => {
     if (!agentId) return;
     if (selected.size === 0) return;
+    if (!codeValue) return;
     const indicesArr = Array.from(selected);
-    const code = codeValue === "__clear" ? null : codeValue || null;
+    const code = codeValue === "__clear" ? null : codeValue;
     fillRange(agentId, indicesArr, code);
     setSelected(new Set());
     setStatus(`${indicesArr.length} cellule(s) modifiée(s).`);
