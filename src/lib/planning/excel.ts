@@ -318,6 +318,142 @@ export async function exportStyledMonthExcel(
   XLSX.writeFile(wb, `planning-ucpa-${MONTHS[month].toLowerCase()}-${year}.xlsx`);
 }
 
+// ---------------------------------------------------------------------------
+// Overtime ("Heures supplémentaires") export — A4 portrait, dynamic table
+// with a per-agent balance summary and a detailed movement log.
+// ---------------------------------------------------------------------------
+
+export interface OvertimeExportRow {
+  name: string;
+  team: string;
+  added: number;
+  deducted: number;
+  balance: number;
+  over: boolean;
+}
+
+export interface OvertimeExportMovement {
+  name: string;
+  team: string;
+  date: string;
+  hours: number;
+  reason: string;
+}
+
+const XLS_OT_OK = { bg: "CFEFD8", fg: "1F6B3A" };
+const XLS_OT_ALERT = { bg: "F4C6C6", fg: "8B1E1E" };
+
+function fmtNum(n: number): string {
+  const r = Math.round(n * 100) / 100;
+  return (Number.isInteger(r) ? String(r) : r.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")).replace(".", ",");
+}
+
+export async function exportOvertimeExcel(opts: {
+  year: number;
+  threshold: number;
+  rows: OvertimeExportRow[];
+  movements: OvertimeExportMovement[];
+}): Promise<void> {
+  const { year, threshold, rows, movements } = opts;
+  const XLSX = await import("xlsx-js-style");
+  const wb = XLSX.utils.book_new();
+  const printDate = new Date().toLocaleDateString("fr-FR");
+
+  // ---- Summary sheet ----
+  const sRows: any[][] = [];
+  const sMerges: any[] = [];
+  const SUM_COLS = 5;
+
+  sRows.push([
+    cell(`HEURES SUPPLÉMENTAIRES — ${year}`, {
+      bg: XLS_TITLE.bg,
+      fg: XLS_TITLE.fg,
+      bold: true,
+      size: 13,
+      align: "left",
+    }),
+    ...Array.from({ length: SUM_COLS - 1 }, () => cell("", { bg: XLS_TITLE.bg })),
+  ]);
+  sMerges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: SUM_COLS - 1 } });
+
+  sRows.push([
+    cell(`Seuil d'alerte : ${fmtNum(threshold)} h — Imprimé le ${printDate}`, {
+      bg: XLS_HEADER.bg,
+      fg: XLS_HEADER.fg,
+      align: "left",
+    }),
+    ...Array.from({ length: SUM_COLS - 1 }, () => cell("", { bg: XLS_HEADER.bg })),
+  ]);
+  sMerges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: SUM_COLS - 1 } });
+
+  sRows.push([
+    cell("Agent", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" }),
+    cell("Équipe", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" }),
+    cell("Ajoutées (h)", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true }),
+    cell("Récupérées (h)", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true }),
+    cell("Solde (h)", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true }),
+  ]);
+
+  for (const r of rows) {
+    const c = r.over ? XLS_OT_ALERT : XLS_OT_OK;
+    sRows.push([
+      cell(r.name.toUpperCase(), { align: "left", bold: true }),
+      cell(r.team, { align: "left" }),
+      cell(fmtNum(r.added)),
+      cell(fmtNum(r.deducted)),
+      cell(fmtNum(r.balance), { bg: c.bg, fg: c.fg, bold: true }),
+    ]);
+  }
+
+  const totalBalance = rows.reduce((s, r) => s + r.balance, 0);
+  sRows.push([
+    cell("TOTAL", { bg: XLS_TEAM.bg, fg: XLS_TEAM.fg, bold: true, align: "left" }),
+    cell("", { bg: XLS_TEAM.bg }),
+    cell(fmtNum(rows.reduce((s, r) => s + r.added, 0)), { bg: XLS_TEAM.bg, fg: XLS_TEAM.fg, bold: true }),
+    cell(fmtNum(rows.reduce((s, r) => s + r.deducted, 0)), { bg: XLS_TEAM.bg, fg: XLS_TEAM.fg, bold: true }),
+    cell(fmtNum(totalBalance), { bg: XLS_TEAM.bg, fg: XLS_TEAM.fg, bold: true }),
+  ]);
+
+  const ws = XLSX.utils.aoa_to_sheet(sRows);
+  ws["!merges"] = sMerges;
+  ws["!cols"] = [{ wch: 26 }, { wch: 20 }, { wch: 13 }, { wch: 15 }, { wch: 11 }];
+  ws["!pageSetup"] = { orientation: "portrait", fitToWidth: 1, fitToHeight: 0 };
+  XLSX.utils.book_append_sheet(wb, ws, "Soldes");
+
+  // ---- Movements detail sheet ----
+  if (movements.length) {
+    const mRows: any[][] = [];
+    mRows.push([
+      cell("Date", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" }),
+      cell("Agent", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" }),
+      cell("Équipe", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" }),
+      cell("Heures", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true }),
+      cell("Motif", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" }),
+    ]);
+    for (const m of movements) {
+      const pos = m.hours >= 0;
+      mRows.push([
+        cell(m.date, { align: "left" }),
+        cell(m.name.toUpperCase(), { align: "left", bold: true }),
+        cell(m.team, { align: "left" }),
+        cell(`${pos ? "+" : "−"}${fmtNum(Math.abs(m.hours))}`, {
+          bg: pos ? XLS_OT_OK.bg : XLS_OT_ALERT.bg,
+          fg: pos ? XLS_OT_OK.fg : XLS_OT_ALERT.fg,
+          bold: true,
+        }),
+        cell(m.reason, { align: "left" }),
+      ]);
+    }
+    const wm = XLSX.utils.aoa_to_sheet(mRows);
+    wm["!cols"] = [{ wch: 12 }, { wch: 26 }, { wch: 20 }, { wch: 10 }, { wch: 34 }];
+    wm["!pageSetup"] = { orientation: "portrait", fitToWidth: 1, fitToHeight: 0 };
+    XLSX.utils.book_append_sheet(wb, wm, "Mouvements");
+  }
+
+  XLSX.writeFile(wb, `heures-sup-ucpa-${year}.xlsx`);
+}
+
+
 export interface ImportResult {
   state: Partial<PlanningState>;
   summary: string;
