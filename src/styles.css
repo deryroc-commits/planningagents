@@ -269,6 +269,7 @@
   .tt-params { --tt-c: oklch(0.62 0.2 350); }
   .tt-agents { --tt-c: oklch(0.62 0.2 20); }
   .tt-mods { --tt-c: oklch(0.62 0.22 140); }
+  .tt-overtime { --tt-c: oklch(0.68 0.17 45); }
   .tt-print { --tt-c: oklch(0.55 0.14 285); }
 }
 
