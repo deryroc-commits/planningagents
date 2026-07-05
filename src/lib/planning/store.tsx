@@ -368,6 +368,72 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
 
   const changes = state.changesByYear?.[year] ?? {};
 
+  const overtime = state.overtimeByYear?.[year] ?? [];
+  const overtimeThreshold = state.overtimeThreshold ?? DEFAULT_OVERTIME_THRESHOLD;
+
+  const addOvertime = useCallback(
+    (entry: Omit<OvertimeEntry, "id" | "at">) => {
+      setState((prev) => {
+        const list = prev.overtimeByYear?.[year] ?? [];
+        const next: OvertimeEntry = {
+          ...entry,
+          id: `ot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          at: Date.now(),
+        };
+        return {
+          ...prev,
+          overtimeByYear: { ...prev.overtimeByYear, [year]: [...list, next] },
+        };
+      });
+    },
+    [year],
+  );
+
+  const removeOvertime = useCallback(
+    (id: string) => {
+      setState((prev) => {
+        const list = prev.overtimeByYear?.[year] ?? [];
+        return {
+          ...prev,
+          overtimeByYear: {
+            ...prev.overtimeByYear,
+            [year]: list.filter((e) => e.id !== id),
+          },
+        };
+      });
+    },
+    [year],
+  );
+
+  const clearOvertimeAgent = useCallback(
+    (agentId: string) => {
+      setState((prev) => {
+        const list = prev.overtimeByYear?.[year] ?? [];
+        return {
+          ...prev,
+          overtimeByYear: {
+            ...prev.overtimeByYear,
+            [year]: list.filter((e) => e.agentId !== agentId),
+          },
+        };
+      });
+    },
+    [year],
+  );
+
+  const clearOvertimeYear = useCallback((y: number) => {
+    setState((prev) => {
+      const next = { ...prev.overtimeByYear };
+      delete next[y];
+      return { ...prev, overtimeByYear: next };
+    });
+  }, []);
+
+  const setOvertimeThreshold = useCallback((hours: number) => {
+    setState((prev) => ({ ...prev, overtimeThreshold: hours }));
+  }, []);
+
+
   const colors = state.colors ?? DEFAULT_COLORS;
 
   const setColor = useCallback((key: ColorKey, part: "bg" | "fg", hex: string) => {
