@@ -136,6 +136,8 @@ function loadState(): PlanningState {
     planningByYear: {},
     colors: DEFAULT_COLORS,
     rotation: DEFAULT_ROTATION,
+    overtimeByYear: {},
+    overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
   };
   if (typeof window === "undefined") return base;
   try {
@@ -151,6 +153,11 @@ function loadState(): PlanningState {
       colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
       rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
       changesByYear: parsed.changesByYear ?? {},
+      overtimeByYear: parsed.overtimeByYear ?? {},
+      overtimeThreshold:
+        typeof parsed.overtimeThreshold === "number"
+          ? parsed.overtimeThreshold
+          : DEFAULT_OVERTIME_THRESHOLD,
     };
   } catch {
     return base;
