@@ -167,7 +167,7 @@ function loadState(): PlanningState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return base;
     const parsed = JSON.parse(raw) as Partial<PlanningState>;
-    const agents = hasExampleAgents(parsed.agents) ? DEFAULT_AGENTS : parsed.agents;
+    const agents = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
     return {
       codes: parsed.codes?.length ? parsed.codes : DEFAULT_CODES,
       agents: agents?.length ? agents : DEFAULT_AGENTS,
