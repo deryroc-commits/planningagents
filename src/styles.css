@@ -285,6 +285,10 @@
   }
   /* Full-bleed A4 landscape with no printer margins */
   @page { size: A4 landscape; margin: 0; }
+  /* Overtime sheet prints A4 portrait, full page with a small margin */
+  @page portrait-page { size: A4 portrait; margin: 8mm; }
+
+
 
   /* Keep every application color when printing */
   .print-area,
