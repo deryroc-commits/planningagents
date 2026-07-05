@@ -12,16 +12,19 @@ import type {
   Agent,
   ColorKey,
   ColorScheme,
+  OvertimeEntry,
   PlanningCode,
   PlanningState,
   RotationState,
   YearChanges,
+  YearOvertime,
   YearPlanning,
 } from "./types";
 import {
   DEFAULT_AGENTS,
   DEFAULT_CODES,
   DEFAULT_COLORS,
+  DEFAULT_OVERTIME_THRESHOLD,
   DEFAULT_ROTATION,
   STORAGE_KEY,
 } from "./defaults";
