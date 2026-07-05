@@ -81,6 +81,14 @@ interface PlanningContextValue {
   // changes (Modifications tab)
   changes: YearChanges;
   clearChanges: (year: number) => void;
+  // overtime (Heures supp. tab)
+  overtime: YearOvertime;
+  overtimeThreshold: number;
+  addOvertime: (entry: Omit<OvertimeEntry, "id" | "at">) => void;
+  removeOvertime: (id: string) => void;
+  clearOvertimeAgent: (agentId: string) => void;
+  clearOvertimeYear: (year: number) => void;
+  setOvertimeThreshold: (hours: number) => void;
   // colors
   colors: ColorScheme;
   setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
