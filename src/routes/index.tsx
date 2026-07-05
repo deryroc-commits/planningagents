@@ -7,7 +7,10 @@ import {
   ArrowRight,
   BarChart3,
   CalendarClock,
+  Clock,
+  HomeIcon,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import homeBg from "@/assets/home-bg.png.asset.json";
 
 export const Route = createFileRoute("/")({
