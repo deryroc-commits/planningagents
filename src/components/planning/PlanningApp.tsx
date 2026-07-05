@@ -236,6 +236,10 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <ModificationsTab />
           </TabsContent>
 
+          <TabsContent value="overtime" className="tab-surface tint-overtime">
+            <OvertimeTab />
+          </TabsContent>
+
           <TabsContent value="print" className="tab-surface tint-print">
             <PrintView month={month} setMonth={setMonth} />
           </TabsContent>
