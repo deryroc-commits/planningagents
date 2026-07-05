@@ -330,4 +330,24 @@
     page-break-inside: avoid;
   }
   .print-area tr { page-break-inside: avoid; }
+
+  /* Overtime sheet: A4 portrait, readable table that flows across pages */
+  .overtime-print-area {
+    page: portrait-page;
+    display: block !important;
+    justify-content: flex-start;
+    min-height: auto;
+    padding: 0 !important;
+  }
+  .overtime-print-area table {
+    font-size: 10px;
+    table-layout: auto;
+    page-break-inside: auto;
+  }
+  .overtime-print-area th,
+  .overtime-print-area td {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+  }
+  .overtime-print-area thead { display: table-header-group; }
 }
