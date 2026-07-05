@@ -4,7 +4,7 @@ import { PlanningApp } from "@/components/planning/PlanningApp";
 
 type AppSearch = { tab: string };
 
-const VALID_TABS = ["planning", "stats", "rotation", "params", "agents", "print"];
+const VALID_TABS = ["planning", "stats", "rotation", "params", "agents", "mods", "overtime", "print"];
 
 export const Route = createFileRoute("/app")({
   validateSearch: (search: Record<string, unknown>): AppSearch => {
