@@ -7,6 +7,7 @@ import {
   ArrowRight,
   BarChart3,
   CalendarClock,
+  Clock,
 } from "lucide-react";
 import homeBg from "@/assets/home-bg.png.asset.json";
 
@@ -65,6 +66,13 @@ const NAV = [
     icon: Users,
     tab: "agents",
     color: "nav-emerald",
+  },
+  {
+    label: "Heures supp.",
+    description: "Gestion des heures supplémentaires par agent : alertes et export.",
+    icon: Clock,
+    tab: "overtime",
+    color: "nav-amber",
   },
   {
     label: "Impression",
