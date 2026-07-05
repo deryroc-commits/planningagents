@@ -70,6 +70,25 @@ export interface RotationState {
   agentTemplates: Record<string, string[][]>;
 }
 
+/**
+ * A single overtime movement for an agent: positive `hours` add overtime,
+ * negative `hours` record recovered / deducted time. Movements accumulate into
+ * a running balance shown in the "Heures supp." tab.
+ */
+export interface OvertimeEntry {
+  id: string;
+  agentId: string;
+  /** Positive = heures ajoutées ; négatif = heures récupérées/retirées. */
+  hours: number;
+  /** ISO date (yyyy-mm-dd) of the movement. */
+  date: string;
+  reason?: string;
+  at: number;
+}
+
+/** All overtime movements for one year. */
+export type YearOvertime = OvertimeEntry[];
+
 export interface PlanningState {
   codes: PlanningCode[];
   agents: Agent[];
@@ -80,6 +99,10 @@ export interface PlanningState {
   rotation?: RotationState;
   /** Tracked manual modifications per year (for the "Modifications" tab). */
   changesByYear?: Record<number, YearChanges>;
+  /** Overtime movements per year (for the "Heures supp." tab). */
+  overtimeByYear?: Record<number, YearOvertime>;
+  /** Alert threshold (hours) above which an agent's balance is flagged. */
+  overtimeThreshold?: number;
 }
 
 /** Human labels for each colorable element (used by the color editor). */

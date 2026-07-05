@@ -12,16 +12,19 @@ import type {
   Agent,
   ColorKey,
   ColorScheme,
+  OvertimeEntry,
   PlanningCode,
   PlanningState,
   RotationState,
   YearChanges,
+  YearOvertime,
   YearPlanning,
 } from "./types";
 import {
   DEFAULT_AGENTS,
   DEFAULT_CODES,
   DEFAULT_COLORS,
+  DEFAULT_OVERTIME_THRESHOLD,
   DEFAULT_ROTATION,
   STORAGE_KEY,
 } from "./defaults";
@@ -78,6 +81,14 @@ interface PlanningContextValue {
   // changes (Modifications tab)
   changes: YearChanges;
   clearChanges: (year: number) => void;
+  // overtime (Heures supp. tab)
+  overtime: YearOvertime;
+  overtimeThreshold: number;
+  addOvertime: (entry: Omit<OvertimeEntry, "id" | "at">) => void;
+  removeOvertime: (id: string) => void;
+  clearOvertimeAgent: (agentId: string) => void;
+  clearOvertimeYear: (year: number) => void;
+  setOvertimeThreshold: (hours: number) => void;
   // colors
   colors: ColorScheme;
   setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
@@ -125,6 +136,8 @@ function loadState(): PlanningState {
     planningByYear: {},
     colors: DEFAULT_COLORS,
     rotation: DEFAULT_ROTATION,
+    overtimeByYear: {},
+    overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
   };
   if (typeof window === "undefined") return base;
   try {
@@ -140,6 +153,11 @@ function loadState(): PlanningState {
       colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
       rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
       changesByYear: parsed.changesByYear ?? {},
+      overtimeByYear: parsed.overtimeByYear ?? {},
+      overtimeThreshold:
+        typeof parsed.overtimeThreshold === "number"
+          ? parsed.overtimeThreshold
+          : DEFAULT_OVERTIME_THRESHOLD,
     };
   } catch {
     return base;
@@ -154,6 +172,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     planningByYear: {},
     colors: DEFAULT_COLORS,
     rotation: DEFAULT_ROTATION,
+    overtimeByYear: {},
+    overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
   }));
   const hydrated = useRef(false);
 
@@ -319,6 +339,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       colors: DEFAULT_COLORS,
       rotation: DEFAULT_ROTATION,
       changesByYear: {},
+      overtimeByYear: {},
+      overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
     });
   }, []);
 
@@ -345,6 +367,72 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const changes = state.changesByYear?.[year] ?? {};
+
+  const overtime = state.overtimeByYear?.[year] ?? [];
+  const overtimeThreshold = state.overtimeThreshold ?? DEFAULT_OVERTIME_THRESHOLD;
+
+  const addOvertime = useCallback(
+    (entry: Omit<OvertimeEntry, "id" | "at">) => {
+      setState((prev) => {
+        const list = prev.overtimeByYear?.[year] ?? [];
+        const next: OvertimeEntry = {
+          ...entry,
+          id: `ot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          at: Date.now(),
+        };
+        return {
+          ...prev,
+          overtimeByYear: { ...prev.overtimeByYear, [year]: [...list, next] },
+        };
+      });
+    },
+    [year],
+  );
+
+  const removeOvertime = useCallback(
+    (id: string) => {
+      setState((prev) => {
+        const list = prev.overtimeByYear?.[year] ?? [];
+        return {
+          ...prev,
+          overtimeByYear: {
+            ...prev.overtimeByYear,
+            [year]: list.filter((e) => e.id !== id),
+          },
+        };
+      });
+    },
+    [year],
+  );
+
+  const clearOvertimeAgent = useCallback(
+    (agentId: string) => {
+      setState((prev) => {
+        const list = prev.overtimeByYear?.[year] ?? [];
+        return {
+          ...prev,
+          overtimeByYear: {
+            ...prev.overtimeByYear,
+            [year]: list.filter((e) => e.agentId !== agentId),
+          },
+        };
+      });
+    },
+    [year],
+  );
+
+  const clearOvertimeYear = useCallback((y: number) => {
+    setState((prev) => {
+      const next = { ...prev.overtimeByYear };
+      delete next[y];
+      return { ...prev, overtimeByYear: next };
+    });
+  }, []);
+
+  const setOvertimeThreshold = useCallback((hours: number) => {
+    setState((prev) => ({ ...prev, overtimeThreshold: hours }));
+  }, []);
+
 
   const colors = state.colors ?? DEFAULT_COLORS;
 
@@ -426,6 +514,13 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       clearYear,
       changes,
       clearChanges,
+      overtime,
+      overtimeThreshold,
+      addOvertime,
+      removeOvertime,
+      clearOvertimeAgent,
+      clearOvertimeYear,
+      setOvertimeThreshold,
       colors,
       setColor,
       resetColors,
@@ -451,6 +546,13 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       clearYear,
       changes,
       clearChanges,
+      overtime,
+      overtimeThreshold,
+      addOvertime,
+      removeOvertime,
+      clearOvertimeAgent,
+      clearOvertimeYear,
+      setOvertimeThreshold,
       colors,
       setColor,
       resetColors,

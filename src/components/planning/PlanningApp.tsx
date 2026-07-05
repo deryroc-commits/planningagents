@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Download,
   Home,
   PencilLine,
@@ -42,6 +43,7 @@ import { StatsTab } from "@/components/planning/StatsTab";
 import { RotationTab } from "@/components/planning/RotationTab";
 import { PrintView } from "@/components/planning/PrintView";
 import { ModificationsTab } from "@/components/planning/ModificationsTab";
+import { OvertimeTab } from "@/components/planning/OvertimeTab";
 import { CATEGORY_META } from "@/lib/planning/types";
 import { codesMap, countErrors, MONTHS, selectableYears } from "@/lib/planning/calc";
 import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
@@ -171,6 +173,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <TabsTrigger value="mods" className="tt tt-mods">
               <PencilLine className="mr-1.5 size-4" /> Modifications
             </TabsTrigger>
+            <TabsTrigger value="overtime" className="tt tt-overtime">
+              <Clock className="mr-1.5 size-4" /> Heures supp.
+            </TabsTrigger>
             <TabsTrigger value="print" className="tt tt-print">
               <Printer className="mr-1.5 size-4" /> Impression
             </TabsTrigger>
@@ -229,6 +234,10 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
           <TabsContent value="mods" className="tab-surface tint-mods">
             <ModificationsTab />
+          </TabsContent>
+
+          <TabsContent value="overtime" className="tab-surface tint-overtime">
+            <OvertimeTab />
           </TabsContent>
 
           <TabsContent value="print" className="tab-surface tint-print">

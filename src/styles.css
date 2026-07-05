@@ -249,6 +249,7 @@
   .tint-params { background-color: oklch(0.975 0.02 320); }
   .tint-agents { background-color: oklch(0.975 0.025 15); }
   .tint-mods { background-color: oklch(0.975 0.04 135); }
+  .tint-overtime { background-color: oklch(0.975 0.035 45); }
   .tint-print { background-color: oklch(0.98 0.008 256); }
 
   /* Colored tab triggers */
@@ -268,6 +269,7 @@
   .tt-params { --tt-c: oklch(0.62 0.2 350); }
   .tt-agents { --tt-c: oklch(0.62 0.2 20); }
   .tt-mods { --tt-c: oklch(0.62 0.22 140); }
+  .tt-overtime { --tt-c: oklch(0.68 0.17 45); }
   .tt-print { --tt-c: oklch(0.55 0.14 285); }
 }
 
@@ -283,6 +285,10 @@
   }
   /* Full-bleed A4 landscape with no printer margins */
   @page { size: A4 landscape; margin: 0; }
+  /* Overtime sheet prints A4 portrait, full page with a small margin */
+  @page portrait-page { size: A4 portrait; margin: 8mm; }
+
+
 
   /* Keep every application color when printing */
   .print-area,
@@ -324,4 +330,24 @@
     page-break-inside: avoid;
   }
   .print-area tr { page-break-inside: avoid; }
+
+  /* Overtime sheet: A4 portrait, readable table that flows across pages */
+  .overtime-print-area {
+    page: portrait-page;
+    display: block !important;
+    justify-content: flex-start;
+    min-height: auto;
+    padding: 0 !important;
+  }
+  .overtime-print-area table {
+    font-size: 10px;
+    table-layout: auto;
+    page-break-inside: auto;
+  }
+  .overtime-print-area th,
+  .overtime-print-area td {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+  }
+  .overtime-print-area thead { display: table-header-group; }
 }
