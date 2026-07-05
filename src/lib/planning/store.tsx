@@ -116,17 +116,40 @@ function colorsToCss(colors: ColorScheme): string {
   }`;
 }
 
-function hasExampleAgents(agents: Agent[] | undefined): boolean {
+const EXAMPLE_AGENT_NAMES = new Set([
+  "Dupont Marie",
+  "Martin Lucas",
+  "Bernard Sophie",
+  "Petit Thomas",
+  "Robert Julie",
+  "Richard Antoine",
+]);
+
+/**
+ * True only for a pristine, untouched demo install: every stored agent is one
+ * of the built-in demo names AND the user has entered no planning, no tracked
+ * changes and no overtime. In that case (and only that case) it is safe to
+ * upgrade the roster to the current DEFAULT_AGENTS without losing user data.
+ *
+ * If the user added their own agents, or entered any data against the demo
+ * agents, we keep their stored agents untouched so nothing gets orphaned or
+ * wiped.
+ */
+function isPristineDemoInstall(parsed: Partial<PlanningState>): boolean {
+  const agents = parsed.agents;
   if (!agents?.length) return false;
-  const exampleNames = new Set([
-    "Dupont Marie",
-    "Martin Lucas",
-    "Bernard Sophie",
-    "Petit Thomas",
-    "Robert Julie",
-    "Richard Antoine",
-  ]);
-  return agents.some((agent) => exampleNames.has(agent.name));
+  if (!agents.every((agent) => EXAMPLE_AGENT_NAMES.has(agent.name))) return false;
+
+  const hasPlanning = Object.values(parsed.planningByYear ?? {}).some(
+    (yp) => yp && Object.keys(yp).length > 0,
+  );
+  const hasChanges = Object.values(parsed.changesByYear ?? {}).some(
+    (yc) => yc && Object.keys(yc).length > 0,
+  );
+  const hasOvertime = Object.values(parsed.overtimeByYear ?? {}).some(
+    (list) => list && list.length > 0,
+  );
+  return !hasPlanning && !hasChanges && !hasOvertime;
 }
 
 function loadState(): PlanningState {
@@ -144,7 +167,7 @@ function loadState(): PlanningState {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return base;
     const parsed = JSON.parse(raw) as Partial<PlanningState>;
-    const agents = hasExampleAgents(parsed.agents) ? DEFAULT_AGENTS : parsed.agents;
+    const agents = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
     return {
       codes: parsed.codes?.length ? parsed.codes : DEFAULT_CODES,
       agents: agents?.length ? agents : DEFAULT_AGENTS,
