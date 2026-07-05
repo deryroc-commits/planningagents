@@ -339,6 +339,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       colors: DEFAULT_COLORS,
       rotation: DEFAULT_ROTATION,
       changesByYear: {},
+      overtimeByYear: {},
+      overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
     });
   }, []);
 
