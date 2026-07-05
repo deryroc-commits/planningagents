@@ -173,6 +173,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <TabsTrigger value="mods" className="tt tt-mods">
               <PencilLine className="mr-1.5 size-4" /> Modifications
             </TabsTrigger>
+            <TabsTrigger value="overtime" className="tt tt-overtime">
+              <Clock className="mr-1.5 size-4" /> Heures supp.
+            </TabsTrigger>
             <TabsTrigger value="print" className="tt tt-print">
               <Printer className="mr-1.5 size-4" /> Impression
             </TabsTrigger>
