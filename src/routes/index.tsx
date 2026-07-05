@@ -68,6 +68,13 @@ const NAV = [
     color: "nav-emerald",
   },
   {
+    label: "Heures supp.",
+    description: "Gestion des heures supplémentaires par agent : alertes et export.",
+    icon: Clock,
+    tab: "overtime",
+    color: "nav-amber",
+  },
+  {
     label: "Impression",
     description: "Aperçu mensuel prêt à imprimer ou exporter en PDF.",
     icon: Printer,
