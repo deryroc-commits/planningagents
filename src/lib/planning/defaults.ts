@@ -70,4 +70,7 @@ export const DEFAULT_ROTATION: RotationState = {
   agentTemplates: {},
 };
 
+/** Default overtime alert threshold (hours). */
+export const DEFAULT_OVERTIME_THRESHOLD = 25;
+
 export const STORAGE_KEY = "ucpa-planning-v1";
