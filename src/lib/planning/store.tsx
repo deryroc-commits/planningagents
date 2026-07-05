@@ -172,6 +172,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     planningByYear: {},
     colors: DEFAULT_COLORS,
     rotation: DEFAULT_ROTATION,
+    overtimeByYear: {},
+    overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
   }));
   const hydrated = useRef(false);
 
