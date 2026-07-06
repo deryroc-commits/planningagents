@@ -20,6 +20,7 @@ const VALID_TABS = [
   "overtime",
   "print",
   "team",
+  "qr",
 ];
 
 export const Route = createFileRoute("/app")({

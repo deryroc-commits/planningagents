@@ -22,7 +22,8 @@ import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace } from "@/lib/workspace/workspace-context";
 import { useAuth } from "@/lib/auth/auth-context";
 import { TeamTab } from "@/components/planning/TeamTab";
-import { UserCircle2, LogOut } from "lucide-react";
+import { ShareQrTab } from "@/components/planning/ShareQrTab";
+import { UserCircle2, LogOut, QrCode } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -275,6 +276,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <TabsTrigger value="team" className="tt tt-agents">
               <Users className="mr-1.5 size-4" /> Équipe
             </TabsTrigger>
+            <TabsTrigger value="qr" className="tt tt-agents">
+              <QrCode className="mr-1.5 size-4" /> QR codes
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="planning" className="tab-surface tint-planning space-y-3">
@@ -365,6 +369,10 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
           <TabsContent value="team" className="tab-surface tint-agents">
             <TeamTab />
+          </TabsContent>
+
+          <TabsContent value="qr" className="tab-surface tint-agents">
+            <ShareQrTab />
           </TabsContent>
         </Tabs>
       </main>
