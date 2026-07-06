@@ -42,7 +42,7 @@ interface SharedPlanning {
   planning?: YearPlanning;
 }
 
-type Search = { y: number; mo: number };
+type Search = { y: number; mo: number; ms: number[] };
 
 export const Route = createFileRoute("/p/$token")({
   ssr: false,
@@ -50,9 +50,18 @@ export const Route = createFileRoute("/p/$token")({
     const now = new Date();
     const y = Number(search.y);
     const mo = Number(search.mo);
+    const rawMs = typeof search.ms === "string" ? search.ms : "";
+    const ms = rawMs
+      .split(",")
+      .map((v) => Number(v))
+      .filter((v) => Number.isInteger(v) && v >= 0 && v <= 11);
+    const uniqueMs = Array.from(new Set(ms)).sort((a, b) => a - b);
     return {
       y: Number.isFinite(y) && y >= 2000 && y <= 2100 ? y : now.getFullYear(),
       mo: Number.isFinite(mo) && mo >= 0 && mo <= 11 ? mo : now.getMonth(),
+      ms: uniqueMs.length
+        ? uniqueMs
+        : Array.from({ length: 12 }, (_, i) => i),
     };
   },
   head: () => ({
