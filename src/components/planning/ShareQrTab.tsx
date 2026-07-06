@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 
 type ShareMode = "perso" | "general";
+type Scope = "year" | "month" | "multi";
 type LinkMap = Record<string, { token: string; mode: ShareMode }>;
 
 const YEARS = selectableYears();
