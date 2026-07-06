@@ -61,6 +61,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const fileRef = useRef<HTMLInputElement>(null);
 
   const errors = countErrors(planning, codesMap(codes));
+  const newVersion = useNewVersionAvailable();
 
   const onImport = async (file: File) => {
     try {
