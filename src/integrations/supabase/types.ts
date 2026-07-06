@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           agent_id: string
           created_at: string
+          expires_at: string | null
           id: string
           mode: string
           token: string
@@ -27,6 +28,7 @@ export type Database = {
         Insert: {
           agent_id: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           mode?: string
           token: string
@@ -36,6 +38,7 @@ export type Database = {
         Update: {
           agent_id?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           mode?: string
           token?: string

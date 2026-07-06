@@ -122,13 +122,17 @@ function SharedPlanningPage() {
   }
 
   if (!data || !data.ok) {
+    const expired = data?.reason === "expired";
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="max-w-sm text-center">
-          <h1 className="text-xl font-semibold">Lien indisponible</h1>
+          <h1 className="text-xl font-semibold">
+            {expired ? "Lien expiré" : "Lien indisponible"}
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Ce lien de planning n'existe plus ou a été régénéré. Demandez un
-            nouveau QR code à votre responsable.
+            {expired
+              ? "Ce QR code a expiré. Demandez un nouveau QR code à votre responsable."
+              : "Ce lien de planning n'existe plus ou a été régénéré. Demandez un nouveau QR code à votre responsable."}
           </p>
           <Button asChild variant="outline" className="mt-6">
             <Link to="/">Retour à l'accueil</Link>

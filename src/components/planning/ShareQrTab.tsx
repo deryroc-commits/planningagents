@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { Copy, Download, QrCode, Loader2, Info } from "lucide-react";
+import { Copy, Download, QrCode, Loader2, Info, RefreshCw } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace } from "@/lib/workspace/workspace-context";
 import { MONTHS, selectableYears } from "@/lib/planning/calc";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -24,7 +25,24 @@ import {
 
 type ShareMode = "perso" | "general";
 type Scope = "year" | "month" | "multi";
-type LinkMap = Record<string, { token: string; mode: ShareMode }>;
+type LinkInfo = { token: string; mode: ShareMode; expiresAt: string | null };
+type LinkMap = Record<string, LinkInfo>;
+
+function expiresValue(days: number): string | null {
+  return days > 0 ? new Date(Date.now() + days * 86_400_000).toISOString() : null;
+}
+
+function fmtExpiry(expiresAt: string | null): { text: string; expired: boolean } {
+  if (!expiresAt) return { text: "Sans expiration", expired: false };
+  const d = new Date(expiresAt);
+  const expired = d.getTime() < Date.now();
+  return {
+    text: expired
+      ? `Expiré le ${d.toLocaleDateString("fr-FR")}`
+      : `Expire le ${d.toLocaleDateString("fr-FR")}`,
+    expired,
+  };
+}
 
 const YEARS = selectableYears();
 
@@ -52,6 +70,7 @@ export function ShareQrTab() {
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(new Date().getMonth());
   const [scope, setScope] = useState<Scope>("month");
+  const [expireDays, setExpireDays] = useState(0);
   const [selectedMonths, setSelectedMonths] = useState<number[]>([
     new Date().getMonth(),
   ]);
@@ -63,14 +82,18 @@ export function ShareQrTab() {
     setLoading(true);
     const { data, error } = await supabase
       .from("agent_share_links")
-      .select("agent_id, token, mode")
+      .select("agent_id, token, mode, expires_at")
       .eq("workspace_id", activeWorkspaceId);
     if (error) {
       console.warn("Chargement des liens impossible", error.message);
     } else {
       const map: LinkMap = {};
       for (const row of data ?? []) {
-        map[row.agent_id] = { token: row.token, mode: row.mode as ShareMode };
+        map[row.agent_id] = {
+          token: row.token,
+          mode: row.mode as ShareMode,
+          expiresAt: row.expires_at,
+        };
       }
       setLinks(map);
     }
@@ -82,27 +105,79 @@ export function ShareQrTab() {
   }, [load]);
 
   const ensureLink = useCallback(
-    async (agentId: string): Promise<{ token: string; mode: ShareMode } | null> => {
+    async (agentId: string): Promise<LinkInfo | null> => {
       const existing = links[agentId];
       if (existing) return existing;
       if (!activeWorkspaceId) return null;
       const token = newToken();
+      const expiresAt = expiresValue(expireDays);
       const { error } = await supabase.from("agent_share_links").insert({
         workspace_id: activeWorkspaceId,
         agent_id: agentId,
         token,
         mode: "perso",
+        expires_at: expiresAt,
       });
       if (error) {
         toast.error("Impossible de créer le lien.");
         return null;
       }
-      const created = { token, mode: "perso" as ShareMode };
+      const created: LinkInfo = { token, mode: "perso", expiresAt };
       setLinks((prev) => ({ ...prev, [agentId]: created }));
       return created;
     },
-    [links, activeWorkspaceId],
+    [links, activeWorkspaceId, expireDays],
   );
+
+  const regenerateToken = useCallback(
+    async (agentId: string) => {
+      if (!activeWorkspaceId) return;
+      const token = newToken();
+      const expiresAt = expiresValue(expireDays);
+      const existing = links[agentId];
+      const mode: ShareMode = existing?.mode ?? "perso";
+      if (existing) {
+        const { error } = await supabase
+          .from("agent_share_links")
+          .update({ token, expires_at: expiresAt })
+          .eq("workspace_id", activeWorkspaceId)
+          .eq("agent_id", agentId);
+        if (error) {
+          toast.error("Régénération impossible.");
+          return;
+        }
+      } else {
+        const { error } = await supabase.from("agent_share_links").insert({
+          workspace_id: activeWorkspaceId,
+          agent_id: agentId,
+          token,
+          mode,
+          expires_at: expiresAt,
+        });
+        if (error) {
+          toast.error("Régénération impossible.");
+          return;
+        }
+      }
+      setLinks((prev) => ({ ...prev, [agentId]: { token, mode, expiresAt } }));
+      toast.success("Nouveau lien généré — les anciens QR ne fonctionnent plus.");
+    },
+    [activeWorkspaceId, expireDays, links],
+  );
+
+  const regenerateAll = useCallback(async () => {
+    if (busyRef.current || !activeWorkspaceId) return;
+    busyRef.current = true;
+    try {
+      for (const a of agents) {
+        await regenerateToken(a.id);
+      }
+      toast.success("Tous les liens ont été régénérés.");
+    } finally {
+      busyRef.current = false;
+    }
+  }, [agents, regenerateToken, activeWorkspaceId]);
+
 
   const setMode = useCallback(
     async (agentId: string, mode: ShareMode) => {
@@ -295,6 +370,41 @@ export function ShareQrTab() {
         </Button>
       </div>
 
+      <div className="rounded-lg border border-border bg-card p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-64 flex-1">
+            <label className="mb-1 flex items-center justify-between text-xs font-medium text-muted-foreground">
+              <span>Expiration des liens</span>
+              <span className="font-semibold text-foreground">
+                {expireDays === 0
+                  ? "Jamais"
+                  : `${expireDays} jour${expireDays > 1 ? "s" : ""}`}
+              </span>
+            </label>
+            <Slider
+              value={[expireDays]}
+              min={0}
+              max={365}
+              step={1}
+              onValueChange={(v) => setExpireDays(v[0] ?? 0)}
+              className="mt-2"
+            />
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Durée de validité appliquée aux liens créés ou régénérés
+              (0 = sans expiration). Passé ce délai, le QR n'ouvre plus le
+              planning.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => void regenerateAll()}
+          >
+            <RefreshCw /> Régénérer tous les tokens
+          </Button>
+        </div>
+      </div>
+
+
       {scope === "multi" && (
         <div className="rounded-lg border border-border bg-card p-3">
           <label className="mb-2 block text-xs font-medium text-muted-foreground">
@@ -349,12 +459,15 @@ export function ShareQrTab() {
               <tr className="border-b border-border bg-muted text-left">
                 <th className="px-3 py-2 font-medium">Agent</th>
                 <th className="px-3 py-2 font-medium">Contenu du QR</th>
+                <th className="px-3 py-2 font-medium">Validité</th>
                 <th className="px-3 py-2 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {agents.map((a) => {
-                const mode = links[a.id]?.mode ?? "perso";
+                const info = links[a.id];
+                const mode = info?.mode ?? "perso";
+                const expiry = info ? fmtExpiry(info.expiresAt) : null;
                 return (
                   <tr key={a.id} className="border-b border-border last:border-0">
                     <td className="px-3 py-2 font-medium">{a.name}</td>
@@ -373,6 +486,23 @@ export function ShareQrTab() {
                       </Select>
                     </td>
                     <td className="px-3 py-2">
+                      {expiry ? (
+                        <span
+                          className={
+                            expiry.expired
+                              ? "text-xs font-medium text-destructive"
+                              : "text-xs text-muted-foreground"
+                          }
+                        >
+                          {expiry.text}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground/60">
+                          Aucun lien encore
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
                       <div className="flex justify-end gap-1">
                         <Button
                           variant="ghost"
@@ -389,6 +519,14 @@ export function ShareQrTab() {
                           <QrCode /> Voir
                         </Button>
                         <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => void regenerateToken(a.id)}
+                          title="Régénérer le token (invalide l'ancien QR)"
+                        >
+                          <RefreshCw /> Régénérer
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => void downloadOne(a.id, a.name)}
@@ -398,12 +536,13 @@ export function ShareQrTab() {
                       </div>
                     </td>
                   </tr>
+
                 );
               })}
               {agents.length === 0 && (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={4}
                     className="px-3 py-6 text-center text-muted-foreground"
                   >
                     Ajoutez des agents dans « Base agents » pour générer leurs QR
