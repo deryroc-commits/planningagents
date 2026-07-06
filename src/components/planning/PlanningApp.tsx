@@ -96,15 +96,6 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 <Home /> Accueil
               </Link>
             </Button>
-            {newVersion && (
-              <Button
-                size="sm"
-                className="animate-pulse"
-                onClick={() => void hardReload()}
-              >
-                <RefreshCw /> Actualiser
-              </Button>
-            )}
             {errors > 0 && (
               <span className="inline-flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-sm font-medium text-destructive">
                 <AlertTriangle className="size-4" />
