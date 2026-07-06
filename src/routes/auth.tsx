@@ -47,10 +47,10 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: window.location.origin + "/app",
-            data: { display_name: displayName || email.split("@")[0] },
-          },
+            options: {
+              emailRedirectTo: window.location.origin,
+              data: { display_name: displayName || email.split("@")[0] },
+            },
         });
         if (error) throw error;
         toast.success("Compte créé", {
@@ -73,7 +73,7 @@ function AuthPage() {
     setBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/app",
+        redirect_uri: window.location.origin,
       });
       if (result.error) {
         toast.error("Connexion Google impossible", {
