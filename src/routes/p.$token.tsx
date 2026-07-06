@@ -75,9 +75,20 @@ export const Route = createFileRoute("/p/$token")({
 
 function SharedPlanningPage() {
   const { token } = Route.useParams();
-  const { y, mo } = Route.useSearch();
+  const { y, mo, ms } = Route.useSearch();
   const [year] = useState(y);
-  const [month, setMonth] = useState(mo);
+  const allowedMonths = ms;
+  const [month, setMonth] = useState(
+    allowedMonths.includes(mo) ? mo : allowedMonths[0],
+  );
+  const goPrev = () => {
+    const idx = allowedMonths.indexOf(month);
+    setMonth(allowedMonths[(idx - 1 + allowedMonths.length) % allowedMonths.length]);
+  };
+  const goNext = () => {
+    const idx = allowedMonths.indexOf(month);
+    setMonth(allowedMonths[(idx + 1) % allowedMonths.length]);
+  };
   const [data, setData] = useState<SharedPlanning | null>(null);
   const [loading, setLoading] = useState(true);
 
