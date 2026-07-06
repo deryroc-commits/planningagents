@@ -369,6 +369,10 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           <TabsContent value="team" className="tab-surface tint-agents">
             <TeamTab />
           </TabsContent>
+
+          <TabsContent value="qr" className="tab-surface tint-agents">
+            <ShareQrTab />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
