@@ -48,6 +48,8 @@ import { BackupBar } from "@/components/planning/BackupBar";
 import { CATEGORY_META } from "@/lib/planning/types";
 import { codesMap, countErrors, MONTHS, selectableYears } from "@/lib/planning/calc";
 import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
+import { hardReload, useNewVersionAvailable } from "@/lib/planning/version-check";
+import { RefreshCw } from "lucide-react";
 
 const YEARS = selectableYears();
 
@@ -59,6 +61,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const fileRef = useRef<HTMLInputElement>(null);
 
   const errors = countErrors(planning, codesMap(codes));
+  const newVersion = useNewVersionAvailable();
 
   const onImport = async (file: File) => {
     try {
@@ -93,6 +96,15 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 <Home /> Accueil
               </Link>
             </Button>
+            {newVersion && (
+              <Button
+                size="sm"
+                className="animate-pulse"
+                onClick={() => void hardReload()}
+              >
+                <RefreshCw /> Actualiser
+              </Button>
+            )}
             {errors > 0 && (
               <span className="inline-flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-sm font-medium text-destructive">
                 <AlertTriangle className="size-4" />
