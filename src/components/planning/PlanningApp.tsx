@@ -37,6 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PlanningGrid } from "@/components/planning/PlanningGrid";
+import { TransitionGrid } from "@/components/planning/TransitionGrid";
 import { ParametersTab } from "@/components/planning/ParametersTab";
 import { AgentsTab } from "@/components/planning/AgentsTab";
 import { StatsTab } from "@/components/planning/StatsTab";
@@ -46,7 +47,13 @@ import { ModificationsTab } from "@/components/planning/ModificationsTab";
 import { OvertimeTab } from "@/components/planning/OvertimeTab";
 import { BackupBar } from "@/components/planning/BackupBar";
 import { CATEGORY_META } from "@/lib/planning/types";
-import { codesMap, countErrors, MONTHS, selectableYears } from "@/lib/planning/calc";
+import {
+  codesMap,
+  countErrors,
+  MONTHS,
+  selectableYears,
+  TRANSITION_MONTH,
+} from "@/lib/planning/calc";
 import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
 import { hardReload, useNewVersionAvailable } from "@/lib/planning/version-check";
 import { RefreshCw } from "lucide-react";
@@ -56,6 +63,7 @@ const YEARS = selectableYears();
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
   const { year, setYear, codes, planning, replaceState, clearYear, resetAll } = usePlanning();
   const [month, setMonth] = useState(new Date().getMonth());
+  const [janWeeks, setJanWeeks] = useState(3);
   const [tab, setTab] = useState(initialTab);
   const [status, setStatus] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -211,16 +219,16 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           <TabsContent value="planning" className="tab-surface tint-planning space-y-3">
             <BackupBar />
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-1">
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setMonth((m) => (m + 11) % 12)}
+                  onClick={() => setMonth((m) => (m + 12) % 13)}
                 >
                   <ChevronLeft />
                 </Button>
                 <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-52">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -229,20 +237,42 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                         {m} {year}
                       </SelectItem>
                     ))}
+                    <SelectItem value={String(TRANSITION_MONTH)}>
+                      Transition déc. {year} → janv. {year + 1}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon" onClick={() => setMonth((m) => (m + 1) % 12)}>
+                <Button variant="outline" size="icon" onClick={() => setMonth((m) => (m + 1) % 13)}>
                   <ChevronRight />
                 </Button>
+                {month === TRANSITION_MONTH && (
+                  <Select
+                    value={String(janWeeks)}
+                    onValueChange={(v) => setJanWeeks(Number(v))}
+                  >
+                    <SelectTrigger className="ml-1 w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">2 semaines de janvier</SelectItem>
+                      <SelectItem value="3">3 semaines de janvier</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <Legend />
             </div>
-            <PlanningGrid month={month} />
+            {month === TRANSITION_MONTH ? (
+              <TransitionGrid year={year} janWeeks={janWeeks} />
+            ) : (
+              <PlanningGrid month={month} />
+            )}
             <p className="text-xs text-muted-foreground">
               Cliquez sur une cellule pour choisir un code. Seules les valeurs définies dans «
               Paramètres » sont autorisées — toute autre valeur apparaît en rouge.
             </p>
           </TabsContent>
+
 
           <TabsContent value="stats" className="tab-surface tint-stats">
             <StatsTab />
@@ -269,7 +299,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           </TabsContent>
 
           <TabsContent value="print" className="tab-surface tint-print">
-            <PrintView month={month} setMonth={setMonth} />
+            <PrintView month={month === TRANSITION_MONTH ? 11 : month} setMonth={setMonth} />
           </TabsContent>
         </Tabs>
       </main>

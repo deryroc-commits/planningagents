@@ -64,8 +64,17 @@ interface PlanningContextValue {
   codes: PlanningCode[];
   agents: Agent[];
   planning: YearPlanning;
+  /** Full planning for every year (read-only view; used by the transition sheet). */
+  planningByYear: Record<number, YearPlanning>;
   // cell
   setCell: (agentId: string, dayIndex: number, code: string | null) => void;
+  /** Like setCell but targets an explicit year (for cross-year editing). */
+  setCellForYear: (
+    year: number,
+    agentId: string,
+    dayIndex: number,
+    code: string | null,
+  ) => void;
   fillRange: (agentId: string, indices: number[], code: string | null) => void;
   // codes
   upsertCode: (code: PlanningCode, originalCode?: string) => void;
@@ -287,6 +296,33 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       });
     },
     [year],
+  );
+
+  const setCellForYear = useCallback(
+    (y: number, agentId: string, dayIndex: number, code: string | null) => {
+      setState((prev) => {
+        const yp = { ...(prev.planningByYear[y] ?? {}) };
+        const row = { ...(yp[agentId] ?? {}) };
+        const before = row[dayIndex];
+        const after = code === null || code === "" ? undefined : code;
+        if (after === undefined) delete row[dayIndex];
+        else row[dayIndex] = after;
+        yp[agentId] = row;
+        const yc = recordChange(
+          prev.changesByYear?.[y] ?? {},
+          agentId,
+          dayIndex,
+          before,
+          after,
+        );
+        return {
+          ...prev,
+          planningByYear: { ...prev.planningByYear, [y]: yp },
+          changesByYear: { ...prev.changesByYear, [y]: yc },
+        };
+      });
+    },
+    [],
   );
 
   const fillRange = useCallback(
@@ -573,7 +609,9 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       codes: state.codes,
       agents: state.agents,
       planning,
+      planningByYear: state.planningByYear,
       setCell,
+      setCellForYear,
       fillRange,
       upsertCode,
       removeCode,
@@ -607,7 +645,9 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       state.codes,
       state.agents,
       planning,
+      state.planningByYear,
       setCell,
+      setCellForYear,
       fillRange,
       upsertCode,
       removeCode,

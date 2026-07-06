@@ -113,6 +113,41 @@ export function fmtHours(h: number): string {
   return Number.isInteger(h) ? String(h) : h.toFixed(1).replace(".", ",");
 }
 
+/** Sentinel "month" value for the cross-year transition sheet (déc. → janv.). */
+export const TRANSITION_MONTH = 12;
+
+/** One column of the transition sheet: it may belong to `year` or `year + 1`. */
+export interface TransitionColumn {
+  year: number;
+  dayIndex: number;
+  date: Date;
+}
+
+/**
+ * Columns for the cross-year transition sheet: the last 3 weeks (21 days) of
+ * December of `year`, followed by the first `janWeeks` weeks of January of
+ * `year + 1`.
+ */
+export function transitionColumns(
+  year: number,
+  janWeeks: number,
+): TransitionColumn[] {
+  const cols: TransitionColumn[] = [];
+  // Last 3 weeks of December (Dec 11 → 31).
+  for (let day = 11; day <= 31; day++) {
+    const date = new Date(year, 11, day);
+    cols.push({ year, dayIndex: dayIndexOfDate(year, date), date });
+  }
+  // First `janWeeks` weeks of January of the next year.
+  const ny = year + 1;
+  const total = Math.max(1, janWeeks) * 7;
+  for (let day = 1; day <= total; day++) {
+    const date = new Date(ny, 0, day);
+    cols.push({ year: ny, dayIndex: dayIndexOfDate(ny, date), date });
+  }
+  return cols;
+}
+
 /** Range of selectable years (wide, not limited to the current year). */
 export function selectableYears(): number[] {
   const now = new Date().getFullYear();
