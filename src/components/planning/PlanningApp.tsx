@@ -19,6 +19,18 @@ import {
   Printer,
 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
+import { useWorkspace } from "@/lib/workspace/workspace-context";
+import { useAuth } from "@/lib/auth/auth-context";
+import { TeamTab } from "@/components/planning/TeamTab";
+import { UserCircle2, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,6 +74,8 @@ const YEARS = selectableYears();
 
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
   const { year, setYear, codes, planning, replaceState, clearYear, resetAll } = usePlanning();
+  const { memberships, activeWorkspace, activeWorkspaceId, setActiveWorkspaceId } = useWorkspace();
+  const { user, signOut } = useAuth();
   const [month, setMonth] = useState(new Date().getMonth());
   const [janWeeks, setJanWeeks] = useState(3);
   const [tab, setTab] = useState(initialTab);
@@ -110,6 +124,50 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           </Link>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
+            {memberships.length > 1 ? (
+              <Select
+                value={activeWorkspaceId ?? undefined}
+                onValueChange={(v) => setActiveWorkspaceId(v)}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Équipe" />
+                </SelectTrigger>
+                <SelectContent>
+                  {memberships.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              activeWorkspace && (
+                <span className="hidden items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-sm font-medium sm:inline-flex">
+                  <Users className="size-4" /> {activeWorkspace.name}
+                </span>
+              )
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <UserCircle2 className="mr-1.5 size-4" />
+                  <span className="max-w-32 truncate">{user?.email ?? "Compte"}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="max-w-56 truncate">{user?.email}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setTab("team")}>
+                  <Users className="mr-2 size-4" /> Équipe & partage
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => void signOut()}
+                >
+                  <LogOut className="mr-2 size-4" /> Se déconnecter
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button size="sm" className="nav-btn nav-emerald border-0" asChild>
               <Link to="/">
                 <Home /> Accueil
@@ -214,6 +272,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <TabsTrigger value="print" className="tt tt-print">
               <Printer className="mr-1.5 size-4" /> Impression
             </TabsTrigger>
+            <TabsTrigger value="team" className="tt tt-agents">
+              <Users className="mr-1.5 size-4" /> Équipe
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="planning" className="tab-surface tint-planning space-y-3">
@@ -300,6 +361,10 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
           <TabsContent value="print" className="tab-surface tint-print">
             <PrintView month={month === TRANSITION_MONTH ? 11 : month} setMonth={setMonth} />
+          </TabsContent>
+
+          <TabsContent value="team" className="tab-surface tint-agents">
+            <TeamTab />
           </TabsContent>
         </Tabs>
       </main>
