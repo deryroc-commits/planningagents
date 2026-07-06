@@ -188,10 +188,10 @@ export function ShareQrTab() {
       if (!qr) return;
       downloadDataUrl(
         qr.dataUrl,
-        `qr-${slug(name)}-${MONTHS[month].toLowerCase()}-${year}.png`,
+        `qr-${slug(name)}-${periodSlug}-${year}.png`,
       );
     },
-    [makeQr, month, year],
+    [makeQr, periodSlug, year],
   );
 
   const downloadAll = useCallback(async () => {
