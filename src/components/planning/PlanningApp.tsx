@@ -23,7 +23,7 @@ import { useWorkspace } from "@/lib/workspace/workspace-context";
 import { useAuth } from "@/lib/auth/auth-context";
 import { TeamTab } from "@/components/planning/TeamTab";
 import { ShareQrTab } from "@/components/planning/ShareQrTab";
-import { UserCircle2, LogOut } from "lucide-react";
+import { UserCircle2, LogOut, QrCode } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
