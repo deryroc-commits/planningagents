@@ -119,10 +119,25 @@ export function ShareQrTab() {
     [ensureLink, activeWorkspaceId],
   );
 
+  const activeMonths = useMemo<number[]>(() => {
+    if (scope === "year") return Array.from({ length: 12 }, (_, i) => i);
+    if (scope === "multi") {
+      const list = [...selectedMonths].sort((a, b) => a - b);
+      return list.length ? list : [month];
+    }
+    return [month];
+  }, [scope, selectedMonths, month]);
+
+  const periodSlug = useMemo(() => {
+    if (activeMonths.length === 12) return "annee";
+    if (activeMonths.length === 1) return MONTHS[activeMonths[0]].toLowerCase();
+    return `${activeMonths.length}-mois`;
+  }, [activeMonths]);
+
   const buildUrl = useCallback(
     (token: string) =>
-      `${window.location.origin}/p/${token}?y=${year}&mo=${month}`,
-    [year, month],
+      `${window.location.origin}/p/${token}?y=${year}&mo=${activeMonths[0]}&ms=${activeMonths.join(",")}`,
+    [year, activeMonths],
   );
 
   const copyLink = useCallback(
