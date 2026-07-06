@@ -96,15 +96,6 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 <Home /> Accueil
               </Link>
             </Button>
-            {newVersion && (
-              <Button
-                size="sm"
-                className="animate-pulse"
-                onClick={() => void hardReload()}
-              >
-                <RefreshCw /> Actualiser
-              </Button>
-            )}
             {errors > 0 && (
               <span className="inline-flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-sm font-medium text-destructive">
                 <AlertTriangle className="size-4" />
@@ -259,6 +250,22 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           </TabsContent>
         </Tabs>
       </main>
+
+      <div className="no-print fixed bottom-4 right-4 z-50">
+        <Button
+          size="sm"
+          variant={newVersion ? "default" : "outline"}
+          className={newVersion ? "animate-pulse shadow-lg" : "shadow-lg"}
+          onClick={() => void hardReload()}
+          title={
+            newVersion
+              ? "Nouvelle version disponible — cliquez pour actualiser"
+              : "Actualiser l'application (cache inclus)"
+          }
+        >
+          <RefreshCw className="mr-1.5 size-4" /> Actualiser
+        </Button>
+      </div>
     </div>
   );
 }
