@@ -251,20 +251,21 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
         </Tabs>
       </main>
 
-      {newVersion && (
-        <div className="no-print fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
-          <div className="max-w-[240px] rounded-lg bg-card/95 p-2 text-xs text-muted-foreground shadow-lg ring-1 ring-border backdrop-blur">
-            Une nouvelle version est disponible. Actualisez pour obtenir la dernière version.
-          </div>
-          <Button
-            size="default"
-            className="animate-pulse shadow-lg"
-            onClick={() => void hardReload()}
-          >
-            <RefreshCw className="mr-1.5 size-4" /> Actualiser
-          </Button>
-        </div>
-      )}
+      <div className="no-print fixed bottom-4 right-4 z-50">
+        <Button
+          size="sm"
+          variant={newVersion ? "default" : "outline"}
+          className={newVersion ? "animate-pulse shadow-lg" : "shadow-lg"}
+          onClick={() => void hardReload()}
+          title={
+            newVersion
+              ? "Nouvelle version disponible — cliquez pour actualiser"
+              : "Actualiser l'application (cache inclus)"
+          }
+        >
+          <RefreshCw className="mr-1.5 size-4" /> Actualiser
+        </Button>
+      </div>
     </div>
   );
 }
