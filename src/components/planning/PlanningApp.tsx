@@ -275,6 +275,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <TabsTrigger value="team" className="tt tt-agents">
               <Users className="mr-1.5 size-4" /> Équipe
             </TabsTrigger>
+            <TabsTrigger value="qr" className="tt tt-agents">
+              <QrCode className="mr-1.5 size-4" /> QR codes
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="planning" className="tab-surface tint-planning space-y-3">
