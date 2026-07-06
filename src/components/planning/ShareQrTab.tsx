@@ -255,25 +255,77 @@ export function ShareQrTab() {
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-muted-foreground">
-            Mois à envoyer
+            Portée
           </label>
-          <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+          <Select value={scope} onValueChange={(v) => setScope(v as Scope)}>
             <SelectTrigger className="w-44">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MONTHS.map((m, i) => (
-                <SelectItem key={m} value={String(i)}>
-                  {m} {year}
-                </SelectItem>
-              ))}
+              <SelectItem value="month">Un seul mois</SelectItem>
+              <SelectItem value="multi">Plusieurs mois</SelectItem>
+              <SelectItem value="year">Année complète</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        {scope === "month" && (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Mois à envoyer
+            </label>
+            <Select
+              value={String(month)}
+              onValueChange={(v) => setMonth(Number(v))}
+            >
+              <SelectTrigger className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((m, i) => (
+                  <SelectItem key={m} value={String(i)}>
+                    {m} {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <Button className="ml-auto" onClick={() => void downloadAll()}>
           <Download /> Télécharger tous les QR
         </Button>
       </div>
+
+      {scope === "multi" && (
+        <div className="rounded-lg border border-border bg-card p-3">
+          <label className="mb-2 block text-xs font-medium text-muted-foreground">
+            Mois à inclure ({selectedMonths.length} sélectionné
+            {selectedMonths.length > 1 ? "s" : ""})
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {MONTHS.map((m, i) => {
+              const on = selectedMonths.includes(i);
+              return (
+                <Button
+                  key={m}
+                  type="button"
+                  size="sm"
+                  variant={on ? "default" : "outline"}
+                  onClick={() =>
+                    setSelectedMonths((prev) =>
+                      prev.includes(i)
+                        ? prev.filter((x) => x !== i)
+                        : [...prev, i],
+                    )
+                  }
+                >
+                  {m}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
 
       <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-xs text-muted-foreground">
         <Info className="mt-0.5 size-4 shrink-0" />
