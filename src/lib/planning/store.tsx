@@ -358,6 +358,26 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const snapshotState = useCallback((): PlanningState => {
+    return JSON.parse(JSON.stringify(state)) as PlanningState;
+  }, [state]);
+
+  const restoreFullState = useCallback((s: PlanningState) => {
+    setState({
+      codes: s.codes?.length ? s.codes : DEFAULT_CODES,
+      agents: s.agents?.length ? s.agents : DEFAULT_AGENTS,
+      planningByYear: s.planningByYear ?? {},
+      colors: { ...DEFAULT_COLORS, ...(s.colors ?? {}) },
+      rotation: normalizeRotation(s.rotation ?? DEFAULT_ROTATION),
+      changesByYear: s.changesByYear ?? {},
+      overtimeByYear: s.overtimeByYear ?? {},
+      overtimeThreshold:
+        typeof s.overtimeThreshold === "number"
+          ? s.overtimeThreshold
+          : DEFAULT_OVERTIME_THRESHOLD,
+    });
+  }, []);
+
   const resetAll = useCallback(() => {
     setState({
       codes: DEFAULT_CODES,
