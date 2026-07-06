@@ -63,6 +63,7 @@ const YEARS = selectableYears();
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
   const { year, setYear, codes, planning, replaceState, clearYear, resetAll } = usePlanning();
   const [month, setMonth] = useState(new Date().getMonth());
+  const [janWeeks, setJanWeeks] = useState(3);
   const [tab, setTab] = useState(initialTab);
   const [status, setStatus] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
