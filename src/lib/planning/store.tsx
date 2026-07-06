@@ -8,6 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import type {
   Agent,
   ColorKey,
@@ -115,6 +117,10 @@ interface PlanningContextValue {
 
 const PlanningContext = createContext<PlanningContextValue | null>(null);
 
+const CLOUD_ROW_ID = "main";
+const CLOUD_TABLE = "planning_cloud_state";
+const CLOUD_SAVE_DEBOUNCE_MS = 700;
+
 /** Build a <style> string that maps the color scheme onto the CSS variables. */
 function colorsToCss(colors: ColorScheme): string {
   return `:root{
@@ -151,6 +157,32 @@ function mergeDefaultCodes(stored: PlanningCode[] | undefined): PlanningCode[] {
   return missingDefaults.length ? [...stored, ...missingDefaults] : stored;
 }
 
+function normalizePlanningState(input: Partial<PlanningState> | null | undefined): PlanningState {
+  const parsed = input ?? {};
+  const agents = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
+  const codes =
+    (parsed.catalogVersion ?? 0) < DEFAULT_CATALOG_VERSION
+      ? mergeDefaultCodes(parsed.codes)
+      : parsed.codes?.length
+        ? parsed.codes
+        : DEFAULT_CODES;
+
+  return {
+    catalogVersion: DEFAULT_CATALOG_VERSION,
+    codes,
+    agents: agents?.length ? agents : DEFAULT_AGENTS,
+    planningByYear: parsed.planningByYear ?? {},
+    colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
+    rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
+    changesByYear: parsed.changesByYear ?? {},
+    overtimeByYear: parsed.overtimeByYear ?? {},
+    overtimeThreshold:
+      typeof parsed.overtimeThreshold === "number"
+        ? parsed.overtimeThreshold
+        : DEFAULT_OVERTIME_THRESHOLD,
+  };
+}
+
 /**
  * True only for a pristine, untouched demo install: every stored agent is one
  * of the built-in demo names AND the user has entered no planning, no tracked
@@ -179,43 +211,13 @@ function isPristineDemoInstall(parsed: Partial<PlanningState>): boolean {
 }
 
 function loadState(): PlanningState {
-  const base: PlanningState = {
-    catalogVersion: DEFAULT_CATALOG_VERSION,
-    codes: DEFAULT_CODES,
-    agents: DEFAULT_AGENTS,
-    planningByYear: {},
-    colors: DEFAULT_COLORS,
-    rotation: DEFAULT_ROTATION,
-    overtimeByYear: {},
-    overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
-  };
+  const base = normalizePlanningState(null);
   if (typeof window === "undefined") return base;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return base;
     const parsed = JSON.parse(raw) as Partial<PlanningState>;
-    const agents = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
-    const codes =
-      (parsed.catalogVersion ?? 0) < DEFAULT_CATALOG_VERSION
-        ? mergeDefaultCodes(parsed.codes)
-        : parsed.codes?.length
-          ? parsed.codes
-          : DEFAULT_CODES;
-    return {
-      catalogVersion: DEFAULT_CATALOG_VERSION,
-      codes,
-      agents: agents?.length ? agents : DEFAULT_AGENTS,
-      planningByYear: parsed.planningByYear ?? {},
-      // Merge stored overrides over defaults so newly added keys always exist.
-      colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
-      rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
-      changesByYear: parsed.changesByYear ?? {},
-      overtimeByYear: parsed.overtimeByYear ?? {},
-      overtimeThreshold:
-        typeof parsed.overtimeThreshold === "number"
-          ? parsed.overtimeThreshold
-          : DEFAULT_OVERTIME_THRESHOLD,
-    };
+    return normalizePlanningState(parsed);
   } catch {
     return base;
   }
@@ -233,14 +235,72 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     overtimeByYear: {},
     overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
   }));
+  const [cloudReady, setCloudReady] = useState(false);
   const hydrated = useRef(false);
+  const lastCloudJson = useRef<string | null>(null);
+  const cloudSaveTimer = useRef<number | null>(null);
 
-  // Hydrate from localStorage on client
-  useEffect(() => {
-    setState(loadState());
-    // Mark hydrated only AFTER the loaded state is committed, so the persist
-    // effect below never writes the pre-hydration default back to storage.
+  const writeLocalState = useCallback((next: PlanningState) => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore quota errors */
+    }
   }, []);
+
+  // Hydrate from localStorage first, then replace it with the shared Cloud copy.
+  useEffect(() => {
+    let cancelled = false;
+    const localState = loadState();
+    setState(localState);
+
+    async function loadCloudState() {
+      const { data, error } = await supabase
+        .from(CLOUD_TABLE)
+        .select("state")
+        .eq("id", CLOUD_ROW_ID)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (error) {
+        console.warn("Impossible de charger la sauvegarde Cloud", error.message);
+        return;
+      }
+
+      if (data?.state) {
+        const next = normalizePlanningState(data.state as Partial<PlanningState>);
+        lastCloudJson.current = JSON.stringify(next);
+        setState(next);
+        writeLocalState(next);
+        setCloudReady(true);
+        return;
+      }
+
+      const json = JSON.stringify(localState);
+      const { error: seedError } = await supabase
+        .from(CLOUD_TABLE)
+        .upsert(
+          { id: CLOUD_ROW_ID, state: localState as unknown as Json },
+          { onConflict: "id" },
+        );
+
+      if (cancelled) return;
+      if (seedError) {
+        console.warn("Impossible d'initialiser la sauvegarde Cloud", seedError.message);
+        return;
+      }
+
+      lastCloudJson.current = json;
+      setCloudReady(true);
+    }
+
+    void loadCloudState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [writeLocalState]);
 
   // Persist — but skip the initial mount. Writing the default state before
   // hydration finishes would fire a `storage` event that reverts other open
@@ -250,12 +310,75 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       hydrated.current = true;
       return;
     }
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      /* ignore quota errors */
+    writeLocalState(state);
+  }, [state, writeLocalState]);
+
+  // Persist changes to Cloud after the first Cloud read has completed.
+  useEffect(() => {
+    if (!cloudReady) return;
+
+    const json = JSON.stringify(state);
+    if (json === lastCloudJson.current) return;
+
+    if (cloudSaveTimer.current !== null) {
+      window.clearTimeout(cloudSaveTimer.current);
     }
-  }, [state]);
+
+    cloudSaveTimer.current = window.setTimeout(() => {
+      void supabase
+        .from(CLOUD_TABLE)
+        .upsert(
+          { id: CLOUD_ROW_ID, state: state as unknown as Json },
+          { onConflict: "id" },
+        )
+        .then(({ error }) => {
+          if (error) {
+            console.warn("Impossible de sauvegarder le planning dans le Cloud", error.message);
+            return;
+          }
+          lastCloudJson.current = json;
+        });
+    }, CLOUD_SAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (cloudSaveTimer.current !== null) {
+        window.clearTimeout(cloudSaveTimer.current);
+      }
+    };
+  }, [cloudReady, state]);
+
+  // Receive updates saved from another browser/device.
+  useEffect(() => {
+    const channel = supabase
+      .channel("planning-cloud-state")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: CLOUD_TABLE,
+          filter: `id=eq.${CLOUD_ROW_ID}`,
+        },
+        (payload) => {
+          if (payload.eventType === "DELETE") return;
+          const remoteState = (payload.new as { state?: unknown } | null)?.state;
+          if (!remoteState) return;
+
+          const next = normalizePlanningState(remoteState as Partial<PlanningState>);
+          const json = JSON.stringify(next);
+          if (json === lastCloudJson.current) return;
+
+          lastCloudJson.current = json;
+          setState(next);
+          writeLocalState(next);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [writeLocalState]);
 
   // Keep every open view (other tabs/viewers) in sync: when the stored data
   // changes elsewhere (e.g. an import), reload it so Impression & Base agents
