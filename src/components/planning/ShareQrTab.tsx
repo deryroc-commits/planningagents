@@ -370,6 +370,41 @@ export function ShareQrTab() {
         </Button>
       </div>
 
+      <div className="rounded-lg border border-border bg-card p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-64 flex-1">
+            <label className="mb-1 flex items-center justify-between text-xs font-medium text-muted-foreground">
+              <span>Expiration des liens</span>
+              <span className="font-semibold text-foreground">
+                {expireDays === 0
+                  ? "Jamais"
+                  : `${expireDays} jour${expireDays > 1 ? "s" : ""}`}
+              </span>
+            </label>
+            <Slider
+              value={[expireDays]}
+              min={0}
+              max={365}
+              step={1}
+              onValueChange={(v) => setExpireDays(v[0] ?? 0)}
+              className="mt-2"
+            />
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Durée de validité appliquée aux liens créés ou régénérés
+              (0 = sans expiration). Passé ce délai, le QR n'ouvre plus le
+              planning.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => void regenerateAll()}
+          >
+            <RefreshCw /> Régénérer tous les tokens
+          </Button>
+        </div>
+      </div>
+
+
       {scope === "multi" && (
         <div className="rounded-lg border border-border bg-card p-3">
           <label className="mb-2 block text-xs font-medium text-muted-foreground">
