@@ -72,6 +72,12 @@ export function useNewVersionAvailable(intervalMs = 60_000): boolean {
  */
 export async function hardReload(): Promise<void> {
   try {
+    window.history.scrollRestoration = "manual";
+    window.sessionStorage.setItem("planning-scroll-top-after-reload", "1");
+  } catch {
+    /* ignore */
+  }
+  try {
     if ("caches" in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map((k) => caches.delete(k)));

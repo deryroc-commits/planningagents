@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
@@ -62,6 +62,17 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
   const errors = countErrors(planning, codesMap(codes));
   const newVersion = useNewVersionAvailable();
+
+  useEffect(() => {
+    try {
+      if (window.sessionStorage.getItem("planning-scroll-top-after-reload") !== "1") return;
+      window.sessionStorage.removeItem("planning-scroll-top-after-reload");
+      window.history.scrollRestoration = "manual";
+      window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const onImport = async (file: File) => {
     try {
