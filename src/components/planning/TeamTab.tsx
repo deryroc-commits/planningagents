@@ -261,6 +261,26 @@ export function TeamTab() {
           </Button>
         </div>
       )}
+
+      {/* Account / logout */}
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold">Mon compte</h3>
+            <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
+          </div>
+          <Button
+            variant="outline"
+            className="text-destructive hover:text-destructive"
+            onClick={async () => {
+              await signOut();
+              navigate({ to: "/auth" });
+            }}
+          >
+            <LogOut className="mr-1.5 size-4" /> Déconnexion
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
