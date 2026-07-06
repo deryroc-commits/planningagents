@@ -99,7 +99,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             {newVersion && (
               <Button
                 size="sm"
-                className="border-0 bg-amber-500 text-white hover:bg-amber-600"
+                className="animate-pulse"
                 onClick={() => void hardReload()}
               >
                 <RefreshCw /> Actualiser
