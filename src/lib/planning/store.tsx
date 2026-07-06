@@ -75,6 +75,10 @@ interface PlanningContextValue {
   removeAgent: (id: string) => void;
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
+  /** Full, deep snapshot of the whole application state (for backups). */
+  snapshotState: () => PlanningState;
+  /** Replace the ENTIRE application state (restore a backup). */
+  restoreFullState: (s: PlanningState) => void;
   resetAll: () => void;
   clearPlanning: () => void;
   clearYear: (year: number) => void;
