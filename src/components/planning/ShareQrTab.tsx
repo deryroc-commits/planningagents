@@ -203,7 +203,7 @@ export function ShareQrTab() {
         if (qr) {
           downloadDataUrl(
             qr.dataUrl,
-            `qr-${slug(a.name)}-${MONTHS[month].toLowerCase()}-${year}.png`,
+            `qr-${slug(a.name)}-${periodSlug}-${year}.png`,
           );
           await new Promise((r) => setTimeout(r, 250));
         }
@@ -212,7 +212,8 @@ export function ShareQrTab() {
     } finally {
       busyRef.current = false;
     }
-  }, [agents, makeQr, month, year]);
+  }, [agents, makeQr, periodSlug, year]);
+
 
   if (!canEdit) {
     return (
