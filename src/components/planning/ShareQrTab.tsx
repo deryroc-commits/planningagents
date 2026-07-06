@@ -70,6 +70,7 @@ export function ShareQrTab() {
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(new Date().getMonth());
   const [scope, setScope] = useState<Scope>("month");
+  const [expireDays, setExpireDays] = useState(0);
   const [selectedMonths, setSelectedMonths] = useState<number[]>([
     new Date().getMonth(),
   ]);
@@ -81,14 +82,18 @@ export function ShareQrTab() {
     setLoading(true);
     const { data, error } = await supabase
       .from("agent_share_links")
-      .select("agent_id, token, mode")
+      .select("agent_id, token, mode, expires_at")
       .eq("workspace_id", activeWorkspaceId);
     if (error) {
       console.warn("Chargement des liens impossible", error.message);
     } else {
       const map: LinkMap = {};
       for (const row of data ?? []) {
-        map[row.agent_id] = { token: row.token, mode: row.mode as ShareMode };
+        map[row.agent_id] = {
+          token: row.token,
+          mode: row.mode as ShareMode,
+          expiresAt: row.expires_at,
+        };
       }
       setLinks(map);
     }
@@ -100,27 +105,79 @@ export function ShareQrTab() {
   }, [load]);
 
   const ensureLink = useCallback(
-    async (agentId: string): Promise<{ token: string; mode: ShareMode } | null> => {
+    async (agentId: string): Promise<LinkInfo | null> => {
       const existing = links[agentId];
       if (existing) return existing;
       if (!activeWorkspaceId) return null;
       const token = newToken();
+      const expiresAt = expiresValue(expireDays);
       const { error } = await supabase.from("agent_share_links").insert({
         workspace_id: activeWorkspaceId,
         agent_id: agentId,
         token,
         mode: "perso",
+        expires_at: expiresAt,
       });
       if (error) {
         toast.error("Impossible de créer le lien.");
         return null;
       }
-      const created = { token, mode: "perso" as ShareMode };
+      const created: LinkInfo = { token, mode: "perso", expiresAt };
       setLinks((prev) => ({ ...prev, [agentId]: created }));
       return created;
     },
-    [links, activeWorkspaceId],
+    [links, activeWorkspaceId, expireDays],
   );
+
+  const regenerateToken = useCallback(
+    async (agentId: string) => {
+      if (!activeWorkspaceId) return;
+      const token = newToken();
+      const expiresAt = expiresValue(expireDays);
+      const existing = links[agentId];
+      const mode: ShareMode = existing?.mode ?? "perso";
+      if (existing) {
+        const { error } = await supabase
+          .from("agent_share_links")
+          .update({ token, expires_at: expiresAt })
+          .eq("workspace_id", activeWorkspaceId)
+          .eq("agent_id", agentId);
+        if (error) {
+          toast.error("Régénération impossible.");
+          return;
+        }
+      } else {
+        const { error } = await supabase.from("agent_share_links").insert({
+          workspace_id: activeWorkspaceId,
+          agent_id: agentId,
+          token,
+          mode,
+          expires_at: expiresAt,
+        });
+        if (error) {
+          toast.error("Régénération impossible.");
+          return;
+        }
+      }
+      setLinks((prev) => ({ ...prev, [agentId]: { token, mode, expiresAt } }));
+      toast.success("Nouveau lien généré — les anciens QR ne fonctionnent plus.");
+    },
+    [activeWorkspaceId, expireDays, links],
+  );
+
+  const regenerateAll = useCallback(async () => {
+    if (busyRef.current || !activeWorkspaceId) return;
+    busyRef.current = true;
+    try {
+      for (const a of agents) {
+        await regenerateToken(a.id);
+      }
+      toast.success("Tous les liens ont été régénérés.");
+    } finally {
+      busyRef.current = false;
+    }
+  }, [agents, regenerateToken, activeWorkspaceId]);
+
 
   const setMode = useCallback(
     async (agentId: string, mode: ShareMode) => {
