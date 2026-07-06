@@ -180,7 +180,7 @@ function SharedPlanningPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {allowedMonths.map((i) => (
+              {allowedMonths.map((i: number) => (
                 <SelectItem key={i} value={String(i)}>
                   {MONTHS[i]} {year}
                 </SelectItem>
