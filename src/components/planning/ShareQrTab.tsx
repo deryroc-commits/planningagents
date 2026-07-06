@@ -51,6 +51,10 @@ export function ShareQrTab() {
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(new Date().getMonth());
+  const [scope, setScope] = useState<Scope>("month");
+  const [selectedMonths, setSelectedMonths] = useState<number[]>([
+    new Date().getMonth(),
+  ]);
   const [preview, setPreview] = useState<{ name: string; dataUrl: string; url: string } | null>(null);
   const busyRef = useRef(false);
 
