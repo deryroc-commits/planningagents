@@ -331,11 +331,12 @@ export function ShareQrTab() {
         <Info className="mt-0.5 size-4 shrink-0" />
         <p>
           Téléchargez l'image du QR code puis envoyez-la à l'agent par votre
-          messagerie ou SMS habituelle. Le mois affiché correspond au mois
-          sélectionné ci-dessus ; l'agent peut aussi naviguer entre les mois
-          depuis la page.
+          messagerie ou SMS habituelle. Le QR ouvre la période choisie ci-dessus
+          (un mois, plusieurs mois ou l'année complète) ; l'agent peut naviguer
+          librement entre ces mois depuis la page.
         </p>
       </div>
+
 
       {loading ? (
         <div className="flex items-center justify-center py-10">
