@@ -56,7 +56,8 @@ export function TeamTab() {
     removeMember,
     leaveWorkspace,
   } = useWorkspace();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
