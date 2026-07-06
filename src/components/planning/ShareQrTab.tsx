@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 
 type ShareMode = "perso" | "general";
+type Scope = "year" | "month" | "multi";
 type LinkMap = Record<string, { token: string; mode: ShareMode }>;
 
 const YEARS = selectableYears();
@@ -50,6 +51,10 @@ export function ShareQrTab() {
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(new Date().getMonth());
+  const [scope, setScope] = useState<Scope>("month");
+  const [selectedMonths, setSelectedMonths] = useState<number[]>([
+    new Date().getMonth(),
+  ]);
   const [preview, setPreview] = useState<{ name: string; dataUrl: string; url: string } | null>(null);
   const busyRef = useRef(false);
 
@@ -114,10 +119,25 @@ export function ShareQrTab() {
     [ensureLink, activeWorkspaceId],
   );
 
+  const activeMonths = useMemo<number[]>(() => {
+    if (scope === "year") return Array.from({ length: 12 }, (_, i) => i);
+    if (scope === "multi") {
+      const list = [...selectedMonths].sort((a, b) => a - b);
+      return list.length ? list : [month];
+    }
+    return [month];
+  }, [scope, selectedMonths, month]);
+
+  const periodSlug = useMemo(() => {
+    if (activeMonths.length === 12) return "annee";
+    if (activeMonths.length === 1) return MONTHS[activeMonths[0]].toLowerCase();
+    return `${activeMonths.length}-mois`;
+  }, [activeMonths]);
+
   const buildUrl = useCallback(
     (token: string) =>
-      `${window.location.origin}/p/${token}?y=${year}&mo=${month}`,
-    [year, month],
+      `${window.location.origin}/p/${token}?y=${year}&mo=${activeMonths[0]}&ms=${activeMonths.join(",")}`,
+    [year, activeMonths],
   );
 
   const copyLink = useCallback(
@@ -168,10 +188,10 @@ export function ShareQrTab() {
       if (!qr) return;
       downloadDataUrl(
         qr.dataUrl,
-        `qr-${slug(name)}-${MONTHS[month].toLowerCase()}-${year}.png`,
+        `qr-${slug(name)}-${periodSlug}-${year}.png`,
       );
     },
-    [makeQr, month, year],
+    [makeQr, periodSlug, year],
   );
 
   const downloadAll = useCallback(async () => {
@@ -183,7 +203,7 @@ export function ShareQrTab() {
         if (qr) {
           downloadDataUrl(
             qr.dataUrl,
-            `qr-${slug(a.name)}-${MONTHS[month].toLowerCase()}-${year}.png`,
+            `qr-${slug(a.name)}-${periodSlug}-${year}.png`,
           );
           await new Promise((r) => setTimeout(r, 250));
         }
@@ -192,7 +212,8 @@ export function ShareQrTab() {
     } finally {
       busyRef.current = false;
     }
-  }, [agents, makeQr, month, year]);
+  }, [agents, makeQr, periodSlug, year]);
+
 
   if (!canEdit) {
     return (
@@ -234,35 +255,88 @@ export function ShareQrTab() {
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-muted-foreground">
-            Mois à envoyer
+            Portée
           </label>
-          <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+          <Select value={scope} onValueChange={(v) => setScope(v as Scope)}>
             <SelectTrigger className="w-44">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MONTHS.map((m, i) => (
-                <SelectItem key={m} value={String(i)}>
-                  {m} {year}
-                </SelectItem>
-              ))}
+              <SelectItem value="month">Un seul mois</SelectItem>
+              <SelectItem value="multi">Plusieurs mois</SelectItem>
+              <SelectItem value="year">Année complète</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        {scope === "month" && (
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Mois à envoyer
+            </label>
+            <Select
+              value={String(month)}
+              onValueChange={(v) => setMonth(Number(v))}
+            >
+              <SelectTrigger className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((m, i) => (
+                  <SelectItem key={m} value={String(i)}>
+                    {m} {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <Button className="ml-auto" onClick={() => void downloadAll()}>
           <Download /> Télécharger tous les QR
         </Button>
       </div>
 
+      {scope === "multi" && (
+        <div className="rounded-lg border border-border bg-card p-3">
+          <label className="mb-2 block text-xs font-medium text-muted-foreground">
+            Mois à inclure ({selectedMonths.length} sélectionné
+            {selectedMonths.length > 1 ? "s" : ""})
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {MONTHS.map((m, i) => {
+              const on = selectedMonths.includes(i);
+              return (
+                <Button
+                  key={m}
+                  type="button"
+                  size="sm"
+                  variant={on ? "default" : "outline"}
+                  onClick={() =>
+                    setSelectedMonths((prev) =>
+                      prev.includes(i)
+                        ? prev.filter((x) => x !== i)
+                        : [...prev, i],
+                    )
+                  }
+                >
+                  {m}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+
       <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-xs text-muted-foreground">
         <Info className="mt-0.5 size-4 shrink-0" />
         <p>
           Téléchargez l'image du QR code puis envoyez-la à l'agent par votre
-          messagerie ou SMS habituelle. Le mois affiché correspond au mois
-          sélectionné ci-dessus ; l'agent peut aussi naviguer entre les mois
-          depuis la page.
+          messagerie ou SMS habituelle. Le QR ouvre la période choisie ci-dessus
+          (un mois, plusieurs mois ou l'année complète) ; l'agent peut naviguer
+          librement entre ces mois depuis la page.
         </p>
       </div>
+
 
       {loading ? (
         <div className="flex items-center justify-center py-10">
@@ -362,7 +436,7 @@ export function ShareQrTab() {
                 onClick={() =>
                   downloadDataUrl(
                     preview.dataUrl,
-                    `qr-${slug(preview.name)}-${MONTHS[month].toLowerCase()}-${year}.png`,
+                    `qr-${slug(preview.name)}-${periodSlug}-${year}.png`,
                   )
                 }
               >

@@ -42,7 +42,7 @@ interface SharedPlanning {
   planning?: YearPlanning;
 }
 
-type Search = { y: number; mo: number };
+type Search = { y: number; mo: number; ms: number[] };
 
 export const Route = createFileRoute("/p/$token")({
   ssr: false,
@@ -50,9 +50,18 @@ export const Route = createFileRoute("/p/$token")({
     const now = new Date();
     const y = Number(search.y);
     const mo = Number(search.mo);
+    const rawMs = typeof search.ms === "string" ? search.ms : "";
+    const ms = rawMs
+      .split(",")
+      .map((v) => Number(v))
+      .filter((v) => Number.isInteger(v) && v >= 0 && v <= 11);
+    const uniqueMs = Array.from(new Set(ms)).sort((a, b) => a - b);
     return {
       y: Number.isFinite(y) && y >= 2000 && y <= 2100 ? y : now.getFullYear(),
       mo: Number.isFinite(mo) && mo >= 0 && mo <= 11 ? mo : now.getMonth(),
+      ms: uniqueMs.length
+        ? uniqueMs
+        : Array.from({ length: 12 }, (_, i) => i),
     };
   },
   head: () => ({
@@ -66,9 +75,20 @@ export const Route = createFileRoute("/p/$token")({
 
 function SharedPlanningPage() {
   const { token } = Route.useParams();
-  const { y, mo } = Route.useSearch();
+  const { y, mo, ms } = Route.useSearch();
   const [year] = useState(y);
-  const [month, setMonth] = useState(mo);
+  const allowedMonths = ms;
+  const [month, setMonth] = useState(
+    allowedMonths.includes(mo) ? mo : allowedMonths[0],
+  );
+  const goPrev = () => {
+    const idx = allowedMonths.indexOf(month);
+    setMonth(allowedMonths[(idx - 1 + allowedMonths.length) % allowedMonths.length]);
+  };
+  const goNext = () => {
+    const idx = allowedMonths.indexOf(month);
+    setMonth(allowedMonths[(idx + 1) % allowedMonths.length]);
+  };
   const [data, setData] = useState<SharedPlanning | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -149,7 +169,8 @@ function SharedPlanningPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setMonth((m: number) => (m + 11) % 12)}
+            onClick={goPrev}
+            disabled={allowedMonths.length <= 1}
             aria-label="Mois précédent"
           >
             <ChevronLeft />
@@ -159,9 +180,9 @@ function SharedPlanningPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MONTHS.map((m, i) => (
-                <SelectItem key={m} value={String(i)}>
-                  {m} {year}
+              {allowedMonths.map((i: number) => (
+                <SelectItem key={i} value={String(i)}>
+                  {MONTHS[i]} {year}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -169,12 +190,14 @@ function SharedPlanningPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setMonth((m: number) => (m + 1) % 12)}
+            onClick={goNext}
+            disabled={allowedMonths.length <= 1}
             aria-label="Mois suivant"
           >
             <ChevronRight />
           </Button>
         </div>
+
 
         {data.mode === "perso" ? (
           <PersonalMonth
