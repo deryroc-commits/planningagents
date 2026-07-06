@@ -436,7 +436,7 @@ export function ShareQrTab() {
                 onClick={() =>
                   downloadDataUrl(
                     preview.dataUrl,
-                    `qr-${slug(preview.name)}-${MONTHS[month].toLowerCase()}-${year}.png`,
+                    `qr-${slug(preview.name)}-${periodSlug}-${year}.png`,
                   )
                 }
               >
