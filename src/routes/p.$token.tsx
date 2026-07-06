@@ -169,7 +169,8 @@ function SharedPlanningPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setMonth((m: number) => (m + 11) % 12)}
+            onClick={goPrev}
+            disabled={allowedMonths.length <= 1}
             aria-label="Mois précédent"
           >
             <ChevronLeft />
@@ -179,9 +180,9 @@ function SharedPlanningPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MONTHS.map((m, i) => (
-                <SelectItem key={m} value={String(i)}>
-                  {m} {year}
+              {allowedMonths.map((i) => (
+                <SelectItem key={i} value={String(i)}>
+                  {MONTHS[i]} {year}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -189,12 +190,14 @@ function SharedPlanningPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setMonth((m: number) => (m + 1) % 12)}
+            onClick={goNext}
+            disabled={allowedMonths.length <= 1}
             aria-label="Mois suivant"
           >
             <ChevronRight />
           </Button>
         </div>
+
 
         {data.mode === "perso" ? (
           <PersonalMonth
