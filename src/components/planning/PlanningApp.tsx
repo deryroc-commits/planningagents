@@ -299,7 +299,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           </TabsContent>
 
           <TabsContent value="print" className="tab-surface tint-print">
-            <PrintView month={month} setMonth={setMonth} />
+            <PrintView month={month === TRANSITION_MONTH ? 11 : month} setMonth={setMonth} />
           </TabsContent>
         </Tabs>
       </main>
