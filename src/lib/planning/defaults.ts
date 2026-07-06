@@ -36,6 +36,9 @@ export const DEFAULT_CODES: PlanningCode[] = [
   { code: "FER", label: "Jour férié", hours: 0, category: "autre" },
 ];
 
+/** Increment when the built-in code catalog changes and stored browsers need it. */
+export const DEFAULT_CATALOG_VERSION = 2;
+
 export const DEFAULT_AGENTS: Agent[] = [
   { id: "ag-1-lrlg", name: "ALIS STEPHANE" },
   { id: "ag-2-kgjh", name: "LECLERC CYRIL" },

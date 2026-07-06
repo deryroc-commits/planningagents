@@ -90,6 +90,8 @@ export interface OvertimeEntry {
 export type YearOvertime = OvertimeEntry[];
 
 export interface PlanningState {
+  /** Internal data/catalog migration version. */
+  catalogVersion?: number;
   codes: PlanningCode[];
   agents: Agent[];
   planningByYear: Record<number, YearPlanning>;
