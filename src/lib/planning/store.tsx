@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import type {
   Agent,
   ColorKey,
@@ -280,7 +281,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       const { error: seedError } = await supabase
         .from(CLOUD_TABLE)
         .upsert(
-          { id: CLOUD_ROW_ID, state: localState },
+          { id: CLOUD_ROW_ID, state: localState as unknown as Json },
           { onConflict: "id" },
         );
 
@@ -327,7 +328,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       void supabase
         .from(CLOUD_TABLE)
         .upsert(
-          { id: CLOUD_ROW_ID, state },
+          { id: CLOUD_ROW_ID, state: state as unknown as Json },
           { onConflict: "id" },
         )
         .then(({ error }) => {
