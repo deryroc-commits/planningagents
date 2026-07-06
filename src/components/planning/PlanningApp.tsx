@@ -22,6 +22,7 @@ import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace } from "@/lib/workspace/workspace-context";
 import { useAuth } from "@/lib/auth/auth-context";
 import { TeamTab } from "@/components/planning/TeamTab";
+import { ShareQrTab } from "@/components/planning/ShareQrTab";
 import { UserCircle2, LogOut } from "lucide-react";
 import {
   DropdownMenu,
