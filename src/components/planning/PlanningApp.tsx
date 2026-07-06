@@ -44,6 +44,7 @@ import { RotationTab } from "@/components/planning/RotationTab";
 import { PrintView } from "@/components/planning/PrintView";
 import { ModificationsTab } from "@/components/planning/ModificationsTab";
 import { OvertimeTab } from "@/components/planning/OvertimeTab";
+import { BackupBar } from "@/components/planning/BackupBar";
 import { CATEGORY_META } from "@/lib/planning/types";
 import { codesMap, countErrors, MONTHS, selectableYears } from "@/lib/planning/calc";
 import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
