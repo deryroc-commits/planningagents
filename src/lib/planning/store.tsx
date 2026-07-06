@@ -298,6 +298,33 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     [year],
   );
 
+  const setCellForYear = useCallback(
+    (y: number, agentId: string, dayIndex: number, code: string | null) => {
+      setState((prev) => {
+        const yp = { ...(prev.planningByYear[y] ?? {}) };
+        const row = { ...(yp[agentId] ?? {}) };
+        const before = row[dayIndex];
+        const after = code === null || code === "" ? undefined : code;
+        if (after === undefined) delete row[dayIndex];
+        else row[dayIndex] = after;
+        yp[agentId] = row;
+        const yc = recordChange(
+          prev.changesByYear?.[y] ?? {},
+          agentId,
+          dayIndex,
+          before,
+          after,
+        );
+        return {
+          ...prev,
+          planningByYear: { ...prev.planningByYear, [y]: yp },
+          changesByYear: { ...prev.changesByYear, [y]: yc },
+        };
+      });
+    },
+    [],
+  );
+
   const fillRange = useCallback(
     (agentId: string, indices: number[], code: string | null) => {
       setState((prev) => {
