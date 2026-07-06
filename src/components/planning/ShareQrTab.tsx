@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { Copy, Download, QrCode, Loader2, Info } from "lucide-react";
+import { Copy, Download, QrCode, Loader2, Info, RefreshCw } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace } from "@/lib/workspace/workspace-context";
 import { MONTHS, selectableYears } from "@/lib/planning/calc";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -24,7 +25,24 @@ import {
 
 type ShareMode = "perso" | "general";
 type Scope = "year" | "month" | "multi";
-type LinkMap = Record<string, { token: string; mode: ShareMode }>;
+type LinkInfo = { token: string; mode: ShareMode; expiresAt: string | null };
+type LinkMap = Record<string, LinkInfo>;
+
+function expiresValue(days: number): string | null {
+  return days > 0 ? new Date(Date.now() + days * 86_400_000).toISOString() : null;
+}
+
+function fmtExpiry(expiresAt: string | null): { text: string; expired: boolean } {
+  if (!expiresAt) return { text: "Sans expiration", expired: false };
+  const d = new Date(expiresAt);
+  const expired = d.getTime() < Date.now();
+  return {
+    text: expired
+      ? `Expiré le ${d.toLocaleDateString("fr-FR")}`
+      : `Expire le ${d.toLocaleDateString("fr-FR")}`,
+    expired,
+  };
+}
 
 const YEARS = selectableYears();
 
