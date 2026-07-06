@@ -48,6 +48,8 @@ import { BackupBar } from "@/components/planning/BackupBar";
 import { CATEGORY_META } from "@/lib/planning/types";
 import { codesMap, countErrors, MONTHS, selectableYears } from "@/lib/planning/calc";
 import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
+import { hardReload, useNewVersionAvailable } from "@/lib/planning/version-check";
+import { RefreshCw } from "lucide-react";
 
 const YEARS = selectableYears();
 
