@@ -459,12 +459,15 @@ export function ShareQrTab() {
               <tr className="border-b border-border bg-muted text-left">
                 <th className="px-3 py-2 font-medium">Agent</th>
                 <th className="px-3 py-2 font-medium">Contenu du QR</th>
+                <th className="px-3 py-2 font-medium">Validité</th>
                 <th className="px-3 py-2 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {agents.map((a) => {
-                const mode = links[a.id]?.mode ?? "perso";
+                const info = links[a.id];
+                const mode = info?.mode ?? "perso";
+                const expiry = info ? fmtExpiry(info.expiresAt) : null;
                 return (
                   <tr key={a.id} className="border-b border-border last:border-0">
                     <td className="px-3 py-2 font-medium">{a.name}</td>
@@ -483,6 +486,23 @@ export function ShareQrTab() {
                       </Select>
                     </td>
                     <td className="px-3 py-2">
+                      {expiry ? (
+                        <span
+                          className={
+                            expiry.expired
+                              ? "text-xs font-medium text-destructive"
+                              : "text-xs text-muted-foreground"
+                          }
+                        >
+                          {expiry.text}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground/60">
+                          Aucun lien encore
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
                       <div className="flex justify-end gap-1">
                         <Button
                           variant="ghost"
@@ -499,6 +519,14 @@ export function ShareQrTab() {
                           <QrCode /> Voir
                         </Button>
                         <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => void regenerateToken(a.id)}
+                          title="Régénérer le token (invalide l'ancien QR)"
+                        >
+                          <RefreshCw /> Régénérer
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => void downloadOne(a.id, a.name)}
@@ -508,6 +536,7 @@ export function ShareQrTab() {
                       </div>
                     </td>
                   </tr>
+
                 );
               })}
               {agents.length === 0 && (
