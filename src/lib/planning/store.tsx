@@ -64,8 +64,17 @@ interface PlanningContextValue {
   codes: PlanningCode[];
   agents: Agent[];
   planning: YearPlanning;
+  /** Full planning for every year (read-only view; used by the transition sheet). */
+  planningByYear: Record<number, YearPlanning>;
   // cell
   setCell: (agentId: string, dayIndex: number, code: string | null) => void;
+  /** Like setCell but targets an explicit year (for cross-year editing). */
+  setCellForYear: (
+    year: number,
+    agentId: string,
+    dayIndex: number,
+    code: string | null,
+  ) => void;
   fillRange: (agentId: string, indices: number[], code: string | null) => void;
   // codes
   upsertCode: (code: PlanningCode, originalCode?: string) => void;
