@@ -35,7 +35,7 @@ function AuthPage() {
 
   useEffect(() => {
     if (!loading && session) {
-      navigate({ to: "/app", search: { tab: "planning" } });
+      navigate({ to: "/" });
     }
   }, [loading, session, navigate]);
 
