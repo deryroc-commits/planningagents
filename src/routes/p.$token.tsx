@@ -149,7 +149,7 @@ function SharedPlanningPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setMonth((m) => (m + 11) % 12)}
+            onClick={() => setMonth((m: number) => (m + 11) % 12)}
             aria-label="Mois précédent"
           >
             <ChevronLeft />
@@ -169,7 +169,7 @@ function SharedPlanningPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setMonth((m) => (m + 1) % 12)}
+            onClick={() => setMonth((m: number) => (m + 1) % 12)}
             aria-label="Mois suivant"
           >
             <ChevronRight />
