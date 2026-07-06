@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_share_links: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          mode: string
+          token: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          mode?: string
+          token: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          mode?: string
+          token?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_share_links_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planning_cloud_state: {
         Row: {
           id: string
@@ -168,6 +206,10 @@ export type Database = {
         }
       }
       gen_unique_invite_code: { Args: never; Returns: string }
+      get_shared_planning: {
+        Args: { _token: string; _year: number }
+        Returns: Json
+      }
       has_workspace_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
