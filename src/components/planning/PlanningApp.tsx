@@ -37,6 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PlanningGrid } from "@/components/planning/PlanningGrid";
+import { TransitionGrid } from "@/components/planning/TransitionGrid";
 import { ParametersTab } from "@/components/planning/ParametersTab";
 import { AgentsTab } from "@/components/planning/AgentsTab";
 import { StatsTab } from "@/components/planning/StatsTab";
@@ -46,7 +47,13 @@ import { ModificationsTab } from "@/components/planning/ModificationsTab";
 import { OvertimeTab } from "@/components/planning/OvertimeTab";
 import { BackupBar } from "@/components/planning/BackupBar";
 import { CATEGORY_META } from "@/lib/planning/types";
-import { codesMap, countErrors, MONTHS, selectableYears } from "@/lib/planning/calc";
+import {
+  codesMap,
+  countErrors,
+  MONTHS,
+  selectableYears,
+  TRANSITION_MONTH,
+} from "@/lib/planning/calc";
 import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
 import { hardReload, useNewVersionAvailable } from "@/lib/planning/version-check";
 import { RefreshCw } from "lucide-react";
