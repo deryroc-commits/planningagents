@@ -75,6 +75,10 @@ interface PlanningContextValue {
   removeAgent: (id: string) => void;
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
+  /** Full, deep snapshot of the whole application state (for backups). */
+  snapshotState: () => PlanningState;
+  /** Replace the ENTIRE application state (restore a backup). */
+  restoreFullState: (s: PlanningState) => void;
   resetAll: () => void;
   clearPlanning: () => void;
   clearYear: (year: number) => void;
@@ -354,6 +358,26 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const snapshotState = useCallback((): PlanningState => {
+    return JSON.parse(JSON.stringify(state)) as PlanningState;
+  }, [state]);
+
+  const restoreFullState = useCallback((s: PlanningState) => {
+    setState({
+      codes: s.codes?.length ? s.codes : DEFAULT_CODES,
+      agents: s.agents?.length ? s.agents : DEFAULT_AGENTS,
+      planningByYear: s.planningByYear ?? {},
+      colors: { ...DEFAULT_COLORS, ...(s.colors ?? {}) },
+      rotation: normalizeRotation(s.rotation ?? DEFAULT_ROTATION),
+      changesByYear: s.changesByYear ?? {},
+      overtimeByYear: s.overtimeByYear ?? {},
+      overtimeThreshold:
+        typeof s.overtimeThreshold === "number"
+          ? s.overtimeThreshold
+          : DEFAULT_OVERTIME_THRESHOLD,
+    });
+  }, []);
+
   const resetAll = useCallback(() => {
     setState({
       codes: DEFAULT_CODES,
@@ -532,6 +556,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       updateAgent,
       removeAgent,
       replaceState,
+      snapshotState,
+      restoreFullState,
       resetAll,
       clearPlanning,
       clearYear,
@@ -564,6 +590,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       updateAgent,
       removeAgent,
       replaceState,
+      snapshotState,
+      restoreFullState,
       resetAll,
       clearPlanning,
       clearYear,

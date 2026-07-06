@@ -1,0 +1,141 @@
+import { useEffect, useState } from "react";
+import { History, RotateCcw, Save, Trash2 } from "lucide-react";
+import { usePlanning } from "@/lib/planning/store";
+import {
+  createBackup,
+  deleteBackup,
+  formatBackupDate,
+  loadBackups,
+  type Backup,
+} from "@/lib/planning/backups";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+/**
+ * Save / restore bar: create a dated backup of the full application state
+ * (data + colors/formatting) and restore any previous one from a dated list.
+ */
+export function BackupBar() {
+  const { snapshotState, restoreFullState } = usePlanning();
+  const [backups, setBackups] = useState<Backup[]>([]);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [label, setLabel] = useState("");
+  const [status, setStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    setBackups(loadBackups());
+  }, []);
+
+  const flash = (msg: string) => {
+    setStatus(msg);
+    setTimeout(() => setStatus(null), 4000);
+  };
+
+  const onSave = () => {
+    const list = createBackup(snapshotState(), label);
+    setBackups(list);
+    setLabel("");
+    flash(`Sauvegarde créée le ${formatBackupDate(list[0].at)}.`);
+  };
+
+  const onRestore = (b: Backup) => {
+    restoreFullState(b.state);
+    setRestoreOpen(false);
+    flash(`Sauvegarde du ${formatBackupDate(b.at)} restaurée.`);
+  };
+
+  const onDelete = (id: string) => {
+    setBackups(deleteBackup(id));
+  };
+
+  return (
+    <div className="no-print flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card/60 p-2">
+      <span className="mr-1 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+        <History className="size-4" /> Sauvegardes
+      </span>
+      <Input
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        placeholder="Nom (optionnel)"
+        className="h-8 w-44"
+        onKeyDown={(e) => {
+          if (e.key === "Enter") onSave();
+        }}
+      />
+      <Button size="sm" onClick={onSave}>
+        <Save /> Sauvegarder
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => {
+          setBackups(loadBackups());
+          setRestoreOpen(true);
+        }}
+      >
+        <RotateCcw /> Restaurer
+        {backups.length > 0 && (
+          <span className="ml-1 rounded bg-muted px-1.5 text-xs">{backups.length}</span>
+        )}
+      </Button>
+      {status && <span className="text-sm text-muted-foreground">{status}</span>}
+
+      <Dialog open={restoreOpen} onOpenChange={setRestoreOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Restaurer une sauvegarde</DialogTitle>
+            <DialogDescription>
+              Choisissez une sauvegarde datée. La restauration remplace l'ensemble des
+              données et de la mise en forme actuelles.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[50vh] space-y-2 overflow-auto py-1">
+            {backups.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Aucune sauvegarde enregistrée pour le moment.
+              </p>
+            )}
+            {backups.map((b) => (
+              <div
+                key={b.id}
+                className="flex items-center gap-2 rounded-lg border border-border p-2.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">
+                    {b.label || "Sauvegarde"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{formatBackupDate(b.at)}</p>
+                </div>
+                <Button size="sm" onClick={() => onRestore(b)}>
+                  Restaurer
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  onClick={() => onDelete(b.id)}
+                  aria-label="Supprimer la sauvegarde"
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRestoreOpen(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

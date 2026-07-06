@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { ColorSettings } from "./ColorSettings";
 import { ColorPalette } from "./ColorPalette";
+import { BackupBar } from "./BackupBar";
 import { usePlanning } from "@/lib/planning/store";
 import {
   CATEGORY_META,
@@ -72,6 +73,8 @@ export function ParametersTab() {
 
   return (
     <div className="space-y-4">
+      <BackupBar />
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Codes & paramètres</h2>
