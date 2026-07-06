@@ -144,7 +144,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
     const { data, error } = await supabase
       .from("workspace_members")
-      .select("id, user_id, role, joined_at, profiles(display_name, email)")
+      .select("id, user_id, role, joined_at")
       .eq("workspace_id", activeWorkspaceId)
       .order("joined_at", { ascending: true });
 
@@ -153,10 +153,23 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const list: Member[] = (data ?? []).map((row) => {
-      const profile = row.profiles as unknown as
-        | { display_name: string | null; email: string | null }
-        | null;
+    const rows = data ?? [];
+    // workspace_members has no FK to profiles (it references auth.users), so
+    // fetch the matching profiles separately and merge them in.
+    const ids = rows.map((r) => r.user_id);
+    const profileMap = new Map<string, { display_name: string | null; email: string | null }>();
+    if (ids.length) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, email")
+        .in("id", ids);
+      for (const pr of profiles ?? []) {
+        profileMap.set(pr.id, { display_name: pr.display_name, email: pr.email });
+      }
+    }
+
+    const list: Member[] = rows.map((row) => {
+      const profile = profileMap.get(row.user_id);
       return {
         id: row.id,
         user_id: row.user_id,
