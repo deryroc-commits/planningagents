@@ -542,7 +542,7 @@ export function ShareQrTab() {
               {agents.length === 0 && (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={4}
                     className="px-3 py-6 text-center text-muted-foreground"
                   >
                     Ajoutez des agents dans « Base agents » pour générer leurs QR
