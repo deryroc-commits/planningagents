@@ -81,6 +81,13 @@ const NAV = [
     tab: "print",
     color: "nav-indigo",
   },
+  {
+    label: "Équipe & partage",
+    description: "Membres de l'équipe, rôles et code d'invitation à partager.",
+    icon: Users,
+    tab: "team",
+    color: "nav-rose",
+  },
 ] as const;
 
 function HomePage() {

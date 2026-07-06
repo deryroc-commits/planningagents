@@ -117,8 +117,7 @@ interface PlanningContextValue {
 
 const PlanningContext = createContext<PlanningContextValue | null>(null);
 
-const CLOUD_ROW_ID = "main";
-const CLOUD_TABLE = "planning_cloud_state";
+const CLOUD_TABLE = "workspace_planning";
 const CLOUD_SAVE_DEBOUNCE_MS = 700;
 
 /** Build a <style> string that maps the color scheme onto the CSS variables. */
@@ -210,11 +209,11 @@ function isPristineDemoInstall(parsed: Partial<PlanningState>): boolean {
   return !hasPlanning && !hasChanges && !hasOvertime;
 }
 
-function loadState(): PlanningState {
+function loadState(key: string): PlanningState {
   const base = normalizePlanningState(null);
   if (typeof window === "undefined") return base;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(key);
     if (!raw) return base;
     const parsed = JSON.parse(raw) as Partial<PlanningState>;
     return normalizePlanningState(parsed);
@@ -223,7 +222,16 @@ function loadState(): PlanningState {
   }
 }
 
-export function PlanningProvider({ children }: { children: ReactNode }) {
+export function PlanningProvider({
+  children,
+  workspaceId,
+  writable = true,
+}: {
+  children: ReactNode;
+  workspaceId: string;
+  writable?: boolean;
+}) {
+  const localKey = `${STORAGE_KEY}:${workspaceId}`;
   const [year, setYear] = useState<number>(() => new Date().getFullYear());
   const [state, setState] = useState<PlanningState>(() => ({
     codes: DEFAULT_CODES,
@@ -240,25 +248,28 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
   const lastCloudJson = useRef<string | null>(null);
   const cloudSaveTimer = useRef<number | null>(null);
 
-  const writeLocalState = useCallback((next: PlanningState) => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      /* ignore quota errors */
-    }
-  }, []);
+  const writeLocalState = useCallback(
+    (next: PlanningState) => {
+      try {
+        window.localStorage.setItem(localKey, JSON.stringify(next));
+      } catch {
+        /* ignore quota errors */
+      }
+    },
+    [localKey],
+  );
 
   // Hydrate from localStorage first, then replace it with the shared Cloud copy.
   useEffect(() => {
     let cancelled = false;
-    const localState = loadState();
+    const localState = loadState(localKey);
     setState(localState);
 
     async function loadCloudState() {
       const { data, error } = await supabase
         .from(CLOUD_TABLE)
         .select("state")
-        .eq("id", CLOUD_ROW_ID)
+        .eq("workspace_id", workspaceId)
         .maybeSingle();
 
       if (cancelled) return;
@@ -277,12 +288,18 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // No planning yet for this workspace. Only editors may create the row.
+      if (!writable) {
+        setCloudReady(true);
+        return;
+      }
+
       const json = JSON.stringify(localState);
       const { error: seedError } = await supabase
         .from(CLOUD_TABLE)
         .upsert(
-          { id: CLOUD_ROW_ID, state: localState as unknown as Json },
-          { onConflict: "id" },
+          { workspace_id: workspaceId, state: localState as unknown as Json },
+          { onConflict: "workspace_id" },
         );
 
       if (cancelled) return;
@@ -300,7 +317,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [writeLocalState]);
+  }, [localKey, workspaceId, writable, writeLocalState]);
 
   // Persist — but skip the initial mount. Writing the default state before
   // hydration finishes would fire a `storage` event that reverts other open
@@ -315,7 +332,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
 
   // Persist changes to Cloud after the first Cloud read has completed.
   useEffect(() => {
-    if (!cloudReady) return;
+    if (!cloudReady || !writable) return;
 
     const json = JSON.stringify(state);
     if (json === lastCloudJson.current) return;
@@ -328,8 +345,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       void supabase
         .from(CLOUD_TABLE)
         .upsert(
-          { id: CLOUD_ROW_ID, state: state as unknown as Json },
-          { onConflict: "id" },
+          { workspace_id: workspaceId, state: state as unknown as Json },
+          { onConflict: "workspace_id" },
         )
         .then(({ error }) => {
           if (error) {
@@ -345,19 +362,19 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
         window.clearTimeout(cloudSaveTimer.current);
       }
     };
-  }, [cloudReady, state]);
+  }, [cloudReady, writable, workspaceId, state]);
 
-  // Receive updates saved from another browser/device.
+  // Receive updates saved from another browser/device for this workspace.
   useEffect(() => {
     const channel = supabase
-      .channel("planning-cloud-state")
+      .channel(`workspace-planning-${workspaceId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: CLOUD_TABLE,
-          filter: `id=eq.${CLOUD_ROW_ID}`,
+          filter: `workspace_id=eq.${workspaceId}`,
         },
         (payload) => {
           if (payload.eventType === "DELETE") return;
@@ -378,19 +395,20 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [writeLocalState]);
+  }, [workspaceId, writeLocalState]);
 
   // Keep every open view (other tabs/viewers) in sync: when the stored data
   // changes elsewhere (e.g. an import), reload it so Impression & Base agents
   // never stay out of date.
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key && e.key !== STORAGE_KEY) return;
-      setState(loadState());
+      if (e.key && e.key !== localKey) return;
+      setState(loadState(localKey));
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  }, [localKey]);
+
 
   const planning = state.planningByYear[year] ?? {};
 
