@@ -22,6 +22,7 @@ import type {
 } from "./types";
 import {
   DEFAULT_AGENTS,
+  DEFAULT_CATALOG_VERSION,
   DEFAULT_CODES,
   DEFAULT_COLORS,
   DEFAULT_OVERTIME_THRESHOLD,
@@ -130,6 +131,18 @@ const EXAMPLE_AGENT_NAMES = new Set([
 ]);
 
 /**
+ * Existing browsers keep their own localStorage copy forever. When the default
+ * Paramètres catalog changes, add only the new built-in codes once, while
+ * preserving any user edits or custom codes already stored locally.
+ */
+function mergeDefaultCodes(stored: PlanningCode[] | undefined): PlanningCode[] {
+  if (!stored?.length) return DEFAULT_CODES;
+  const seen = new Set(stored.map((code) => code.code));
+  const missingDefaults = DEFAULT_CODES.filter((code) => !seen.has(code.code));
+  return missingDefaults.length ? [...stored, ...missingDefaults] : stored;
+}
+
+/**
  * True only for a pristine, untouched demo install: every stored agent is one
  * of the built-in demo names AND the user has entered no planning, no tracked
  * changes and no overtime. In that case (and only that case) it is safe to
@@ -158,6 +171,7 @@ function isPristineDemoInstall(parsed: Partial<PlanningState>): boolean {
 
 function loadState(): PlanningState {
   const base: PlanningState = {
+    catalogVersion: DEFAULT_CATALOG_VERSION,
     codes: DEFAULT_CODES,
     agents: DEFAULT_AGENTS,
     planningByYear: {},
@@ -172,8 +186,15 @@ function loadState(): PlanningState {
     if (!raw) return base;
     const parsed = JSON.parse(raw) as Partial<PlanningState>;
     const agents = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
+    const codes =
+      (parsed.catalogVersion ?? 0) < DEFAULT_CATALOG_VERSION
+        ? mergeDefaultCodes(parsed.codes)
+        : parsed.codes?.length
+          ? parsed.codes
+          : DEFAULT_CODES;
     return {
-      codes: parsed.codes?.length ? parsed.codes : DEFAULT_CODES,
+      catalogVersion: DEFAULT_CATALOG_VERSION,
+      codes,
       agents: agents?.length ? agents : DEFAULT_AGENTS,
       planningByYear: parsed.planningByYear ?? {},
       // Merge stored overrides over defaults so newly added keys always exist.
@@ -195,6 +216,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
   const [year, setYear] = useState<number>(() => new Date().getFullYear());
   const [state, setState] = useState<PlanningState>(() => ({
     codes: DEFAULT_CODES,
+    catalogVersion: DEFAULT_CATALOG_VERSION,
     agents: DEFAULT_AGENTS,
     planningByYear: {},
     colors: DEFAULT_COLORS,
@@ -344,6 +366,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
 
   const replaceState = useCallback((s: Partial<PlanningState>) => {
     setState((prev) => ({
+      catalogVersion: DEFAULT_CATALOG_VERSION,
       codes: s.codes ?? prev.codes,
       agents: s.agents ?? prev.agents,
       // Merge per-year so importing one year never wipes other years.
@@ -364,6 +387,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
 
   const restoreFullState = useCallback((s: PlanningState) => {
     setState({
+      catalogVersion: DEFAULT_CATALOG_VERSION,
       codes: s.codes?.length ? s.codes : DEFAULT_CODES,
       agents: s.agents?.length ? s.agents : DEFAULT_AGENTS,
       planningByYear: s.planningByYear ?? {},
@@ -380,6 +404,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
 
   const resetAll = useCallback(() => {
     setState({
+      catalogVersion: DEFAULT_CATALOG_VERSION,
       codes: DEFAULT_CODES,
       agents: DEFAULT_AGENTS,
       planningByYear: {},
