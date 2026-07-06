@@ -183,6 +183,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           </TabsList>
 
           <TabsContent value="planning" className="tab-surface tint-planning space-y-3">
+            <BackupBar />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-1">
                 <Button
