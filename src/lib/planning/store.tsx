@@ -556,6 +556,8 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
       updateAgent,
       removeAgent,
       replaceState,
+      snapshotState,
+      restoreFullState,
       resetAll,
       clearPlanning,
       clearYear,
