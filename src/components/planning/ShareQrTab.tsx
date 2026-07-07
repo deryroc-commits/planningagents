@@ -611,6 +611,34 @@ export function ShareQrTab() {
                   {monthsLabel}
                 </p>
               </div>
+              {(() => {
+                const expiry = fmtExpiry(preview.expiresAt);
+                return (
+                  <div
+                    className={`flex w-full items-center justify-center gap-2 rounded-md border px-3 py-2 text-center ${
+                      expiry.expired
+                        ? "border-destructive/30 bg-destructive/10"
+                        : "border-border bg-muted/40"
+                    }`}
+                  >
+                    <Clock
+                      className={`size-4 ${expiry.expired ? "text-destructive" : "text-muted-foreground"}`}
+                    />
+                    <div>
+                      <p
+                        className={`text-xs font-semibold ${
+                          expiry.expired ? "text-destructive" : "text-foreground"
+                        }`}
+                      >
+                        {expiry.text}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {expiry.remainingText}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
               <p className="break-all text-center text-[11px] text-muted-foreground">
                 {preview.url}
               </p>
