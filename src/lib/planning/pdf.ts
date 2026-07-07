@@ -36,9 +36,30 @@ export async function exportElementToPdf(
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
 
-  const imgData = canvas.toDataURL("image/png");
-  pdf.addImage(imgData, "PNG", 0, 0, pageW, pageH, undefined, "FAST");
+  // Fit the captured image inside the page while preserving its aspect ratio,
+  // so nothing is cropped and the whole table stays on a single page.
+  const imgRatio = canvas.width / canvas.height;
+  const pageRatio = pageW / pageH;
 
+  let drawW = pageW;
+  let drawH = pageH;
+  if (imgRatio > pageRatio) {
+    // Image is wider than the page → constrain by width.
+    drawW = pageW;
+    drawH = pageW / imgRatio;
+  } else {
+    // Image is taller than the page → constrain by height.
+    drawH = pageH;
+    drawW = pageH * imgRatio;
+  }
+
+  const offsetX = (pageW - drawW) / 2;
+  const offsetY = (pageH - drawH) / 2;
+
+  const imgData = canvas.toDataURL("image/png");
+  pdf.addImage(imgData, "PNG", offsetX, offsetY, drawW, drawH, undefined, "FAST");
+
+  // Guarantee a single page even if any extra page slipped in.
   while (pdf.getNumberOfPages() > 1) {
     pdf.deletePage(pdf.getNumberOfPages());
   }
