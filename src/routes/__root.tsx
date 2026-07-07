@@ -88,6 +88,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Application de gestion du planning annuel des agents de la cuisine centrale UCPA.",
       },
       { name: "author", content: "UCPA" },
+      { name: "theme-color", content: "#1d4ed8" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Planning UCPA" },
       { property: "og:title", content: "Planning agents UCPA — Cuisine centrale" },
       {
         property: "og:description",
