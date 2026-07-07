@@ -125,7 +125,21 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
           <Button variant="outline" onClick={() => setXlsxOpen(true)}>
             <FileSpreadsheet /> Aperçu Excel (XLSX)
           </Button>
-          <Button onClick={() => window.print()}>
+          <Button
+            onClick={() => {
+              const prev = document.title;
+              // The browser uses document.title as the default PDF filename.
+              document.title = `Planning Agents _ ${MONTHS[month]} ${year}`;
+              const restore = () => {
+                document.title = prev;
+                window.removeEventListener("afterprint", restore);
+              };
+              window.addEventListener("afterprint", restore);
+              window.print();
+              // Fallback restore in case afterprint doesn't fire.
+              setTimeout(restore, 1000);
+            }}
+          >
             <Printer /> Imprimer / PDF
           </Button>
         </div>
