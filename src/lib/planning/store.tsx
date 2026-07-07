@@ -952,6 +952,8 @@ export function PlanningProvider({
       clearOvertimeAgent,
       clearOvertimeYear,
       setOvertimeThreshold,
+      yearRange,
+      setYearRange,
       colors,
       setColor,
       resetColors,
