@@ -95,7 +95,7 @@ export const Route = createFileRoute("/p/$token")({
 
 function SharedPlanningPage() {
   const { token } = Route.useParams();
-  const { y, mo, ms } = Route.useSearch();
+  const { y, mo, ms, msInvalid } = Route.useSearch();
   const [year] = useState(y);
   const allowedMonths = ms;
   const [month, setMonth] = useState(
@@ -111,6 +111,7 @@ function SharedPlanningPage() {
   };
   const [data, setData] = useState<SharedPlanning | null>(null);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     let cancelled = false;
