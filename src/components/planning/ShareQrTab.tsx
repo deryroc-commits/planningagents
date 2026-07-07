@@ -399,7 +399,7 @@ export function ShareQrTab() {
             variant="outline"
             onClick={() => void regenerateAll()}
           >
-            <RefreshCw /> Régénérer tous les tokens
+            <RefreshCw /> Régénérer tous les QR code
           </Button>
         </div>
       </div>
