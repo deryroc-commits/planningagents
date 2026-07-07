@@ -158,6 +158,23 @@ function mergeDefaultCodes(stored: PlanningCode[] | undefined): PlanningCode[] {
   return missingDefaults.length ? [...stored, ...missingDefaults] : stored;
 }
 
+/** Clamp/validate a stored year-range config, falling back to defaults. */
+function normalizeYearRange(input: unknown): YearRangeConfig {
+  const r = (input ?? {}) as Partial<YearRangeConfig>;
+  const start =
+    typeof r.start === "number" && Number.isFinite(r.start)
+      ? Math.round(r.start)
+      : DEFAULT_YEAR_RANGE.start;
+  const ahead =
+    typeof r.ahead === "number" && Number.isFinite(r.ahead)
+      ? Math.round(r.ahead)
+      : DEFAULT_YEAR_RANGE.ahead;
+  return {
+    start: Math.min(Math.max(start, 1970), 2100),
+    ahead: Math.min(Math.max(ahead, 0), 50),
+  };
+}
+
 function normalizePlanningState(input: Partial<PlanningState> | null | undefined): PlanningState {
   const parsed = input ?? {};
   const agents = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
@@ -181,8 +198,10 @@ function normalizePlanningState(input: Partial<PlanningState> | null | undefined
       typeof parsed.overtimeThreshold === "number"
         ? parsed.overtimeThreshold
         : DEFAULT_OVERTIME_THRESHOLD,
+    yearRange: normalizeYearRange(parsed.yearRange),
   };
 }
+
 
 /**
  * True only for a pristine, untouched demo install: every stored agent is one
