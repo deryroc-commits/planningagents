@@ -79,8 +79,8 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
     if (!content || !sheet) return;
 
     const contentRect = content.getBoundingClientRect();
-    const sheetWidth = sheet.scrollWidth;
-    const sheetHeight = sheet.scrollHeight;
+    const sheetWidth = sheet.offsetWidth;
+    const sheetHeight = sheet.offsetHeight;
 
     if (!contentRect.width || !contentRect.height || !sheetWidth || !sheetHeight) return;
 
@@ -89,7 +89,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
       contentRect.height / sheetHeight,
     );
 
-    setPreviewScale(Math.max(0.1, nextScale));
+    setPreviewScale(Math.max(0.2, nextScale));
   }, []);
 
   useLayoutEffect(() => {
@@ -199,7 +199,11 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
             <div
               ref={sheetRef}
               className="planning-pdf-sheet bg-card"
-              style={{ transform: `scale(${previewScale})` }}
+              style={{
+                transform: `scale(${previewScale})`,
+                width: "1120px",
+                minWidth: "1120px",
+              }}
             >
               <PlanningSheet
                 month={month}

@@ -293,8 +293,14 @@
   }
 
   .planning-pdf-sheet table {
-    width: 100%;
+    width: 1120px !important;
+    max-width: 1120px !important;
     table-layout: fixed;
+  }
+
+  .planning-pdf-sheet th,
+  .planning-pdf-sheet td {
+    overflow: hidden;
   }
 }
 
