@@ -107,6 +107,9 @@ interface PlanningContextValue {
   clearOvertimeAgent: (agentId: string) => void;
   clearOvertimeYear: (year: number) => void;
   setOvertimeThreshold: (hours: number) => void;
+  // selectable-year range
+  yearRange: YearRangeConfig;
+  setYearRange: (range: YearRangeConfig) => void;
   // colors
   colors: ColorScheme;
   setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
