@@ -64,14 +64,13 @@ import {
   codesMap,
   countErrors,
   MONTHS,
-  selectableYears,
   TRANSITION_MONTH,
 } from "@/lib/planning/calc";
 import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
 import { hardReload, useNewVersionAvailable } from "@/lib/planning/version-check";
+import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { RefreshCw } from "lucide-react";
 
-const YEARS = selectableYears();
 
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
   const { year, setYear, codes, planning, replaceState, clearYear, resetAll } = usePlanning();
