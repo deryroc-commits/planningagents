@@ -48,6 +48,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(1);
+  const [previewOffset, setPreviewOffset] = useState({ x: 0, y: 0 });
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
