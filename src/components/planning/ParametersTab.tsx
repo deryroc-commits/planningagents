@@ -267,14 +267,13 @@ function YearRangeSettings() {
           <span className="font-medium">
             Années futures : <span className="tabular-nums">+{yearRange.ahead}</span>
           </span>
-          <input
-            type="range"
+          <Slider
             min={0}
             max={30}
             step={1}
-            value={yearRange.ahead}
-            onChange={(e) => setAhead(Number(e.target.value))}
-            className="h-9 w-56 accent-[var(--color-primary,#2563eb)]"
+            value={[yearRange.ahead]}
+            onValueChange={(v) => setAhead(v[0] ?? 0)}
+            className="mt-2 w-56"
           />
         </label>
       </div>
