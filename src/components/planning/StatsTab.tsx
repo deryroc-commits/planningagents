@@ -73,7 +73,7 @@ export function StatsTab() {
             <thead>
               <tr className="bg-muted">
                 <th className="sticky left-0 z-10 min-w-[180px] border-b border-r border-border bg-muted px-3 py-1.5 text-left font-semibold">
-                  Agent
+                  Agents
                 </th>
                 <th className="border-b border-r border-border bg-accent px-2 py-1.5 text-center font-semibold">
                   Total
@@ -151,7 +151,7 @@ export function StatsTab() {
             <thead>
               <tr className="bg-muted">
                 <th className="sticky left-0 z-10 min-w-[180px] border-b border-r border-border bg-muted px-3 py-1.5 text-left font-semibold">
-                  Agent
+                  Agents
                 </th>
                 <th className="border-b border-r border-border bg-accent px-2 py-1.5 text-center font-semibold">
                   Année
@@ -206,7 +206,7 @@ export function StatsTab() {
             <thead>
               <tr className="bg-muted">
                 <th className="sticky left-0 z-10 min-w-[180px] border-b border-r border-border bg-muted px-3 py-1.5 text-left font-semibold">
-                  Agent
+                  Agents
                 </th>
                 {codes.map((c) => (
                   <th
