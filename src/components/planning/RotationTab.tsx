@@ -345,7 +345,7 @@ export function RotationTab() {
             <thead>
               <tr className="bg-muted">
                 <th className="sticky left-0 z-10 min-w-[160px] border-b border-r border-border bg-muted px-3 py-1.5 text-left font-semibold">
-                  Agent
+                  Agents
                 </th>
                 <th className="min-w-[52px] border-b border-r border-border px-2 py-1 text-center text-[11px] font-semibold">
                   WE / an
