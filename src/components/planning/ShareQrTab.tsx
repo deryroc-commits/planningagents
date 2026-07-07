@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { Copy, Download, QrCode, Loader2, Info, RefreshCw } from "lucide-react";
+import { Copy, Download, QrCode, Loader2, Info, RefreshCw, Clock } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanning } from "@/lib/planning/store";
@@ -32,14 +32,33 @@ function expiresValue(days: number): string | null {
   return days > 0 ? new Date(Date.now() + days * 86_400_000).toISOString() : null;
 }
 
-function fmtExpiry(expiresAt: string | null): { text: string; expired: boolean } {
-  if (!expiresAt) return { text: "Sans expiration", expired: false };
+function fmtExpiry(expiresAt: string | null): {
+  text: string;
+  remainingText: string;
+  expired: boolean;
+} {
+  if (!expiresAt) {
+    return {
+      text: "Sans expiration",
+      remainingText: "Valide indéfiniment",
+      expired: false,
+    };
+  }
   const d = new Date(expiresAt);
   const expired = d.getTime() < Date.now();
+  const remainingDays = Math.max(
+    0,
+    Math.ceil((d.getTime() - Date.now()) / 86_400_000),
+  );
   return {
     text: expired
       ? `Expiré le ${d.toLocaleDateString("fr-FR")}`
       : `Expire le ${d.toLocaleDateString("fr-FR")}`,
+    remainingText: expired
+      ? "Lien expiré"
+      : remainingDays === 0
+        ? "Expire aujourd'hui"
+        : `${remainingDays} jour${remainingDays > 1 ? "s" : ""} restant${remainingDays > 1 ? "s" : ""}`,
     expired,
   };
 }
@@ -74,7 +93,7 @@ export function ShareQrTab() {
   const [selectedMonths, setSelectedMonths] = useState<number[]>([
     new Date().getMonth(),
   ]);
-  const [preview, setPreview] = useState<{ name: string; dataUrl: string; url: string } | null>(null);
+  const [preview, setPreview] = useState<{ name: string; dataUrl: string; url: string; expiresAt: string | null } | null>(null);
   const busyRef = useRef(false);
 
   const load = useCallback(async () => {
@@ -241,7 +260,7 @@ export function ShareQrTab() {
         margin: 2,
         errorCorrectionLevel: "M",
       });
-      return { name, dataUrl, url };
+      return { name, dataUrl, url, expiresAt: link.expiresAt };
     },
     [ensureLink, buildUrl],
   );
@@ -504,15 +523,20 @@ export function ShareQrTab() {
                     </td>
                     <td className="px-3 py-2">
                       {expiry ? (
-                        <span
-                          className={
-                            expiry.expired
-                              ? "text-xs font-medium text-destructive"
-                              : "text-xs text-muted-foreground"
-                          }
-                        >
-                          {expiry.text}
-                        </span>
+                        <div>
+                          <span
+                            className={
+                              expiry.expired
+                                ? "text-xs font-medium text-destructive"
+                                : "text-xs text-foreground"
+                            }
+                          >
+                            {expiry.text}
+                          </span>
+                          <p className="text-[11px] text-muted-foreground">
+                            {expiry.remainingText}
+                          </p>
+                        </div>
                       ) : (
                         <span className="text-xs text-muted-foreground/60">
                           Aucun lien encore
@@ -592,6 +616,34 @@ export function ShareQrTab() {
                   {monthsLabel}
                 </p>
               </div>
+              {(() => {
+                const expiry = fmtExpiry(preview.expiresAt);
+                return (
+                  <div
+                    className={`flex w-full items-center justify-center gap-2 rounded-md border px-3 py-2 text-center ${
+                      expiry.expired
+                        ? "border-destructive/30 bg-destructive/10"
+                        : "border-border bg-muted/40"
+                    }`}
+                  >
+                    <Clock
+                      className={`size-4 ${expiry.expired ? "text-destructive" : "text-muted-foreground"}`}
+                    />
+                    <div>
+                      <p
+                        className={`text-xs font-semibold ${
+                          expiry.expired ? "text-destructive" : "text-foreground"
+                        }`}
+                      >
+                        {expiry.text}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {expiry.remainingText}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
               <p className="break-all text-center text-[11px] text-muted-foreground">
                 {preview.url}
               </p>

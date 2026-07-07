@@ -1,6 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Clock,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -36,10 +42,42 @@ interface SharedPlanning {
   mode?: "perso" | "general";
   workspaceName?: string;
   year?: number;
+  expiresAt?: string | null;
   codes?: PlanningCode[];
   colors?: ColorScheme | null;
   agents?: Agent[];
   planning?: YearPlanning;
+}
+
+function fmtExpiry(expiresAt: string | null | undefined): {
+  text: string;
+  remainingText: string;
+  expired: boolean;
+} {
+  if (!expiresAt) {
+    return {
+      text: "Sans expiration",
+      remainingText: "Valide indéfiniment",
+      expired: false,
+    };
+  }
+  const d = new Date(expiresAt);
+  const expired = d.getTime() < Date.now();
+  const remainingDays = Math.max(
+    0,
+    Math.ceil((d.getTime() - Date.now()) / 86_400_000),
+  );
+  return {
+    text: expired
+      ? `Expiré le ${d.toLocaleDateString("fr-FR")}`
+      : `Expire le ${d.toLocaleDateString("fr-FR")}`,
+    remainingText: expired
+      ? "Lien expiré"
+      : remainingDays === 0
+        ? "Expire aujourd'hui"
+        : `${remainingDays} jour${remainingDays > 1 ? "s" : ""} restant${remainingDays > 1 ? "s" : ""}`,
+    expired,
+  };
 }
 
 type Search = { y: number; mo: number; ms: number[]; msInvalid: boolean };
@@ -207,6 +245,34 @@ function SharedPlanningPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-4">
+        {(() => {
+          const expiry = fmtExpiry(data.expiresAt ?? null);
+          return (
+            <div
+              className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 ${
+                expiry.expired
+                  ? "border-destructive/30 bg-destructive/10"
+                  : "border-border bg-muted/40"
+              }`}
+            >
+              <Clock
+                className={`size-4 shrink-0 ${expiry.expired ? "text-destructive" : "text-muted-foreground"}`}
+              />
+              <div>
+                <p
+                  className={`text-xs font-semibold ${
+                    expiry.expired ? "text-destructive" : "text-foreground"
+                  }`}
+                >
+                  {expiry.text}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {expiry.remainingText}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
         <div className="mb-4 flex items-center justify-center gap-1">
           <Button
             variant="outline"
