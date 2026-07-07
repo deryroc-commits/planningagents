@@ -348,6 +348,7 @@ export function PlanningProvider({
     rotation: DEFAULT_ROTATION,
     overtimeByYear: {},
     overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
+    yearRange: DEFAULT_YEAR_RANGE,
   }));
   const [cloudReady, setCloudReady] = useState(false);
   const hydrated = useRef(false);
