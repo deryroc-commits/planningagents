@@ -43,6 +43,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const [xlsxOpen, setXlsxOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [pdfSaving, setPdfSaving] = useState(false);
+  const [pdfFormat, setPdfFormat] = useState<PdfFormat>("a4");
   const pageRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
