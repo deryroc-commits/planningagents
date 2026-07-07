@@ -723,6 +723,7 @@ export function PlanningProvider({
       changesByYear: {},
       overtimeByYear: {},
       overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
+      yearRange: DEFAULT_YEAR_RANGE,
     });
   }, []);
 
