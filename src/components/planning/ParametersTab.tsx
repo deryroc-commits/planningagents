@@ -91,6 +91,8 @@ export function ParametersTab() {
         )}
       </div>
 
+      <YearRangeSettings />
+
       <ColorSettings />
 
       <div className="overflow-hidden rounded-lg border border-border bg-card">
