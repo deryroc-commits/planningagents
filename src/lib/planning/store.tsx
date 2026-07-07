@@ -328,6 +328,10 @@ export function PlanningProvider({
   const hydrated = useRef(false);
   const lastCloudJson = useRef<string | null>(null);
   const cloudSaveTimer = useRef<number | null>(null);
+  // Always-current snapshot of local state, so the realtime handler can 3-way
+  // merge incoming updates against unsaved local edits without stale closures.
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const writeLocalState = useCallback(
     (next: PlanningState) => {
