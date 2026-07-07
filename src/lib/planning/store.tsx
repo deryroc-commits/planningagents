@@ -708,6 +708,7 @@ export function PlanningProvider({
         typeof s.overtimeThreshold === "number"
           ? s.overtimeThreshold
           : DEFAULT_OVERTIME_THRESHOLD,
+      yearRange: normalizeYearRange(s.yearRange),
     });
   }, []);
 
