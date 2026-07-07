@@ -76,4 +76,7 @@ export const DEFAULT_ROTATION: RotationState = {
 /** Default overtime alert threshold (hours). */
 export const DEFAULT_OVERTIME_THRESHOLD = 25;
 
+/** Default selectable-year range: from 2020 up to the current year + 10. */
+export const DEFAULT_YEAR_RANGE: YearRangeConfig = { start: 2020, ahead: 10 };
+
 export const STORAGE_KEY = "ucpa-planning-v1";
