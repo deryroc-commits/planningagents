@@ -1,12 +1,20 @@
 import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
 
+export type PdfFormat = "a4" | "a3";
+
 /**
- * Capture an A4-landscape preview element and export it as one exact PDF page.
+ * Capture a landscape preview element and export it as one exact PDF page.
  * The preview already contains the scaled planning sheet, so the export draws
  * that page once, edge-to-edge, and removes any accidental extra page.
+ * A4 and A3 share the same aspect ratio, so A3 simply yields a larger,
+ * more readable/printable sheet.
  */
-export async function exportElementToPdf(el: HTMLElement, fileName: string) {
+export async function exportElementToPdf(
+  el: HTMLElement,
+  fileName: string,
+  format: PdfFormat = "a4",
+) {
   const rect = el.getBoundingClientRect();
   const width = Math.ceil(rect.width || el.scrollWidth);
   const height = Math.ceil(rect.height || el.scrollHeight);
@@ -24,7 +32,7 @@ export async function exportElementToPdf(el: HTMLElement, fileName: string) {
     scrollY: -window.scrollY,
   });
 
-  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
 
