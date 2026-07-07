@@ -66,7 +66,7 @@ import {
   MONTHS,
   TRANSITION_MONTH,
 } from "@/lib/planning/calc";
-import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
+import { exportStyledYearExcel, importFromExcel } from "@/lib/planning/excel";
 import { hardReload, useNewVersionAvailable } from "@/lib/planning/version-check";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { RefreshCw } from "lucide-react";
