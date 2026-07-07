@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FileSpreadsheet, Loader2, Printer } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
@@ -43,7 +43,10 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const [xlsxOpen, setXlsxOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [pdfSaving, setPdfSaving] = useState(false);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
@@ -69,6 +72,43 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   }, [agents]);
 
   const colCount = indices.length + 1;
+
+  const updatePreviewScale = useCallback(() => {
+    const content = contentRef.current;
+    const sheet = sheetRef.current;
+    if (!content || !sheet) return;
+
+    const contentRect = content.getBoundingClientRect();
+    const sheetWidth = sheet.scrollWidth;
+    const sheetHeight = sheet.scrollHeight;
+
+    if (!contentRect.width || !contentRect.height || !sheetWidth || !sheetHeight) return;
+
+    const nextScale = Math.min(
+      contentRect.width / sheetWidth,
+      contentRect.height / sheetHeight,
+    );
+
+    setPreviewScale(Math.max(0.1, nextScale));
+  }, []);
+
+  useLayoutEffect(() => {
+    updatePreviewScale();
+
+    const content = contentRef.current;
+    const sheet = sheetRef.current;
+    if (!content || !sheet) return;
+
+    const observer = new ResizeObserver(updatePreviewScale);
+    observer.observe(content);
+    observer.observe(sheet);
+    window.addEventListener("resize", updatePreviewScale);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updatePreviewScale);
+    };
+  }, [updatePreviewScale, month, year, groups, indices.length]);
 
   return (
     <div className="space-y-4">
@@ -131,11 +171,12 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
           <Button
             disabled={pdfSaving}
             onClick={async () => {
-              if (!sheetRef.current) return;
+              if (!pageRef.current) return;
               setPdfSaving(true);
               try {
+                updatePreviewScale();
                 await exportElementToPdf(
-                  sheetRef.current,
+                  pageRef.current,
                   `Planning Agents _ ${MONTHS[month]} ${year}.pdf`,
                 );
               } finally {
@@ -150,18 +191,29 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
       </div>
 
       <div className="print-area overflow-auto rounded-lg border border-border bg-card p-3">
-        <div ref={sheetRef} className="bg-card p-3">
-          <PlanningSheet
-            month={month}
-            year={year}
-            printDate={printDate}
-            groups={groups}
-            indices={indices}
-            planning={planning}
-            map={map}
-            holidays={holidays}
-            colCount={colCount}
-          />
+        <div
+          ref={pageRef}
+          className="planning-pdf-page mx-auto w-full max-w-[1188px] overflow-hidden rounded-sm bg-card shadow-sm"
+        >
+          <div ref={contentRef} className="planning-pdf-content">
+            <div
+              ref={sheetRef}
+              className="planning-pdf-sheet bg-card"
+              style={{ transform: `scale(${previewScale})` }}
+            >
+              <PlanningSheet
+                month={month}
+                year={year}
+                printDate={printDate}
+                groups={groups}
+                indices={indices}
+                planning={planning}
+                map={map}
+                holidays={holidays}
+                colCount={colCount}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
