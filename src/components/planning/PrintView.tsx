@@ -48,6 +48,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(1);
+  const [previewOffset, setPreviewOffset] = useState({ x: 0, y: 0 });
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
@@ -89,8 +90,17 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
       contentRect.width / sheetWidth,
       contentRect.height / sheetHeight,
     );
+    const clamped = Math.max(0.2, nextScale);
 
-    setPreviewScale(Math.max(0.2, nextScale));
+    // Center the scaled sheet inside the A4 content box so the table stays
+    // aligned (horizontally + vertically) regardless of the number of days.
+    const scaledWidth = sheetWidth * clamped;
+    const scaledHeight = sheetHeight * clamped;
+    setPreviewOffset({
+      x: Math.max(0, (contentRect.width - scaledWidth) / 2),
+      y: Math.max(0, (contentRect.height - scaledHeight) / 2),
+    });
+    setPreviewScale(clamped);
   }, []);
 
   useLayoutEffect(() => {
@@ -214,7 +224,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               ref={sheetRef}
               className="planning-pdf-sheet bg-card"
               style={{
-                transform: `scale(${previewScale})`,
+                transform: `translate(${previewOffset.x}px, ${previewOffset.y}px) scale(${previewScale})`,
                 width: "1120px",
                 minWidth: "1120px",
               }}
