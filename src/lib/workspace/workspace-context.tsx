@@ -156,17 +156,24 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const rows = data ?? [];
     // workspace_members has no FK to profiles (it references auth.users), so
     // fetch the matching profiles separately and merge them in.
+    // Email addresses are private: co-members only expose their display name,
+    // so we never read the `email` column here (RLS blocks it anyway). The
+    // current user's own email comes from their authenticated session.
     const ids = rows.map((r) => r.user_id);
-    const profileMap = new Map<string, { display_name: string | null; email: string | null }>();
+    const profileMap = new Map<string, { display_name: string | null }>();
     if (ids.length) {
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, display_name, email")
+        .select("id, display_name")
         .in("id", ids);
       for (const pr of profiles ?? []) {
-        profileMap.set(pr.id, { display_name: pr.display_name, email: pr.email });
+        profileMap.set(pr.id, { display_name: pr.display_name });
       }
     }
+
+    const { data: authData } = await supabase.auth.getUser();
+    const selfId = authData.user?.id ?? null;
+    const selfEmail = authData.user?.email ?? null;
 
     const list: Member[] = rows.map((row) => {
       const profile = profileMap.get(row.user_id);
@@ -176,7 +183,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         role: row.role as WorkspaceRole,
         joined_at: row.joined_at,
         display_name: profile?.display_name ?? null,
-        email: profile?.email ?? null,
+        email: row.user_id === selfId ? selfEmail : null,
       };
     });
     setMembers(list);

@@ -187,10 +187,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_edit_workspace: {
-        Args: { _user: string; _workspace: string }
-        Returns: boolean
-      }
       create_workspace: {
         Args: { _name: string }
         Returns: {
@@ -208,22 +204,9 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      gen_unique_invite_code: { Args: never; Returns: string }
       get_shared_planning: {
         Args: { _token: string; _year: number }
         Returns: Json
-      }
-      has_workspace_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user: string
-          _workspace: string
-        }
-        Returns: boolean
-      }
-      is_workspace_member: {
-        Args: { _user: string; _workspace: string }
-        Returns: boolean
       }
       join_workspace: {
         Args: { _code: string }
@@ -243,10 +226,6 @@ export type Database = {
         }
       }
       regenerate_invite_code: { Args: { _workspace: string }; Returns: string }
-      shares_workspace: {
-        Args: { _me: string; _other: string }
-        Returns: boolean
-      }
     }
     Enums: {
       app_role: "owner" | "editor" | "viewer"
