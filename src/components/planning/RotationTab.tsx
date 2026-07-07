@@ -239,7 +239,7 @@ export function RotationTab() {
                   rowSpan={2}
                   className="sticky left-0 z-20 min-w-[170px] border-b border-r border-border bg-muted px-3 py-1.5 text-left align-bottom font-semibold"
                 >
-                  Agent
+                  Agents
                 </th>
                 {Array.from({ length: cycle }).map((_, w) => (
                   <th
