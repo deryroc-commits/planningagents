@@ -252,7 +252,7 @@ function PlanningSheet({
         <thead>
           <tr>
             <th className="w-[180px] min-w-[180px] border border-border bg-muted px-2 py-1 text-left">
-              Agent
+              Agents
             </th>
             {indices.map((i) => {
               const d = dateOfDayIndex(year, i);

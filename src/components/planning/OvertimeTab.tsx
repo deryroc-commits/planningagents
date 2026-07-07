@@ -311,7 +311,7 @@ export function OvertimeTab() {
                     }
                   />
                 </th>
-                <th className="px-2 py-2 text-left">Agent</th>
+                <th className="px-2 py-2 text-left">Agents</th>
                 <th className="px-2 py-2 text-left">Équipe</th>
                 <th className="px-2 py-2 text-right">Ajoutées</th>
                 <th className="px-2 py-2 text-right">Récupérées</th>
