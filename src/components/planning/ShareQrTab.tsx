@@ -573,9 +573,18 @@ export function ShareQrTab() {
                 alt={`QR code ${preview.name}`}
                 className="size-56 rounded-lg border border-border"
               />
+              <div className="w-full rounded-md border border-border bg-muted/40 px-3 py-2 text-center">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Mois autorisés — {year}
+                </p>
+                <p className="mt-0.5 text-xs font-semibold text-foreground">
+                  {monthsLabel}
+                </p>
+              </div>
               <p className="break-all text-center text-[11px] text-muted-foreground">
                 {preview.url}
               </p>
+
               <Button
                 className="w-full"
                 onClick={() =>
