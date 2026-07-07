@@ -42,10 +42,42 @@ interface SharedPlanning {
   mode?: "perso" | "general";
   workspaceName?: string;
   year?: number;
+  expiresAt?: string | null;
   codes?: PlanningCode[];
   colors?: ColorScheme | null;
   agents?: Agent[];
   planning?: YearPlanning;
+}
+
+function fmtExpiry(expiresAt: string | null | undefined): {
+  text: string;
+  remainingText: string;
+  expired: boolean;
+} {
+  if (!expiresAt) {
+    return {
+      text: "Sans expiration",
+      remainingText: "Valide indéfiniment",
+      expired: false,
+    };
+  }
+  const d = new Date(expiresAt);
+  const expired = d.getTime() < Date.now();
+  const remainingDays = Math.max(
+    0,
+    Math.ceil((d.getTime() - Date.now()) / 86_400_000),
+  );
+  return {
+    text: expired
+      ? `Expiré le ${d.toLocaleDateString("fr-FR")}`
+      : `Expire le ${d.toLocaleDateString("fr-FR")}`,
+    remainingText: expired
+      ? "Lien expiré"
+      : remainingDays === 0
+        ? "Expire aujourd'hui"
+        : `${remainingDays} jour${remainingDays > 1 ? "s" : ""} restant${remainingDays > 1 ? "s" : ""}`,
+    expired,
+  };
 }
 
 type Search = { y: number; mo: number; ms: number[]; msInvalid: boolean };
