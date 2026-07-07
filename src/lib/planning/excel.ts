@@ -99,9 +99,38 @@ const XLS_HEADER = { bg: "E7EAF0", fg: "222A38" };
 const XLS_TEAM = { bg: "D7DEEA", fg: "1E2A44" };
 const XLS_TITLE = { bg: "C0392B", fg: "FFFFFF" };
 const XLS_BORDER = "B7BDC7";
+const XLS_BORDER_STRONG = "6B7280";
 
 const thin = { style: "thin", color: { rgb: XLS_BORDER } };
+const medium = { style: "medium", color: { rgb: XLS_BORDER_STRONG } };
 const allBorders = { top: thin, bottom: thin, left: thin, right: thin };
+
+/**
+ * Thicken the outer perimeter of a rectangular cell region so the block reads
+ * as a framed table (like a real Excel table) rather than a flat grid.
+ */
+function frameRegion(
+  ws: any,
+  XLSX: any,
+  r0: number,
+  c0: number,
+  r1: number,
+  c1: number,
+) {
+  for (let r = r0; r <= r1; r++) {
+    for (let c = c0; c <= c1; c++) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      const cellObj = ws[addr];
+      if (!cellObj || !cellObj.s) continue;
+      const b = { ...(cellObj.s.border ?? {}) };
+      if (r === r0) b.top = medium;
+      if (r === r1) b.bottom = medium;
+      if (c === c0) b.left = medium;
+      if (c === c1) b.right = medium;
+      cellObj.s = { ...cellObj.s, border: b };
+    }
+  }
+}
 
 function cell(
   value: string | number,
