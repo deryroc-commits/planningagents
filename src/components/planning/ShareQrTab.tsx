@@ -523,15 +523,20 @@ export function ShareQrTab() {
                     </td>
                     <td className="px-3 py-2">
                       {expiry ? (
-                        <span
-                          className={
-                            expiry.expired
-                              ? "text-xs font-medium text-destructive"
-                              : "text-xs text-muted-foreground"
-                          }
-                        >
-                          {expiry.text}
-                        </span>
+                        <div>
+                          <span
+                            className={
+                              expiry.expired
+                                ? "text-xs font-medium text-destructive"
+                                : "text-xs text-foreground"
+                            }
+                          >
+                            {expiry.text}
+                          </span>
+                          <p className="text-[11px] text-muted-foreground">
+                            {expiry.remainingText}
+                          </p>
+                        </div>
                       ) : (
                         <span className="text-xs text-muted-foreground/60">
                           Aucun lien encore
