@@ -42,7 +42,7 @@ interface SharedPlanning {
   planning?: YearPlanning;
 }
 
-type Search = { y: number; mo: number; ms: number[] };
+type Search = { y: number; mo: number; ms: number[]; msInvalid: boolean };
 
 export const Route = createFileRoute("/p/$token")({
   ssr: false,
@@ -52,23 +52,36 @@ export const Route = createFileRoute("/p/$token")({
     const mo = Number(search.mo);
     // `ms` can arrive as a comma string ("6,7") on the first hit, or as a real
     // array ([6,7]) / number (7) after the router re-stringifies the search.
-    const rawMsList: unknown[] = Array.isArray(search.ms)
-      ? search.ms
-      : typeof search.ms === "string"
-        ? search.ms.split(",")
-        : search.ms == null
+    const rawMs = search.ms;
+    // Client-side validation: `ms`, when present, must be a string, a number,
+    // or an array. Anything else (object, boolean…) means a malformed link.
+    const msProvided = rawMs != null;
+    const msTypeValid =
+      !msProvided ||
+      typeof rawMs === "string" ||
+      typeof rawMs === "number" ||
+      Array.isArray(rawMs);
+    const rawMsList: unknown[] = Array.isArray(rawMs)
+      ? rawMs
+      : typeof rawMs === "string"
+        ? rawMs.split(",")
+        : rawMs == null
           ? []
-          : [search.ms];
+          : [rawMs];
     const ms = rawMsList
       .map((v) => Number(v))
       .filter((v) => Number.isInteger(v) && v >= 0 && v <= 11);
     const uniqueMs = Array.from(new Set(ms)).sort((a, b) => a - b);
+    // A provided `ms` that resolves to no valid month (wrong type or garbage
+    // values) is treated as an invalid link rather than silently defaulting.
+    const msInvalid = msProvided && (!msTypeValid || uniqueMs.length === 0);
     return {
       y: Number.isFinite(y) && y >= 2000 && y <= 2100 ? y : now.getFullYear(),
       mo: Number.isFinite(mo) && mo >= 0 && mo <= 11 ? mo : now.getMonth(),
       ms: uniqueMs.length
         ? uniqueMs
         : Array.from({ length: 12 }, (_, i) => i),
+      msInvalid,
     };
   },
   head: () => ({
