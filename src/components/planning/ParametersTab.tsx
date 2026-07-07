@@ -225,7 +225,6 @@ function YearRangeSettings() {
   const setAhead = (v: number) => {
     setYearRange({ ...yearRange, ahead: v });
   };
-  const isDefault = yearRange.ahead === DEFAULT_YEAR_RANGE.ahead;
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
@@ -244,7 +243,6 @@ function YearRangeSettings() {
             <Button
               variant="ghost"
               size="sm"
-              disabled={isDefault}
               onClick={() => setYearRange({ ...yearRange, ahead: DEFAULT_YEAR_RANGE.ahead })}
               title="Réinitialiser le nombre d'années futures"
               className="h-6 px-2 text-xs text-muted-foreground"
