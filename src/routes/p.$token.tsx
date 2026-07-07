@@ -50,9 +50,16 @@ export const Route = createFileRoute("/p/$token")({
     const now = new Date();
     const y = Number(search.y);
     const mo = Number(search.mo);
-    const rawMs = typeof search.ms === "string" ? search.ms : "";
-    const ms = rawMs
-      .split(",")
+    // `ms` can arrive as a comma string ("6,7") on the first hit, or as a real
+    // array ([6,7]) / number (7) after the router re-stringifies the search.
+    const rawMsList: unknown[] = Array.isArray(search.ms)
+      ? search.ms
+      : typeof search.ms === "string"
+        ? search.ms.split(",")
+        : search.ms == null
+          ? []
+          : [search.ms];
+    const ms = rawMsList
       .map((v) => Number(v))
       .filter((v) => Number.isInteger(v) && v >= 0 && v <= 11);
     const uniqueMs = Array.from(new Set(ms)).sort((a, b) => a - b);
