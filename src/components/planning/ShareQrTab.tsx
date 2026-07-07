@@ -6,7 +6,8 @@ import { Copy, Download, QrCode, Loader2, Info, RefreshCw, Clock } from "lucide-
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace } from "@/lib/workspace/workspace-context";
-import { MONTHS, selectableYears } from "@/lib/planning/calc";
+import { MONTHS } from "@/lib/planning/calc";
+import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -63,7 +64,7 @@ function fmtExpiry(expiresAt: string | null): {
   };
 }
 
-const YEARS = selectableYears();
+
 
 function newToken(): string {
   return (
@@ -84,6 +85,7 @@ function slug(s: string): string {
 export function ShareQrTab() {
   const { agents, year: currentYear } = usePlanning();
   const { activeWorkspaceId, canEdit } = useWorkspace();
+  const YEARS = useSelectableYears();
   const [links, setLinks] = useState<LinkMap>({});
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(currentYear);

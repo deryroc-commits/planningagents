@@ -152,7 +152,7 @@ export function transitionColumns(
 export function selectableYears(): number[] {
   const now = new Date().getFullYear();
   const start = Math.min(now - 4, 2020);
-  const end = now + 6;
+  const end = now + 10;
   const out: number[] = [];
   for (let y = start; y <= end; y++) out.push(y);
   return out;
