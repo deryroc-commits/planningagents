@@ -163,17 +163,16 @@ function cell(
 }
 
 /**
- * Export a single month as a styled worksheet that visually matches the
+ * Build one styled worksheet for a single month that visually matches the
  * on-screen / print planning (colors, columns, rows, table borders).
+ * Shared by both the single-month and the full-year styled exports.
  */
-export async function exportStyledMonthExcel(
+function buildStyledMonthSheet(
+  XLSX: any,
   state: PlanningState,
   year: number,
   month: number,
-): Promise<void> {
-  const XLSX = await import("xlsx-js-style");
-  const wb = XLSX.utils.book_new();
-
+): any {
   const map = codesMap(state.codes);
   const holidays = holidaysForYear(year);
   const indices = dayIndicesForMonth(year, month);
@@ -252,7 +251,7 @@ export async function exportStyledMonthExcel(
 
   // Header row 1 — day letters.
   const hLetters = [cell("Jour", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" })];
-  const hNumbers = [cell("Agent", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" })];
+  const hNumbers = [cell("Agents", { bg: XLS_HEADER.bg, fg: XLS_HEADER.fg, bold: true, align: "left" })];
   for (const i of indices) {
     const d = dateOfDayIndex(year, i);
     const hol = holidays[i];
@@ -376,8 +375,40 @@ export async function exportStyledMonthExcel(
   frameRegion(ws, XLSX, 0, 0, tableEndRow, colCount - 1);
   frameRegion(ws, XLSX, 1, 0, 2, colCount - 1);
 
+  return ws;
+}
+
+/**
+ * Export a single month as a styled worksheet that visually matches the
+ * on-screen / print planning (colors, columns, rows, table borders).
+ */
+export async function exportStyledMonthExcel(
+  state: PlanningState,
+  year: number,
+  month: number,
+): Promise<void> {
+  const XLSX = await import("xlsx-js-style");
+  const wb = XLSX.utils.book_new();
+  const ws = buildStyledMonthSheet(XLSX, state, year, month);
   XLSX.utils.book_append_sheet(wb, ws, MONTHS[month].slice(0, 20));
   XLSX.writeFile(wb, `planning-ucpa-${MONTHS[month].toLowerCase()}-${year}.xlsx`);
+}
+
+/**
+ * Export the whole year as a styled workbook — one colored, printable sheet
+ * per month (same look as the print view / single-month export).
+ */
+export async function exportStyledYearExcel(
+  state: PlanningState,
+  year: number,
+): Promise<void> {
+  const XLSX = await import("xlsx-js-style");
+  const wb = XLSX.utils.book_new();
+  for (let month = 0; month < 12; month++) {
+    const ws = buildStyledMonthSheet(XLSX, state, year, month);
+    XLSX.utils.book_append_sheet(wb, ws, MONTHS[month].slice(0, 20));
+  }
+  XLSX.writeFile(wb, `planning-ucpa-${year}.xlsx`);
 }
 
 // ---------------------------------------------------------------------------
