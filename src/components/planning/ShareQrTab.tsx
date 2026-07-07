@@ -64,7 +64,7 @@ function fmtExpiry(expiresAt: string | null): {
   };
 }
 
-const YEARS = selectableYears();
+
 
 function newToken(): string {
   return (
