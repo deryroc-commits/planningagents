@@ -816,6 +816,12 @@ export function PlanningProvider({
     setState((prev) => ({ ...prev, overtimeThreshold: hours }));
   }, []);
 
+  const yearRange = normalizeYearRange(state.yearRange);
+
+  const setYearRange = useCallback((range: YearRangeConfig) => {
+    setState((prev) => ({ ...prev, yearRange: normalizeYearRange(range) }));
+  }, []);
+
 
   const colors = state.colors ?? DEFAULT_COLORS;
 
