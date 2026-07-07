@@ -38,7 +38,7 @@ interface PrintViewProps {
 }
 
 export function PrintView({ month, setMonth }: PrintViewProps) {
-  const { year, setYear, agents, codes, planning, colors } = usePlanning();
+  const { year, setYear, agents, codes, planning, colors, yearRange } = usePlanning();
   const [xlsxOpen, setXlsxOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const map = useMemo(() => codesMap(codes), [codes]);
@@ -47,7 +47,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
     () => dayIndicesForMonth(year, month),
     [year, month],
   );
-  const years = useMemo(() => selectableYears(), []);
+  const years = useSelectableYears(yearRange);
   const printDate = useMemo(
     () => new Date().toLocaleDateString("fr-FR"),
     [],
