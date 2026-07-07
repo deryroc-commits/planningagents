@@ -169,6 +169,18 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
           <Button variant="outline" onClick={() => setXlsxOpen(true)}>
             <FileSpreadsheet /> Aperçu Excel (XLSX)
           </Button>
+          <Select
+            value={pdfFormat}
+            onValueChange={(v) => setPdfFormat(v as PdfFormat)}
+          >
+            <SelectTrigger className="w-24" aria-label="Format PDF">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="a4">A4</SelectItem>
+              <SelectItem value="a3">A3</SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             disabled={pdfSaving}
             onClick={async () => {
@@ -179,6 +191,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                 await exportElementToPdf(
                   pageRef.current,
                   `Planning Agents _ ${MONTHS[month]} ${year}.pdf`,
+                  pdfFormat,
                 );
               } finally {
                 setPdfSaving(false);
