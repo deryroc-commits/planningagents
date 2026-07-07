@@ -134,6 +134,23 @@ function SharedPlanningPage() {
     };
   }, [token, year]);
 
+  if (msInvalid) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="max-w-sm text-center">
+          <h1 className="text-xl font-semibold">Lien invalide</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Ce lien de planning est incorrect ou incomplet (les mois demandés ne
+            sont pas valides). Demandez un nouveau QR code à votre responsable.
+          </p>
+          <Button asChild variant="outline" className="mt-6">
+            <Link to="/">Retour à l'accueil</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
