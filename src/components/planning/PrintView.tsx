@@ -89,8 +89,17 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
       contentRect.width / sheetWidth,
       contentRect.height / sheetHeight,
     );
+    const clamped = Math.max(0.2, nextScale);
 
-    setPreviewScale(Math.max(0.2, nextScale));
+    // Center the scaled sheet inside the A4 content box so the table stays
+    // aligned (horizontally + vertically) regardless of the number of days.
+    const scaledWidth = sheetWidth * clamped;
+    const scaledHeight = sheetHeight * clamped;
+    setPreviewOffset({
+      x: Math.max(0, (contentRect.width - scaledWidth) / 2),
+      y: Math.max(0, (contentRect.height - scaledHeight) / 2),
+    });
+    setPreviewScale(clamped);
   }, []);
 
   useLayoutEffect(() => {
