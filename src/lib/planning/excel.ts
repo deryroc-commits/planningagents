@@ -99,9 +99,38 @@ const XLS_HEADER = { bg: "E7EAF0", fg: "222A38" };
 const XLS_TEAM = { bg: "D7DEEA", fg: "1E2A44" };
 const XLS_TITLE = { bg: "C0392B", fg: "FFFFFF" };
 const XLS_BORDER = "B7BDC7";
+const XLS_BORDER_STRONG = "6B7280";
 
 const thin = { style: "thin", color: { rgb: XLS_BORDER } };
+const medium = { style: "medium", color: { rgb: XLS_BORDER_STRONG } };
 const allBorders = { top: thin, bottom: thin, left: thin, right: thin };
+
+/**
+ * Thicken the outer perimeter of a rectangular cell region so the block reads
+ * as a framed table (like a real Excel table) rather than a flat grid.
+ */
+function frameRegion(
+  ws: any,
+  XLSX: any,
+  r0: number,
+  c0: number,
+  r1: number,
+  c1: number,
+) {
+  for (let r = r0; r <= r1; r++) {
+    for (let c = c0; c <= c1; c++) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      const cellObj = ws[addr];
+      if (!cellObj || !cellObj.s) continue;
+      const b = { ...(cellObj.s.border ?? {}) };
+      if (r === r0) b.top = medium;
+      if (r === r1) b.bottom = medium;
+      if (c === c0) b.left = medium;
+      if (c === c1) b.right = medium;
+      cellObj.s = { ...cellObj.s, border: b };
+    }
+  }
+}
 
 function cell(
   value: string | number,
@@ -284,8 +313,20 @@ export async function exportStyledMonthExcel(
     }
   }
 
+  // Last row of the planning table (before the legend) — used to frame it.
+  const tableEndRow = rows.length - 1;
+
   // Legend a couple of rows below the table.
   rows.push([]);
+  const legendStart = rows.length;
+  rows.push([
+    cell("Légende", {
+      bg: XLS_HEADER.bg,
+      fg: XLS_HEADER.fg,
+      bold: true,
+      align: "left",
+    }),
+  ]);
   const legend: [string, { bg: string; fg: string }][] = [
     ...Object.entries(CATEGORY_META).map(
       ([k, meta]) =>
@@ -304,15 +345,36 @@ export async function exportStyledMonthExcel(
 
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws["!merges"] = merges;
+  // Wider agent column + comfortable day columns so codes are readable.
   ws["!cols"] = [
-    { wch: 22 },
-    ...indices.map(() => ({ wch: 3.2 })),
+    { wch: 26 },
+    ...indices.map(() => ({ wch: 4 })),
   ];
-  ws["!rows"] = rows.map((_, r) => ({ hpt: r === 0 ? 24 : 15 }));
+  // Taller title, header and body rows for a more spacious, printable layout.
+  ws["!rows"] = rows.map((_, r) => {
+    if (r === 0) return { hpt: 30 };
+    if (r === 1) return { hpt: 16 };
+    if (r === 2) return { hpt: 20 };
+    if (r === legendStart) return { hpt: 18 };
+    return { hpt: 18 };
+  });
   // Freeze the agent column + header rows and print in landscape on one page.
   ws["!freeze"] = { xSplit: 1, ySplit: 3 };
 
   ws["!pageSetup"] = { orientation: "landscape", fitToWidth: 1, fitToHeight: 1 };
+  ws["!margins"] = {
+    left: 0.3,
+    right: 0.3,
+    top: 0.4,
+    bottom: 0.4,
+    header: 0.2,
+    footer: 0.2,
+  };
+
+  // Frame the whole planning block and the header band with a strong border so
+  // the sheet reads as a proper table.
+  frameRegion(ws, XLSX, 0, 0, tableEndRow, colCount - 1);
+  frameRegion(ws, XLSX, 1, 0, 2, colCount - 1);
 
   XLSX.utils.book_append_sheet(wb, ws, MONTHS[month].slice(0, 20));
   XLSX.writeFile(wb, `planning-ucpa-${MONTHS[month].toLowerCase()}-${year}.xlsx`);
