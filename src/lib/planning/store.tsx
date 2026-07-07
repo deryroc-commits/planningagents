@@ -324,6 +324,7 @@ function mergeCloudState(
     ),
     overtimeByYear: pick("overtimeByYear"),
     overtimeThreshold: pick("overtimeThreshold"),
+    yearRange: pick("yearRange"),
   };
 }
 
