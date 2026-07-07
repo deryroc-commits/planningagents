@@ -224,7 +224,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               ref={sheetRef}
               className="planning-pdf-sheet bg-card"
               style={{
-                transform: `scale(${previewScale})`,
+                transform: `translate(${previewOffset.x}px, ${previewOffset.y}px) scale(${previewScale})`,
                 width: "1120px",
                 minWidth: "1120px",
               }}
