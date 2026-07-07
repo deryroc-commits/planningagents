@@ -83,9 +83,9 @@ function slug(s: string): string {
 }
 
 export function ShareQrTab() {
-  const { agents, year: currentYear } = usePlanning();
+  const { agents, year: currentYear, yearRange } = usePlanning();
   const { activeWorkspaceId, canEdit } = useWorkspace();
-  const YEARS = useSelectableYears();
+  const YEARS = useSelectableYears(yearRange);
   const [links, setLinks] = useState<LinkMap>({});
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(currentYear);

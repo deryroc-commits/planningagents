@@ -21,6 +21,7 @@ import type {
   YearChanges,
   YearOvertime,
   YearPlanning,
+  YearRangeConfig,
 } from "./types";
 import {
   DEFAULT_AGENTS,
@@ -29,6 +30,7 @@ import {
   DEFAULT_COLORS,
   DEFAULT_OVERTIME_THRESHOLD,
   DEFAULT_ROTATION,
+  DEFAULT_YEAR_RANGE,
   STORAGE_KEY,
 } from "./defaults";
 import { codeForCell, normalizeRotation } from "./rotation";
@@ -105,6 +107,9 @@ interface PlanningContextValue {
   clearOvertimeAgent: (agentId: string) => void;
   clearOvertimeYear: (year: number) => void;
   setOvertimeThreshold: (hours: number) => void;
+  // selectable-year range
+  yearRange: YearRangeConfig;
+  setYearRange: (range: YearRangeConfig) => void;
   // colors
   colors: ColorScheme;
   setColor: (key: ColorKey, part: "bg" | "fg", hex: string) => void;
@@ -156,6 +161,23 @@ function mergeDefaultCodes(stored: PlanningCode[] | undefined): PlanningCode[] {
   return missingDefaults.length ? [...stored, ...missingDefaults] : stored;
 }
 
+/** Clamp/validate a stored year-range config, falling back to defaults. */
+function normalizeYearRange(input: unknown): YearRangeConfig {
+  const r = (input ?? {}) as Partial<YearRangeConfig>;
+  const start =
+    typeof r.start === "number" && Number.isFinite(r.start)
+      ? Math.round(r.start)
+      : DEFAULT_YEAR_RANGE.start;
+  const ahead =
+    typeof r.ahead === "number" && Number.isFinite(r.ahead)
+      ? Math.round(r.ahead)
+      : DEFAULT_YEAR_RANGE.ahead;
+  return {
+    start: Math.min(Math.max(start, 1970), 2100),
+    ahead: Math.min(Math.max(ahead, 0), 50),
+  };
+}
+
 function normalizePlanningState(input: Partial<PlanningState> | null | undefined): PlanningState {
   const parsed = input ?? {};
   const agents = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
@@ -179,8 +201,10 @@ function normalizePlanningState(input: Partial<PlanningState> | null | undefined
       typeof parsed.overtimeThreshold === "number"
         ? parsed.overtimeThreshold
         : DEFAULT_OVERTIME_THRESHOLD,
+    yearRange: normalizeYearRange(parsed.yearRange),
   };
 }
+
 
 /**
  * True only for a pristine, untouched demo install: every stored agent is one
@@ -300,6 +324,7 @@ function mergeCloudState(
     ),
     overtimeByYear: pick("overtimeByYear"),
     overtimeThreshold: pick("overtimeThreshold"),
+    yearRange: pick("yearRange"),
   };
 }
 
@@ -323,6 +348,7 @@ export function PlanningProvider({
     rotation: DEFAULT_ROTATION,
     overtimeByYear: {},
     overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
+    yearRange: DEFAULT_YEAR_RANGE,
   }));
   const [cloudReady, setCloudReady] = useState(false);
   const hydrated = useRef(false);
@@ -682,6 +708,7 @@ export function PlanningProvider({
         typeof s.overtimeThreshold === "number"
           ? s.overtimeThreshold
           : DEFAULT_OVERTIME_THRESHOLD,
+      yearRange: normalizeYearRange(s.yearRange),
     });
   }, []);
 
@@ -696,6 +723,7 @@ export function PlanningProvider({
       changesByYear: {},
       overtimeByYear: {},
       overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
+      yearRange: DEFAULT_YEAR_RANGE,
     });
   }, []);
 
@@ -786,6 +814,12 @@ export function PlanningProvider({
 
   const setOvertimeThreshold = useCallback((hours: number) => {
     setState((prev) => ({ ...prev, overtimeThreshold: hours }));
+  }, []);
+
+  const yearRange = normalizeYearRange(state.yearRange);
+
+  const setYearRange = useCallback((range: YearRangeConfig) => {
+    setState((prev) => ({ ...prev, yearRange: normalizeYearRange(range) }));
   }, []);
 
 
@@ -880,6 +914,8 @@ export function PlanningProvider({
       clearOvertimeAgent,
       clearOvertimeYear,
       setOvertimeThreshold,
+      yearRange,
+      setYearRange,
       colors,
       setColor,
       resetColors,
@@ -916,6 +952,8 @@ export function PlanningProvider({
       clearOvertimeAgent,
       clearOvertimeYear,
       setOvertimeThreshold,
+      yearRange,
+      setYearRange,
       colors,
       setColor,
       resetColors,

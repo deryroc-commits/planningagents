@@ -148,13 +148,24 @@ export function transitionColumns(
   return cols;
 }
 
-/** Range of selectable years (wide, not limited to the current year). */
-export function selectableYears(): number[] {
+/**
+ * Range of selectable years. By default it spans from 2020 (or 4 years before
+ * the current year, whichever is earlier) up to the current year + 10.
+ * A configurable `range` overrides both ends: `start` is the first year and
+ * `ahead` is how many years past the current calendar year to include, so the
+ * range keeps auto-extending each new year.
+ */
+export function selectableYears(range?: {
+  start: number;
+  ahead: number;
+}): number[] {
   const now = new Date().getFullYear();
-  const start = Math.min(now - 4, 2020);
-  const end = now + 10;
+  const start = range ? range.start : Math.min(now - 4, 2020);
+  const ahead = range ? Math.max(0, range.ahead) : 10;
+  const end = now + ahead;
+  const first = Math.min(start, end);
   const out: number[] = [];
-  for (let y = start; y <= end; y++) out.push(y);
+  for (let y = first; y <= end; y++) out.push(y);
   return out;
 }
 

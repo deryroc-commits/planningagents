@@ -1,4 +1,4 @@
-import type { Agent, ColorScheme, PlanningCode, RotationState } from "./types";
+import type { Agent, ColorScheme, PlanningCode, RotationState, YearRangeConfig } from "./types";
 
 /**
  * Default color scheme (hex) shared by the on-screen grid, the legend, the
@@ -75,5 +75,8 @@ export const DEFAULT_ROTATION: RotationState = {
 
 /** Default overtime alert threshold (hours). */
 export const DEFAULT_OVERTIME_THRESHOLD = 25;
+
+/** Default selectable-year range: from 2020 up to the current year + 10. */
+export const DEFAULT_YEAR_RANGE: YearRangeConfig = { start: 2020, ahead: 10 };
 
 export const STORAGE_KEY = "ucpa-planning-v1";

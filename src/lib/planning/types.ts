@@ -89,6 +89,16 @@ export interface OvertimeEntry {
 /** All overtime movements for one year. */
 export type YearOvertime = OvertimeEntry[];
 
+/**
+ * Configurable range of selectable years shown in the year pickers.
+ * `start` is the first year offered; `ahead` is how many years past the current
+ * calendar year to include (so the range auto-extends every new year).
+ */
+export interface YearRangeConfig {
+  start: number;
+  ahead: number;
+}
+
 export interface PlanningState {
   /** Internal data/catalog migration version. */
   catalogVersion?: number;
@@ -105,6 +115,8 @@ export interface PlanningState {
   overtimeByYear?: Record<number, YearOvertime>;
   /** Alert threshold (hours) above which an agent's balance is flagged. */
   overtimeThreshold?: number;
+  /** Configurable selectable-year range for the year pickers. */
+  yearRange?: YearRangeConfig;
 }
 
 /** Human labels for each colorable element (used by the color editor). */
