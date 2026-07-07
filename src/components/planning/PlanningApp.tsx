@@ -66,7 +66,7 @@ import {
   MONTHS,
   TRANSITION_MONTH,
 } from "@/lib/planning/calc";
-import { exportToExcel, importFromExcel } from "@/lib/planning/excel";
+import { exportStyledYearExcel, importFromExcel } from "@/lib/planning/excel";
 import { hardReload, useNewVersionAvailable } from "@/lib/planning/version-check";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { RefreshCw } from "lucide-react";
@@ -381,11 +381,16 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 }
 
 function ExportButton() {
-  const { codes, agents, planning, year } = usePlanning();
+  const { codes, agents, planning, year, colors } = usePlanning();
   return (
     <Button
       size="sm"
-      onClick={() => exportToExcel({ codes, agents, planningByYear: { [year]: planning } }, year)}
+      onClick={() =>
+        exportStyledYearExcel(
+          { codes, agents, planningByYear: { [year]: planning }, colors },
+          year,
+        )
+      }
     >
       <Download /> Exporter
     </Button>
