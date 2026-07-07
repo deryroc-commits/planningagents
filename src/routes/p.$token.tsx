@@ -245,6 +245,34 @@ function SharedPlanningPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-4">
+        {(() => {
+          const expiry = fmtExpiry(data.expiresAt ?? null);
+          return (
+            <div
+              className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 ${
+                expiry.expired
+                  ? "border-destructive/30 bg-destructive/10"
+                  : "border-border bg-muted/40"
+              }`}
+            >
+              <Clock
+                className={`size-4 shrink-0 ${expiry.expired ? "text-destructive" : "text-muted-foreground"}`}
+              />
+              <div>
+                <p
+                  className={`text-xs font-semibold ${
+                    expiry.expired ? "text-destructive" : "text-foreground"
+                  }`}
+                >
+                  {expiry.text}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {expiry.remainingText}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
         <div className="mb-4 flex items-center justify-center gap-1">
           <Button
             variant="outline"
