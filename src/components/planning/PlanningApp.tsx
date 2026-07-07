@@ -76,6 +76,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const { year, setYear, codes, planning, replaceState, clearYear, resetAll } = usePlanning();
   const { memberships, activeWorkspace, activeWorkspaceId, setActiveWorkspaceId } = useWorkspace();
   const { user, signOut } = useAuth();
+  const YEARS = useSelectableYears();
   const [month, setMonth] = useState(new Date().getMonth());
   const [janWeeks, setJanWeeks] = useState(3);
   const [tab, setTab] = useState(initialTab);
