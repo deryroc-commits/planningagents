@@ -42,7 +42,7 @@ interface SharedPlanning {
   planning?: YearPlanning;
 }
 
-type Search = { y: number; mo: number; ms: number[] };
+type Search = { y: number; mo: number; ms: number[]; msInvalid: boolean };
 
 export const Route = createFileRoute("/p/$token")({
   ssr: false,
@@ -52,23 +52,36 @@ export const Route = createFileRoute("/p/$token")({
     const mo = Number(search.mo);
     // `ms` can arrive as a comma string ("6,7") on the first hit, or as a real
     // array ([6,7]) / number (7) after the router re-stringifies the search.
-    const rawMsList: unknown[] = Array.isArray(search.ms)
-      ? search.ms
-      : typeof search.ms === "string"
-        ? search.ms.split(",")
-        : search.ms == null
+    const rawMs = search.ms;
+    // Client-side validation: `ms`, when present, must be a string, a number,
+    // or an array. Anything else (object, boolean…) means a malformed link.
+    const msProvided = rawMs != null;
+    const msTypeValid =
+      !msProvided ||
+      typeof rawMs === "string" ||
+      typeof rawMs === "number" ||
+      Array.isArray(rawMs);
+    const rawMsList: unknown[] = Array.isArray(rawMs)
+      ? rawMs
+      : typeof rawMs === "string"
+        ? rawMs.split(",")
+        : rawMs == null
           ? []
-          : [search.ms];
+          : [rawMs];
     const ms = rawMsList
       .map((v) => Number(v))
       .filter((v) => Number.isInteger(v) && v >= 0 && v <= 11);
     const uniqueMs = Array.from(new Set(ms)).sort((a, b) => a - b);
+    // A provided `ms` that resolves to no valid month (wrong type or garbage
+    // values) is treated as an invalid link rather than silently defaulting.
+    const msInvalid = msProvided && (!msTypeValid || uniqueMs.length === 0);
     return {
       y: Number.isFinite(y) && y >= 2000 && y <= 2100 ? y : now.getFullYear(),
       mo: Number.isFinite(mo) && mo >= 0 && mo <= 11 ? mo : now.getMonth(),
       ms: uniqueMs.length
         ? uniqueMs
         : Array.from({ length: 12 }, (_, i) => i),
+      msInvalid,
     };
   },
   head: () => ({
@@ -82,7 +95,7 @@ export const Route = createFileRoute("/p/$token")({
 
 function SharedPlanningPage() {
   const { token } = Route.useParams();
-  const { y, mo, ms } = Route.useSearch();
+  const { y, mo, ms, msInvalid } = Route.useSearch();
   const [year] = useState(y);
   const allowedMonths = ms;
   const [month, setMonth] = useState(
@@ -98,6 +111,7 @@ function SharedPlanningPage() {
   };
   const [data, setData] = useState<SharedPlanning | null>(null);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +133,23 @@ function SharedPlanningPage() {
       cancelled = true;
     };
   }, [token, year]);
+
+  if (msInvalid) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="max-w-sm text-center">
+          <h1 className="text-xl font-semibold">Lien invalide</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Ce lien de planning est incorrect ou incomplet (les mois demandés ne
+            sont pas valides). Demandez un nouveau QR code à votre responsable.
+          </p>
+          <Button asChild variant="outline" className="mt-6">
+            <Link to="/">Retour à l'accueil</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -208,6 +239,35 @@ function SharedPlanningPage() {
             <ChevronRight />
           </Button>
         </div>
+
+        <div className="mb-4 rounded-lg border border-border bg-muted/40 px-3 py-2">
+          <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {allowedMonths.length === 12
+              ? `Planning disponible pour toute l'année ${year}`
+              : `Mois disponibles (${allowedMonths.length}) — ${year}`}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {allowedMonths.map((i: number) => {
+              const on = i === month;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setMonth(i)}
+                  className={
+                    on
+                      ? "rounded-md bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground"
+                      : "rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground hover:bg-accent"
+                  }
+                >
+                  {MONTHS[i]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+
 
 
         {data.mode === "perso" ? (
