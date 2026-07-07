@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Download, FileSpreadsheet, Printer } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Download, FileSpreadsheet, Loader2, Printer } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
   codesMap,
@@ -15,6 +15,7 @@ import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
 import { exportStyledMonthExcel } from "@/lib/planning/excel";
+import { exportElementToPdf } from "@/lib/planning/pdf";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -41,6 +42,8 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const { year, setYear, agents, codes, planning, colors, yearRange } = usePlanning();
   const [xlsxOpen, setXlsxOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pdfSaving, setPdfSaving] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
@@ -126,38 +129,42 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
             <FileSpreadsheet /> Aperçu Excel (XLSX)
           </Button>
           <Button
-            onClick={() => {
-              const prev = document.title;
-              // The browser uses document.title as the default PDF filename.
-              document.title = `Planning Agents _ ${MONTHS[month]} ${year}`;
-              const restore = () => {
-                document.title = prev;
-                window.removeEventListener("afterprint", restore);
-              };
-              window.addEventListener("afterprint", restore);
-              window.print();
-              // Fallback restore in case afterprint doesn't fire.
-              setTimeout(restore, 1000);
+            disabled={pdfSaving}
+            onClick={async () => {
+              if (!sheetRef.current) return;
+              setPdfSaving(true);
+              try {
+                await exportElementToPdf(
+                  sheetRef.current,
+                  `Planning Agents _ ${MONTHS[month]} ${year}.pdf`,
+                );
+              } finally {
+                setPdfSaving(false);
+              }
             }}
           >
-            <Printer /> Imprimer / PDF
+            {pdfSaving ? <Loader2 className="animate-spin" /> : <Printer />}
+            {pdfSaving ? "Génération…" : "Imprimer / PDF"}
           </Button>
         </div>
       </div>
 
       <div className="print-area overflow-auto rounded-lg border border-border bg-card p-3">
-        <PlanningSheet
-          month={month}
-          year={year}
-          printDate={printDate}
-          groups={groups}
-          indices={indices}
-          planning={planning}
-          map={map}
-          holidays={holidays}
-          colCount={colCount}
-        />
+        <div ref={sheetRef} className="bg-card p-3">
+          <PlanningSheet
+            month={month}
+            year={year}
+            printDate={printDate}
+            groups={groups}
+            indices={indices}
+            planning={planning}
+            map={map}
+            holidays={holidays}
+            colCount={colCount}
+          />
+        </div>
       </div>
+
 
       <Dialog open={xlsxOpen} onOpenChange={setXlsxOpen}>
         <DialogContent className="flex h-[95vh] max-h-[95vh] w-[98vw] max-w-[98vw] flex-col overflow-hidden sm:max-w-[98vw]">
