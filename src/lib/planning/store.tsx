@@ -222,6 +222,87 @@ function loadState(key: string): PlanningState {
   }
 }
 
+/**
+ * 3-way merge of a record-of-records (e.g. planningByYear[y] keyed by agent,
+ * or changesByYear[y] keyed by cell). Starts from `remote` and re-applies any
+ * inner entry the local copy changed relative to `base`. This preserves remote
+ * edits to untouched entries while keeping local pending edits, so two editors
+ * touching different cells no longer overwrite each other.
+ */
+function mergeRecordOfRecords<T>(
+  base: Record<string, Record<string, T>> | undefined,
+  remote: Record<string, Record<string, T>> | undefined,
+  local: Record<string, Record<string, T>> | undefined,
+  eq: (a: T | undefined, b: T | undefined) => boolean,
+): Record<string, Record<string, T>> {
+  const b = base ?? {};
+  const r = remote ?? {};
+  const l = local ?? {};
+  const result: Record<string, Record<string, T>> = {};
+  const outerKeys = new Set([
+    ...Object.keys(r),
+    ...Object.keys(l),
+    ...Object.keys(b),
+  ]);
+  for (const ok of outerKeys) {
+    const bi = b[ok] ?? {};
+    const ri = r[ok] ?? {};
+    const li = l[ok] ?? {};
+    const inner: Record<string, T> = { ...ri };
+    const innerKeys = new Set([...Object.keys(bi), ...Object.keys(li)]);
+    for (const ik of innerKeys) {
+      const bv = bi[ik];
+      const lv = li[ik];
+      if (!eq(lv, bv)) {
+        // The local copy changed this entry since the last known server state.
+        if (lv === undefined) delete inner[ik];
+        else inner[ik] = lv;
+      }
+    }
+    if (Object.keys(inner).length > 0) result[ok] = inner;
+  }
+  return result;
+}
+
+/**
+ * 3-way merge of the whole planning state. `base` is the last state we know the
+ * server had; `remote` is the incoming realtime update; `local` is our current
+ * (possibly unsaved) state. Planning cells and tracked changes merge per-cell;
+ * other fields keep the local copy only when it changed relative to `base`.
+ */
+function mergeCloudState(
+  base: PlanningState,
+  remote: PlanningState,
+  local: PlanningState,
+): PlanningState {
+  const localChanged = (key: keyof PlanningState) =>
+    JSON.stringify(local[key]) !== JSON.stringify(base[key]);
+  const pick = <K extends keyof PlanningState>(key: K): PlanningState[K] =>
+    localChanged(key) ? local[key] : remote[key];
+
+  return {
+    catalogVersion: remote.catalogVersion,
+    codes: pick("codes"),
+    agents: pick("agents"),
+    planningByYear: mergeRecordOfRecords(
+      base.planningByYear,
+      remote.planningByYear,
+      local.planningByYear,
+      (a, b) => a === b,
+    ),
+    colors: pick("colors"),
+    rotation: pick("rotation"),
+    changesByYear: mergeRecordOfRecords(
+      base.changesByYear,
+      remote.changesByYear,
+      local.changesByYear,
+      (a, b) => JSON.stringify(a) === JSON.stringify(b),
+    ),
+    overtimeByYear: pick("overtimeByYear"),
+    overtimeThreshold: pick("overtimeThreshold"),
+  };
+}
+
 export function PlanningProvider({
   children,
   workspaceId,
@@ -247,6 +328,10 @@ export function PlanningProvider({
   const hydrated = useRef(false);
   const lastCloudJson = useRef<string | null>(null);
   const cloudSaveTimer = useRef<number | null>(null);
+  // Always-current snapshot of local state, so the realtime handler can 3-way
+  // merge incoming updates against unsaved local edits without stale closures.
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const writeLocalState = useCallback(
     (next: PlanningState) => {
@@ -381,14 +466,35 @@ export function PlanningProvider({
           const remoteState = (payload.new as { state?: unknown } | null)?.state;
           if (!remoteState) return;
 
-          const next = normalizePlanningState(remoteState as Partial<PlanningState>);
-          const json = JSON.stringify(next);
-          if (json === lastCloudJson.current) return;
+          const remote = normalizePlanningState(remoteState as Partial<PlanningState>);
+          const remoteJson = JSON.stringify(remote);
+          // We already have this exact server state (e.g. our own echo). Skip.
+          if (remoteJson === lastCloudJson.current) return;
 
-          lastCloudJson.current = json;
-          setState(next);
-          writeLocalState(next);
+          // Without a known base we cannot merge safely — adopt remote as-is.
+          if (lastCloudJson.current === null) {
+            lastCloudJson.current = remoteJson;
+            setState(remote);
+            writeLocalState(remote);
+            return;
+          }
+
+          // 3-way merge: keep any local edits made since the last known server
+          // state, layered on top of the incoming remote update.
+          const base = normalizePlanningState(
+            JSON.parse(lastCloudJson.current) as Partial<PlanningState>,
+          );
+          const merged = normalizePlanningState(
+            mergeCloudState(base, remote, stateRef.current),
+          );
+
+          // Baseline is the actual server state; if our merge added local-only
+          // edits, the save effect will detect the diff and push them back.
+          lastCloudJson.current = remoteJson;
+          setState(merged);
+          writeLocalState(merged);
         },
+
       )
       .subscribe();
 
