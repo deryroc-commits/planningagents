@@ -208,6 +208,88 @@ export function ParametersTab() {
   );
 }
 
+function YearRangeSettings() {
+  const { yearRange, setYearRange } = usePlanning();
+  const now = new Date().getFullYear();
+
+  const preview = selectableYears(yearRange);
+  const first = preview[0];
+  const last = preview[preview.length - 1];
+
+  const setStart = (v: string) => {
+    const n = parseInt(v, 10);
+    if (!Number.isFinite(n)) return;
+    setYearRange({ ...yearRange, start: n });
+  };
+  const setAhead = (v: number) => {
+    setYearRange({ ...yearRange, ahead: v });
+  };
+  const isDefault =
+    yearRange.start === DEFAULT_YEAR_RANGE.start &&
+    yearRange.ahead === DEFAULT_YEAR_RANGE.ahead;
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h3 className="text-base font-semibold">Plage d'années</h3>
+          <p className="text-sm text-muted-foreground">
+            Années proposées dans les sélecteurs (planning, impression, QR
+            codes). La fin s'étend automatiquement chaque nouvelle année.
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={isDefault}
+          onClick={() => setYearRange({ ...DEFAULT_YEAR_RANGE })}
+          title="Réinitialiser la plage par défaut"
+        >
+          <RotateCcw className="size-4" /> Réinitialiser
+        </Button>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-end gap-6">
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="font-medium">Première année</span>
+          <Input
+            type="number"
+            value={yearRange.start}
+            min={1970}
+            max={2100}
+            onChange={(e) => setStart(e.target.value)}
+            className="h-9 w-28"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="font-medium">
+            Années futures : <span className="tabular-nums">+{yearRange.ahead}</span>
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={30}
+            step={1}
+            value={yearRange.ahead}
+            onChange={(e) => setAhead(Number(e.target.value))}
+            className="h-9 w-56 accent-[var(--color-primary,#2563eb)]"
+          />
+        </label>
+      </div>
+
+      <p className="mt-3 text-sm text-muted-foreground">
+        Actuellement : de{" "}
+        <span className="font-semibold text-foreground tabular-nums">{first}</span>{" "}
+        à{" "}
+        <span className="font-semibold text-foreground tabular-nums">{last}</span>{" "}
+        (année en cours {now} + {yearRange.ahead}).
+      </p>
+    </div>
+  );
+}
+
+
 function CodeEditorRow({
   draft,
   setDraft,
