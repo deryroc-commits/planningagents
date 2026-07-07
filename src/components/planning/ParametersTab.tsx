@@ -225,9 +225,7 @@ function YearRangeSettings() {
   const setAhead = (v: number) => {
     setYearRange({ ...yearRange, ahead: v });
   };
-  const isDefault =
-    yearRange.start === DEFAULT_YEAR_RANGE.start &&
-    yearRange.ahead === DEFAULT_YEAR_RANGE.ahead;
+  const isDefault = yearRange.ahead === DEFAULT_YEAR_RANGE.ahead;
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
@@ -247,11 +245,11 @@ function YearRangeSettings() {
               variant="ghost"
               size="sm"
               disabled={isDefault}
-              onClick={() => setYearRange({ ...DEFAULT_YEAR_RANGE })}
-              title="Réinitialiser la plage par défaut"
+              onClick={() => setYearRange({ ...yearRange, ahead: DEFAULT_YEAR_RANGE.ahead })}
+              title="Réinitialiser le nombre d'années futures"
               className="h-6 px-2 text-xs text-muted-foreground"
             >
-              <RotateCcw className="size-3" /> Réinitialiser ({DEFAULT_YEAR_RANGE.start} / +{DEFAULT_YEAR_RANGE.ahead})
+              <RotateCcw className="size-3" /> Réinitialiser ({yearRange.start} / +{DEFAULT_YEAR_RANGE.ahead})
             </Button>
           </span>
           <Input
