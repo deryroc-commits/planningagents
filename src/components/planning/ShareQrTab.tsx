@@ -495,7 +495,7 @@ export function ShareQrTab() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted text-left">
-                <th className="px-3 py-2 font-medium">Agent</th>
+                <th className="px-3 py-2 font-medium">Agents</th>
                 <th className="px-3 py-2 font-medium">Contenu du QR</th>
                 <th className="px-3 py-2 font-medium">Validité</th>
                 <th className="px-3 py-2 text-right font-medium">Actions</th>

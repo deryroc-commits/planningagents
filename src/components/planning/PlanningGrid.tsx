@@ -70,7 +70,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
         <thead>
           <tr>
             <th className="sticky left-0 top-0 z-30 min-w-[180px] border-b border-r border-border bg-muted px-3 py-1.5 text-left font-semibold">
-              Agent
+              Agents
             </th>
             {indices.map((i) => {
               const d = dateOfDayIndex(year, i);
