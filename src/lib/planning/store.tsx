@@ -21,6 +21,7 @@ import type {
   YearChanges,
   YearOvertime,
   YearPlanning,
+  YearRangeConfig,
 } from "./types";
 import {
   DEFAULT_AGENTS,
@@ -29,6 +30,7 @@ import {
   DEFAULT_COLORS,
   DEFAULT_OVERTIME_THRESHOLD,
   DEFAULT_ROTATION,
+  DEFAULT_YEAR_RANGE,
   STORAGE_KEY,
 } from "./defaults";
 import { codeForCell, normalizeRotation } from "./rotation";
