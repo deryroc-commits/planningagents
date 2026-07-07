@@ -15,6 +15,7 @@ import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
 import { exportStyledMonthExcel } from "@/lib/planning/excel";
+import { exportElementToPdf } from "@/lib/planning/pdf";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
