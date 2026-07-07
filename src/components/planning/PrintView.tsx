@@ -42,6 +42,8 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const { year, setYear, agents, codes, planning, colors, yearRange } = usePlanning();
   const [xlsxOpen, setXlsxOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pdfSaving, setPdfSaving] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
