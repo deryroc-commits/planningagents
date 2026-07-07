@@ -240,6 +240,35 @@ function SharedPlanningPage() {
           </Button>
         </div>
 
+        <div className="mb-4 rounded-lg border border-border bg-muted/40 px-3 py-2">
+          <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {allowedMonths.length === 12
+              ? `Planning disponible pour toute l'année ${year}`
+              : `Mois disponibles (${allowedMonths.length}) — ${year}`}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {allowedMonths.map((i: number) => {
+              const on = i === month;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setMonth(i)}
+                  className={
+                    on
+                      ? "rounded-md bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground"
+                      : "rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground hover:bg-accent"
+                  }
+                >
+                  {MONTHS[i]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+
+
 
         {data.mode === "perso" ? (
           <PersonalMonth
