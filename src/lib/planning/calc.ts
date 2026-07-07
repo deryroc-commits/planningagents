@@ -161,7 +161,7 @@ export function selectableYears(range?: {
 }): number[] {
   const now = new Date().getFullYear();
   const start = range ? range.start : Math.min(now - 4, 2020);
-  const ahead = range ? Math.max(0, range.ahead) : 6;
+  const ahead = range ? Math.max(0, range.ahead) : 10;
   const end = now + ahead;
   const first = Math.min(start, end);
   const out: number[] = [];
