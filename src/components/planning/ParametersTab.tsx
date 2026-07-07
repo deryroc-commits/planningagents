@@ -231,28 +231,29 @@ function YearRangeSettings() {
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <h3 className="text-base font-semibold">Plage d'années</h3>
-          <p className="text-sm text-muted-foreground">
-            Années proposées dans les sélecteurs (planning, impression, QR
-            codes). La fin s'étend automatiquement chaque nouvelle année.
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={isDefault}
-          onClick={() => setYearRange({ ...DEFAULT_YEAR_RANGE })}
-          title="Réinitialiser la plage par défaut"
-        >
-          <RotateCcw className="size-4" /> Réinitialiser
-        </Button>
+      <div>
+        <h3 className="text-base font-semibold">Plage d'années</h3>
+        <p className="text-sm text-muted-foreground">
+          Années proposées dans les sélecteurs (planning, impression, QR
+          codes). La fin s'étend automatiquement chaque nouvelle année.
+        </p>
       </div>
 
       <div className="mt-4 flex flex-wrap items-end gap-6">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium">Première année</span>
+          <span className="flex items-center gap-2 font-medium">
+            Première année
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={isDefault}
+              onClick={() => setYearRange({ ...DEFAULT_YEAR_RANGE })}
+              title="Réinitialiser la plage par défaut"
+              className="h-6 px-2 text-xs text-muted-foreground"
+            >
+              <RotateCcw className="size-3" /> Réinitialiser ({DEFAULT_YEAR_RANGE.start} / +{DEFAULT_YEAR_RANGE.ahead})
+            </Button>
+          </span>
           <Input
             type="number"
             value={yearRange.start}
