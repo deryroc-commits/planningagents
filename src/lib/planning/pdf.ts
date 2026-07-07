@@ -2,36 +2,38 @@ import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
 
 /**
- * Capture a DOM element and export it as a single-page A4 landscape PDF.
- * The content is scaled to fit entirely on one page (no overflow, no blank
- * second page) and saved with the provided file name.
+ * Capture an A4-landscape preview element and export it as one exact PDF page.
+ * The preview already contains the scaled planning sheet, so the export draws
+ * that page once, edge-to-edge, and removes any accidental extra page.
  */
 export async function exportElementToPdf(el: HTMLElement, fileName: string) {
+  const rect = el.getBoundingClientRect();
+  const width = Math.ceil(rect.width || el.scrollWidth);
+  const height = Math.ceil(rect.height || el.scrollHeight);
+  const scale = Math.min(4, Math.max(2, 2400 / Math.max(width, 1)));
+
   const canvas = await html2canvas(el, {
-    scale: 2,
+    scale,
     useCORS: true,
     backgroundColor: "#ffffff",
-    // Capture the full element even if it is scrolled / clipped on screen.
-    windowWidth: el.scrollWidth,
-    width: el.scrollWidth,
-    height: el.scrollHeight,
+    windowWidth: Math.max(document.documentElement.clientWidth, width),
+    windowHeight: Math.max(document.documentElement.clientHeight, height),
+    width,
+    height,
+    scrollX: 0,
+    scrollY: -window.scrollY,
   });
 
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 6;
-  const maxW = pageW - margin * 2;
-  const maxH = pageH - margin * 2;
 
-  // Fit the whole capture on a single page, preserving aspect ratio.
-  const ratio = Math.min(maxW / canvas.width, maxH / canvas.height);
-  const imgW = canvas.width * ratio;
-  const imgH = canvas.height * ratio;
-  const x = (pageW - imgW) / 2;
-  const y = (pageH - imgH) / 2;
+  const imgData = canvas.toDataURL("image/png");
+  pdf.addImage(imgData, "PNG", 0, 0, pageW, pageH, undefined, "FAST");
 
-  const imgData = canvas.toDataURL("image/jpeg", 0.95);
-  pdf.addImage(imgData, "JPEG", x, y, imgW, imgH);
+  while (pdf.getNumberOfPages() > 1) {
+    pdf.deletePage(pdf.getNumberOfPages());
+  }
+
   pdf.save(fileName.endsWith(".pdf") ? fileName : `${fileName}.pdf`);
 }

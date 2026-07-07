@@ -271,6 +271,37 @@
   .tt-mods { --tt-c: oklch(0.62 0.22 140); }
   .tt-overtime { --tt-c: oklch(0.68 0.17 45); }
   .tt-print { --tt-c: oklch(0.55 0.14 285); }
+
+  .planning-pdf-page {
+    aspect-ratio: 297 / 210;
+    position: relative;
+  }
+
+  .planning-pdf-content {
+    position: absolute;
+    inset: 2.35%;
+    overflow: hidden;
+  }
+
+  .planning-pdf-sheet {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1120px;
+    min-width: 1120px;
+    transform-origin: top left;
+  }
+
+  .planning-pdf-sheet table {
+    width: 1120px !important;
+    max-width: 1120px !important;
+    table-layout: fixed;
+  }
+
+  .planning-pdf-sheet th,
+  .planning-pdf-sheet td {
+    overflow: hidden;
+  }
 }
 
 @media print {
@@ -301,42 +332,45 @@
   .print-area {
     box-sizing: border-box;
     width: 100%;
-    height: 100vh;
-    max-height: 100vh;
+    height: auto;
+    max-height: none;
     min-height: 0;
     margin: 0 auto !important;
     border: none !important;
     border-radius: 0 !important;
-    padding: 4mm !important;
+    padding: 0 !important;
     overflow: hidden !important;
     page-break-inside: avoid;
     break-inside: avoid;
     page-break-after: avoid;
     break-after: avoid;
-    display: flex !important;
-    flex-direction: column;
-    justify-content: center;
+    display: block !important;
   }
-  .print-area table {
-    width: 100%;
-    font-size: 7px;
-    table-layout: fixed;
+  .planning-pdf-page {
+    width: 297mm !important;
+    height: 210mm !important;
+    max-width: none !important;
+    margin: 0 !important;
+    box-shadow: none !important;
     page-break-inside: avoid;
-    margin: 0 auto;
+    break-inside: avoid;
+    page-break-after: avoid;
+    break-after: avoid;
   }
-  .print-area table {
-    width: 100%;
-    font-size: 7px;
-    table-layout: fixed;
+  .planning-pdf-content {
+    inset: 5mm;
+  }
+  .planning-pdf-sheet,
+  .planning-pdf-sheet table,
+  .planning-pdf-sheet tr {
     page-break-inside: avoid;
+    break-inside: avoid;
   }
-  .print-area th,
-  .print-area td {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+  .planning-pdf-sheet th,
+  .planning-pdf-sheet td {
     page-break-inside: avoid;
+    break-inside: avoid;
   }
-  .print-area tr { page-break-inside: avoid; }
 
   /* Overtime sheet: A4 portrait, readable table that flows across pages */
   .overtime-print-area {
