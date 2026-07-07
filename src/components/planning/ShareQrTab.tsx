@@ -443,6 +443,16 @@ export function ShareQrTab() {
       )}
 
 
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+        <span className="font-medium text-foreground">Mois inclus dans les QR :</span>
+        <span className="font-semibold text-primary">
+          {monthsLabel} — {year}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          ({activeMonths.length} mois)
+        </span>
+      </div>
+
       <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-xs text-muted-foreground">
         <Info className="mt-0.5 size-4 shrink-0" />
         <p>
@@ -452,6 +462,7 @@ export function ShareQrTab() {
           librement entre ces mois depuis la page.
         </p>
       </div>
+
 
 
       {loading ? (
