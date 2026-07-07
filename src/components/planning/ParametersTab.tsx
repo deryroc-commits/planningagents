@@ -12,7 +12,8 @@ import {
   type CodeCategory,
   type PlanningCode,
 } from "@/lib/planning/types";
-import { fmtHours } from "@/lib/planning/calc";
+import { fmtHours, selectableYears } from "@/lib/planning/calc";
+import { DEFAULT_YEAR_RANGE } from "@/lib/planning/defaults";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
