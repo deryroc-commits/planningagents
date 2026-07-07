@@ -209,6 +209,12 @@ export function ShareQrTab() {
     return `${activeMonths.length}-mois`;
   }, [activeMonths]);
 
+  const monthsLabel = useMemo(() => {
+    if (activeMonths.length === 12) return "Toute l'année";
+    return activeMonths.map((i) => MONTHS[i]).join(", ");
+  }, [activeMonths]);
+
+
   const buildUrl = useCallback(
     (token: string) =>
       `${window.location.origin}/p/${token}?y=${year}&mo=${activeMonths[0]}&ms=${activeMonths.join(",")}`,
