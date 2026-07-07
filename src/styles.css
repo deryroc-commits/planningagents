@@ -287,11 +287,13 @@
     position: absolute;
     left: 0;
     top: 0;
-    min-width: max-content;
+    width: 1120px;
+    min-width: 1120px;
     transform-origin: top left;
   }
 
   .planning-pdf-sheet table {
+    width: 100%;
     table-layout: fixed;
   }
 }
