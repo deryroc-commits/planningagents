@@ -260,7 +260,7 @@ export function ShareQrTab() {
         margin: 2,
         errorCorrectionLevel: "M",
       });
-      return { name, dataUrl, url };
+      return { name, dataUrl, url, expiresAt: link.expiresAt };
     },
     [ensureLink, buildUrl],
   );
