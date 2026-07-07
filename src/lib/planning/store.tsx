@@ -466,14 +466,35 @@ export function PlanningProvider({
           const remoteState = (payload.new as { state?: unknown } | null)?.state;
           if (!remoteState) return;
 
-          const next = normalizePlanningState(remoteState as Partial<PlanningState>);
-          const json = JSON.stringify(next);
-          if (json === lastCloudJson.current) return;
+          const remote = normalizePlanningState(remoteState as Partial<PlanningState>);
+          const remoteJson = JSON.stringify(remote);
+          // We already have this exact server state (e.g. our own echo). Skip.
+          if (remoteJson === lastCloudJson.current) return;
 
-          lastCloudJson.current = json;
-          setState(next);
-          writeLocalState(next);
+          // Without a known base we cannot merge safely — adopt remote as-is.
+          if (lastCloudJson.current === null) {
+            lastCloudJson.current = remoteJson;
+            setState(remote);
+            writeLocalState(remote);
+            return;
+          }
+
+          // 3-way merge: keep any local edits made since the last known server
+          // state, layered on top of the incoming remote update.
+          const base = normalizePlanningState(
+            JSON.parse(lastCloudJson.current) as Partial<PlanningState>,
+          );
+          const merged = normalizePlanningState(
+            mergeCloudState(base, remote, stateRef.current),
+          );
+
+          // Baseline is the actual server state; if our merge added local-only
+          // edits, the save effect will detect the diff and push them back.
+          lastCloudJson.current = remoteJson;
+          setState(merged);
+          writeLocalState(merged);
         },
+
       )
       .subscribe();
 
