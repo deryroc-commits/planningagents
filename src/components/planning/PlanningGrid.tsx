@@ -146,7 +146,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                     </div>
                   )}
                 </td>
-                {indices.map((i) => {
+                {indices.map((i, col) => {
                   const value = row[i];
                   const invalid = isInvalid(value, map);
                   const codeDef = value ? map[value] : undefined;
@@ -165,6 +165,12 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                           : "";
                   const style = invalid ? undefined : codeInlineStyle(codeDef);
                   const changed = !!changes[`${a.id}:${i}`];
+                  const inDragRange =
+                    drag &&
+                    drag.agentId === a.id &&
+                    dragEndCol !== null &&
+                    col >= Math.min(drag.startCol, dragEndCol) &&
+                    col <= Math.max(drag.startCol, dragEndCol);
                   return (
                     <td
                       key={i}
@@ -179,14 +185,25 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                               ? hol
                               : value
                         }
-                        onClick={(e) =>
+                        onPointerDown={() => {
+                          dragMovedRef.current = false;
+                          setDrag({ agentId: a.id, startCol: col, value });
+                          setDragEndCol(col);
+                        }}
+                        onPointerEnter={() => {
+                          if (!drag || drag.agentId !== a.id) return;
+                          if (col !== drag.startCol) dragMovedRef.current = true;
+                          setDragEndCol(col);
+                        }}
+                        onClick={(e) => {
+                          if (dragMovedRef.current) return;
                           setActive({
                             agentId: a.id,
                             dayIndex: i,
                             rect: e.currentTarget.getBoundingClientRect(),
-                          })
-                        }
-                        className={`h-9 w-10 cursor-pointer text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls} ${changed ? "cell-changed" : ""}`}
+                          });
+                        }}
+                        className={`h-9 w-10 cursor-pointer select-none text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls} ${changed ? "cell-changed" : ""} ${inDragRange ? "ring-2 ring-inset ring-primary" : ""}`}
                         style={style}
                       >
                         {value ?? ""}
