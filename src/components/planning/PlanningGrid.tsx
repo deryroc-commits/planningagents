@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePlanning } from "@/lib/planning/store";
 import {
   agentHoursForIndices,
@@ -27,8 +27,19 @@ interface ActiveCell {
 }
 
 export function PlanningGrid({ month }: PlanningGridProps) {
-  const { year, agents, codes, planning, changes, setCell } = usePlanning();
+  const { year, agents, codes, planning, changes, setCell, fillRange } =
+    usePlanning();
   const [active, setActive] = useState<ActiveCell | null>(null);
+
+  // Excel-style drag-to-fill: press on a cell then drag across the same row to
+  // copy its value onto the cells you pass over.
+  const [drag, setDrag] = useState<{
+    agentId: string;
+    startCol: number;
+    value: string | undefined;
+  } | null>(null);
+  const [dragEndCol, setDragEndCol] = useState<number | null>(null);
+  const dragMovedRef = useRef(false);
 
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
@@ -54,6 +65,25 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     }
     return res;
   }, [posteCodes, agents, planning, indices]);
+
+  // Commit / cancel the drag-fill on pointer release anywhere in the document.
+  useEffect(() => {
+    if (!drag) return;
+    const onUp = () => {
+      if (dragMovedRef.current && dragEndCol !== null) {
+        const lo = Math.min(drag.startCol, dragEndCol);
+        const hi = Math.max(drag.startCol, dragEndCol);
+        const targetIndices = indices.slice(lo, hi + 1);
+        fillRange(drag.agentId, targetIndices, drag.value ?? null);
+      }
+      setDrag(null);
+      setDragEndCol(null);
+    };
+    window.addEventListener("pointerup", onUp);
+    return () => window.removeEventListener("pointerup", onUp);
+  }, [drag, dragEndCol, indices, fillRange]);
+
+
 
 
   if (agents.length === 0) {
@@ -116,7 +146,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                     </div>
                   )}
                 </td>
-                {indices.map((i) => {
+                {indices.map((i, col) => {
                   const value = row[i];
                   const invalid = isInvalid(value, map);
                   const codeDef = value ? map[value] : undefined;
@@ -135,6 +165,12 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                           : "";
                   const style = invalid ? undefined : codeInlineStyle(codeDef);
                   const changed = !!changes[`${a.id}:${i}`];
+                  const inDragRange =
+                    drag &&
+                    drag.agentId === a.id &&
+                    dragEndCol !== null &&
+                    col >= Math.min(drag.startCol, dragEndCol) &&
+                    col <= Math.max(drag.startCol, dragEndCol);
                   return (
                     <td
                       key={i}
@@ -149,14 +185,25 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                               ? hol
                               : value
                         }
-                        onClick={(e) =>
+                        onPointerDown={() => {
+                          dragMovedRef.current = false;
+                          setDrag({ agentId: a.id, startCol: col, value });
+                          setDragEndCol(col);
+                        }}
+                        onPointerEnter={() => {
+                          if (!drag || drag.agentId !== a.id) return;
+                          if (col !== drag.startCol) dragMovedRef.current = true;
+                          setDragEndCol(col);
+                        }}
+                        onClick={(e) => {
+                          if (dragMovedRef.current) return;
                           setActive({
                             agentId: a.id,
                             dayIndex: i,
                             rect: e.currentTarget.getBoundingClientRect(),
-                          })
-                        }
-                        className={`h-9 w-10 cursor-pointer text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls} ${changed ? "cell-changed" : ""}`}
+                          });
+                        }}
+                        className={`h-9 w-10 cursor-pointer select-none text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls} ${changed ? "cell-changed" : ""} ${inDragRange ? "ring-2 ring-inset ring-primary" : ""}`}
                         style={style}
                       >
                         {value ?? ""}
