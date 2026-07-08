@@ -27,8 +27,19 @@ interface ActiveCell {
 }
 
 export function PlanningGrid({ month }: PlanningGridProps) {
-  const { year, agents, codes, planning, changes, setCell } = usePlanning();
+  const { year, agents, codes, planning, changes, setCell, fillRange } =
+    usePlanning();
   const [active, setActive] = useState<ActiveCell | null>(null);
+
+  // Excel-style drag-to-fill: press on a cell then drag across the same row to
+  // copy its value onto the cells you pass over.
+  const [drag, setDrag] = useState<{
+    agentId: string;
+    startCol: number;
+    value: string | undefined;
+  } | null>(null);
+  const [dragEndCol, setDragEndCol] = useState<number | null>(null);
+  const dragMovedRef = useRef(false);
 
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
