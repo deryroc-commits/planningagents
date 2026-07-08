@@ -66,6 +66,25 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     return res;
   }, [posteCodes, agents, planning, indices]);
 
+  // Commit / cancel the drag-fill on pointer release anywhere in the document.
+  useEffect(() => {
+    if (!drag) return;
+    const onUp = () => {
+      if (dragMovedRef.current && dragEndCol !== null) {
+        const lo = Math.min(drag.startCol, dragEndCol);
+        const hi = Math.max(drag.startCol, dragEndCol);
+        const targetIndices = indices.slice(lo, hi + 1);
+        fillRange(drag.agentId, targetIndices, drag.value ?? null);
+      }
+      setDrag(null);
+      setDragEndCol(null);
+    };
+    window.addEventListener("pointerup", onUp);
+    return () => window.removeEventListener("pointerup", onUp);
+  }, [drag, dragEndCol, indices, fillRange]);
+
+
+
 
   if (agents.length === 0) {
     return (
