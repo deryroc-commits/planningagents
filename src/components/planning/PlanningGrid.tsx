@@ -44,6 +44,8 @@ export function PlanningGrid({ month }: PlanningGridProps) {
   const movedRef = useRef(false);
   // Copied block: rows of agents × columns of days (values or undefined).
   const clipboard = useRef<(string | undefined)[][] | null>(null);
+  // Right-click context menu (mouse copy/paste).
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
 
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
