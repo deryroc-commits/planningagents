@@ -1,4 +1,4 @@
-import type { RotationState } from "./types";
+import type { RotationPeriod, RotationState } from "./types";
 import { dateOfDayIndex } from "./calc";
 
 /** Day headers of the rotation template, Monday-first. */
