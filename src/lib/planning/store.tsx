@@ -839,6 +839,24 @@ export function PlanningProvider({
     });
   }, []);
 
+  const restoreYearRotation = useCallback(
+    (s: PlanningState) => {
+      setState((prev) => {
+        // Take the backup's effective rotation for the selected year (its
+        // year-specific copy, or the backup's shared base) and write it into
+        // this year only, leaving every other year and all other data intact.
+        const rot = normalizeRotation(
+          s.rotationByYear?.[year] ?? s.rotation ?? DEFAULT_ROTATION,
+        );
+        return {
+          ...prev,
+          rotationByYear: { ...prev.rotationByYear, [year]: rot },
+        };
+      });
+    },
+    [year],
+  );
+
   const resetAll = useCallback(() => {
     setState({
       catalogVersion: DEFAULT_CATALOG_VERSION,
