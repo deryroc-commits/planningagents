@@ -93,6 +93,21 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     };
   }, [sel]);
 
+  // Rectangle currently covered by an in-progress autofill drag (grows only
+  // downward / rightward from the selection block).
+  const fillBounds = useMemo(() => {
+    if (!fillBase || !fillTo) return null;
+    return {
+      r0: fillBase.r0,
+      c0: fillBase.c0,
+      r1: Math.max(fillBase.r1, fillTo.r),
+      c1: Math.max(fillBase.c1, fillTo.c),
+    };
+  }, [fillBase, fillTo]);
+
+  // Highlighted rectangle = the fill preview while dragging, else the selection.
+  const hi = fillBounds ?? bounds;
+
   // End the drag-selection on pointer release anywhere.
   useEffect(() => {
     if (!selecting) return;
@@ -100,6 +115,46 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     window.addEventListener("pointerup", onUp);
     return () => window.removeEventListener("pointerup", onUp);
   }, [selecting]);
+
+  // Apply the autofill when the handle drag ends anywhere on the page.
+  useEffect(() => {
+    if (!fillBase) return;
+    const onUp = () => {
+      if (fillBounds && fillTo) {
+        const baseRows = fillBase.r1 - fillBase.r0 + 1;
+        const baseCols = fillBase.c1 - fillBase.c0 + 1;
+        const cells: {
+          agentId: string;
+          dayIndex: number;
+          code: string | null;
+        }[] = [];
+        for (let r = fillBounds.r0; r <= fillBounds.r1 && r < agents.length; r++) {
+          for (
+            let c = fillBounds.c0;
+            c <= fillBounds.c1 && c < indices.length;
+            c++
+          ) {
+            if (r <= fillBase.r1 && c <= fillBase.c1) continue; // keep base
+            const sr = fillBase.r0 + ((r - fillBase.r0) % baseRows);
+            const sc = fillBase.c0 + ((c - fillBase.c0) % baseCols);
+            const sv = planning[agents[sr].id]?.[indices[sc]];
+            cells.push({
+              agentId: agents[r].id,
+              dayIndex: indices[c],
+              code: sv ?? null,
+            });
+          }
+        }
+        if (cells.length) pasteBlock(cells);
+        setSel(fillBounds);
+      }
+      setFillBase(null);
+      setFillTo(null);
+    };
+    window.addEventListener("pointerup", onUp);
+    return () => window.removeEventListener("pointerup", onUp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fillBase, fillBounds, fillTo, agents, indices, planning, pasteBlock]);
 
   // Shared copy/paste logic used by both keyboard shortcuts and the mouse menu.
   const copySelection = () => {
