@@ -12,7 +12,7 @@ import {
 } from "@/lib/planning/calc";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
 import { exportStyledMonthExcel } from "@/lib/planning/excel";
 import { exportElementToPdf, type PdfFormat } from "@/lib/planning/pdf";
