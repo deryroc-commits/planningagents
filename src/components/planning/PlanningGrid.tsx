@@ -47,6 +47,15 @@ export function PlanningGrid({ month }: PlanningGridProps) {
   const clipboard = useRef<(string | undefined)[][] | null>(null);
   // Right-click context menu (mouse copy/paste).
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  // Excel-style autofill: drag the small handle at the bottom-right of the
+  // selection to copy the selected block onto adjacent days / agents.
+  const [fillBase, setFillBase] = useState<{
+    r0: number;
+    c0: number;
+    r1: number;
+    c1: number;
+  } | null>(null);
+  const [fillTo, setFillTo] = useState<{ r: number; c: number } | null>(null);
 
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
@@ -84,6 +93,21 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     };
   }, [sel]);
 
+  // Rectangle currently covered by an in-progress autofill drag (grows only
+  // downward / rightward from the selection block).
+  const fillBounds = useMemo(() => {
+    if (!fillBase || !fillTo) return null;
+    return {
+      r0: fillBase.r0,
+      c0: fillBase.c0,
+      r1: Math.max(fillBase.r1, fillTo.r),
+      c1: Math.max(fillBase.c1, fillTo.c),
+    };
+  }, [fillBase, fillTo]);
+
+  // Highlighted rectangle = the fill preview while dragging, else the selection.
+  const hi = fillBounds ?? bounds;
+
   // End the drag-selection on pointer release anywhere.
   useEffect(() => {
     if (!selecting) return;
@@ -91,6 +115,46 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     window.addEventListener("pointerup", onUp);
     return () => window.removeEventListener("pointerup", onUp);
   }, [selecting]);
+
+  // Apply the autofill when the handle drag ends anywhere on the page.
+  useEffect(() => {
+    if (!fillBase) return;
+    const onUp = () => {
+      if (fillBounds && fillTo) {
+        const baseRows = fillBase.r1 - fillBase.r0 + 1;
+        const baseCols = fillBase.c1 - fillBase.c0 + 1;
+        const cells: {
+          agentId: string;
+          dayIndex: number;
+          code: string | null;
+        }[] = [];
+        for (let r = fillBounds.r0; r <= fillBounds.r1 && r < agents.length; r++) {
+          for (
+            let c = fillBounds.c0;
+            c <= fillBounds.c1 && c < indices.length;
+            c++
+          ) {
+            if (r <= fillBase.r1 && c <= fillBase.c1) continue; // keep base
+            const sr = fillBase.r0 + ((r - fillBase.r0) % baseRows);
+            const sc = fillBase.c0 + ((c - fillBase.c0) % baseCols);
+            const sv = planning[agents[sr].id]?.[indices[sc]];
+            cells.push({
+              agentId: agents[r].id,
+              dayIndex: indices[c],
+              code: sv ?? null,
+            });
+          }
+        }
+        if (cells.length) pasteBlock(cells);
+        setSel(fillBounds);
+      }
+      setFillBase(null);
+      setFillTo(null);
+    };
+    window.addEventListener("pointerup", onUp);
+    return () => window.removeEventListener("pointerup", onUp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fillBase, fillBounds, fillTo, agents, indices, planning, pasteBlock]);
 
   // Shared copy/paste logic used by both keyboard shortcuts and the mouse menu.
   const copySelection = () => {
@@ -261,15 +325,20 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                   const style = invalid ? undefined : codeInlineStyle(codeDef);
                   const changed = !!changes[`${a.id}:${i}`];
                   const selected =
+                    hi &&
+                    r >= hi.r0 &&
+                    r <= hi.r1 &&
+                    col >= hi.c0 &&
+                    col <= hi.c1;
+                  const isFillCorner =
                     bounds &&
-                    r >= bounds.r0 &&
-                    r <= bounds.r1 &&
-                    col >= bounds.c0 &&
-                    col <= bounds.c1;
+                    !fillBase &&
+                    r === bounds.r1 &&
+                    col === bounds.c1;
                   return (
                     <td
                       key={i}
-                      className="border-b border-r border-border p-0"
+                      className="relative border-b border-r border-border p-0"
                     >
                       <button
                         type="button"
@@ -286,6 +355,10 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                           setSelecting(true);
                         }}
                         onPointerEnter={() => {
+                          if (fillBase) {
+                            setFillTo({ r, c: col });
+                            return;
+                          }
                           if (!selecting) return;
                           movedRef.current = true;
                           setSel((s) =>
@@ -316,6 +389,22 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                       >
                         {value ?? ""}
                       </button>
+                      {isFillCorner && (
+                        <span
+                          role="button"
+                          aria-label="Recopier vers le bas / la droite"
+                          title="Glisser pour recopier"
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (bounds) {
+                              setFillBase(bounds);
+                              setFillTo({ r: bounds.r1, c: bounds.c1 });
+                            }
+                          }}
+                          className="absolute -bottom-[3px] -right-[3px] z-10 size-2 cursor-crosshair rounded-[1px] border border-background bg-primary"
+                        />
+                      )}
                     </td>
                   );
                 })}
