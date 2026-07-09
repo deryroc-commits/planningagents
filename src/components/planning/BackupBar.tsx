@@ -32,6 +32,7 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
   const { snapshotState, restoreFullState } = usePlanning();
   const [backups, setBackups] = useState<Backup[]>([]);
   const [restoreOpen, setRestoreOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -46,10 +47,11 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
     setTimeout(() => setStatus(null), 4000);
   };
 
-  const onSave = () => {
+  const confirmSave = () => {
     const list = createBackup(scope, snapshotState(), label);
     setBackups(list);
     setLabel("");
+    setSaveOpen(false);
     flash(`Sauvegarde créée le ${formatBackupDate(list[0].at)}.`);
   };
 
@@ -81,18 +83,6 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
         <History className="size-4" />{" "}
         {scope === "params" ? "Sauvegardes paramètres" : "Sauvegardes planning"}
       </span>
-      <Input
-        value={label}
-        onChange={(e) => setLabel(e.target.value)}
-        placeholder="Nom (optionnel)"
-        className="h-8 w-44"
-        onKeyDown={(e) => {
-          if (e.key === "Enter") onSave();
-        }}
-      />
-      <Button size="sm" onClick={onSave}>
-        <Save /> Sauvegarder
-      </Button>
       <Button
         size="sm"
         variant="outline"
@@ -106,7 +96,41 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
           <span className="ml-1 rounded bg-muted px-1.5 text-xs">{backups.length}</span>
         )}
       </Button>
+      <Button size="sm" onClick={() => setSaveOpen(true)}>
+        <Save /> Sauvegarder
+      </Button>
       {status && <span className="text-sm text-muted-foreground">{status}</span>}
+
+      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Sauvegarder {scope === "params" ? "les paramètres" : "le planning"}
+            </DialogTitle>
+            <DialogDescription>
+              Donnez un nom personnalisé à cette sauvegarde, ou laissez vide pour
+              utiliser la date seule.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            autoFocus
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Nom (optionnel)"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") confirmSave();
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={confirmSave}>
+              <Save /> Sauvegarder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={restoreOpen} onOpenChange={setRestoreOpen}>
         <DialogContent>
