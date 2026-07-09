@@ -579,23 +579,6 @@ export function RotationTab() {
           </span>
         )}
       </section>
-
-      {active && (
-        <CodePicker
-          anchor={active.rect}
-          codes={codes}
-          current={
-            getAgentTemplate(rotation, active.agentId)[active.week]?.[
-              active.day
-            ] || undefined
-          }
-          onSelect={(code) => {
-            setTplCell(active.agentId, active.week, active.day, code);
-            setActive(null);
-          }}
-          onClose={() => setActive(null)}
-        />
-      )}
     </div>
   );
 }
