@@ -198,7 +198,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
           </tr>
         </thead>
         <tbody>
-          {agents.map((a) => {
+          {agents.map((a, r) => {
             const row = planning[a.id] ?? {};
             const monthH = agentHoursForIndices(planning, a.id, indices, map);
             const yearH = agentYearHours(planning, a.id, year, map);
