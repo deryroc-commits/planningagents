@@ -211,8 +211,21 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
                     >
                       <Pencil />
                     </Button>
-                    <Button size="sm" onClick={() => onRestore(b)}>
-                      Restaurer
+                    {scope === "rotation" && (
+                      <Button
+                        size="sm"
+                        onClick={() => onRestoreYearRotation(b)}
+                        title={`Ne restaurer que le roulement de ${year} (les autres années sont préservées)`}
+                      >
+                        Roulement {year}
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant={scope === "rotation" ? "outline" : "default"}
+                      onClick={() => onRestore(b)}
+                    >
+                      {scope === "rotation" ? "Tout restaurer" : "Restaurer"}
                     </Button>
                     <Button
                       size="icon"
