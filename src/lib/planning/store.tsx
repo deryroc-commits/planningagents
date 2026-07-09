@@ -97,6 +97,12 @@ interface PlanningContextValue {
   snapshotState: () => PlanningState;
   /** Replace the ENTIRE application state (restore a backup). */
   restoreFullState: (s: PlanningState) => void;
+  /**
+   * Restore only the rotation of the currently selected year from a backup.
+   * Every other year and all other data are left untouched, so restoring one
+   * year's rotation never overwrites the other years' history.
+   */
+  restoreYearRotation: (s: PlanningState) => void;
   resetAll: () => void;
   clearPlanning: () => void;
   clearYear: (year: number) => void;
@@ -833,6 +839,24 @@ export function PlanningProvider({
     });
   }, []);
 
+  const restoreYearRotation = useCallback(
+    (s: PlanningState) => {
+      setState((prev) => {
+        // Take the backup's effective rotation for the selected year (its
+        // year-specific copy, or the backup's shared base) and write it into
+        // this year only, leaving every other year and all other data intact.
+        const rot = normalizeRotation(
+          s.rotationByYear?.[year] ?? s.rotation ?? DEFAULT_ROTATION,
+        );
+        return {
+          ...prev,
+          rotationByYear: { ...prev.rotationByYear, [year]: rot },
+        };
+      });
+    },
+    [year],
+  );
+
   const resetAll = useCallback(() => {
     setState({
       catalogVersion: DEFAULT_CATALOG_VERSION,
@@ -1066,6 +1090,7 @@ export function PlanningProvider({
       replaceState,
       snapshotState,
       restoreFullState,
+      restoreYearRotation,
       resetAll,
       clearPlanning,
       clearYear,
@@ -1107,6 +1132,7 @@ export function PlanningProvider({
       replaceState,
       snapshotState,
       restoreFullState,
+      restoreYearRotation,
       resetAll,
       clearPlanning,
       clearYear,

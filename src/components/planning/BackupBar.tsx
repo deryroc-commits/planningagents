@@ -29,7 +29,8 @@ import {
  * have their own independent list of saves.
  */
 export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
-  const { snapshotState, restoreFullState } = usePlanning();
+  const { year, snapshotState, restoreFullState, restoreYearRotation } =
+    usePlanning();
   const [backups, setBackups] = useState<Backup[]>([]);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
@@ -59,6 +60,12 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
     restoreFullState(b.state);
     setRestoreOpen(false);
     flash(`Sauvegarde du ${formatBackupDate(b.at)} restaurée.`);
+  };
+
+  const onRestoreYearRotation = (b: Backup) => {
+    restoreYearRotation(b.state);
+    setRestoreOpen(false);
+    flash(`Roulement ${year} restauré depuis le ${formatBackupDate(b.at)}.`);
   };
 
   const onDelete = (id: string) => {
@@ -146,8 +153,9 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
           <DialogHeader>
             <DialogTitle>Restaurer une sauvegarde</DialogTitle>
             <DialogDescription>
-              Choisissez une sauvegarde datée. La restauration remplace l'ensemble des
-              données et de la mise en forme actuelles.
+              {scope === "rotation"
+                ? `Choisissez une sauvegarde datée. « Roulement ${year} » ne restaure que le roulement de l'année sélectionnée (les autres années sont préservées) ; « Tout restaurer » remplace l'ensemble des données.`
+                : "Choisissez une sauvegarde datée. La restauration remplace l'ensemble des données et de la mise en forme actuelles."}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[50vh] space-y-2 overflow-auto py-1">
@@ -204,8 +212,21 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
                     >
                       <Pencil />
                     </Button>
-                    <Button size="sm" onClick={() => onRestore(b)}>
-                      Restaurer
+                    {scope === "rotation" && (
+                      <Button
+                        size="sm"
+                        onClick={() => onRestoreYearRotation(b)}
+                        title={`Ne restaurer que le roulement de ${year} (les autres années sont préservées)`}
+                      >
+                        Roulement {year}
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant={scope === "rotation" ? "outline" : "default"}
+                      onClick={() => onRestore(b)}
+                    >
+                      {scope === "rotation" ? "Tout restaurer" : "Restaurer"}
                     </Button>
                     <Button
                       size="icon"
