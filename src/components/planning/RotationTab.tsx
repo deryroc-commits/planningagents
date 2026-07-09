@@ -31,16 +31,8 @@ import {
   getAgentTemplate,
 } from "@/lib/planning/rotation";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
-import { CodePicker } from "./CodePicker";
-import { BackupBar } from "./BackupBar";
 import { RotationBaseGrid } from "./RotationBaseGrid";
 
-interface ActiveCell {
-  agentId: string;
-  week: number;
-  day: number;
-  rect: DOMRect;
-}
 
 const CYCLE_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12];
 
