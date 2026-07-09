@@ -1085,6 +1085,8 @@ export function PlanningProvider({
       resetColors,
       rotation,
       setRotation,
+      rotationYearSpecific,
+      setRotationYearSpecific,
       applyRotation,
     }),
     [
