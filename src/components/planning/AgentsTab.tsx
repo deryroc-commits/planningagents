@@ -327,101 +327,99 @@ export function AgentsTab() {
             <div className="space-y-4">
               {/* Arrival */}
               <div className="rounded-lg border border-border p-3">
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <Checkbox
+                    checked={dArrEnabled}
+                    onCheckedChange={(v) => setDArrEnabled(v === true)}
+                  />
                   <LogIn className="size-4" /> Arrivée à partir de
-                </div>
-                <div className="flex flex-wrap items-end gap-2">
-                  <Select
-                    value={String(dArrMonth)}
-                    onValueChange={(v) => setDArrMonth(Number(v))}
-                  >
-                    <SelectTrigger className="w-36">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MONTHS.map((m, i) => (
-                        <SelectItem key={m} value={String(i)}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={String(dArrYear)}
-                    onValueChange={(v) => setDArrYear(Number(v))}
-                  >
-                    <SelectTrigger className="w-28">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map((y) => (
-                        <SelectItem key={y} value={String(y)}>
-                          {y}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={applyArrival}>Enregistrer l'arrivée</Button>
-                </div>
-                {dialogAgent && arrivalLabel(dialogAgent) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                    onClick={clearArrival}
-                  >
-                    <X className="size-4" /> Retirer l'arrivée (présent tout de suite)
-                  </Button>
+                </label>
+                {dArrEnabled ? (
+                  <div className="flex flex-wrap items-end gap-2">
+                    <Select
+                      value={String(dArrMonth)}
+                      onValueChange={(v) => setDArrMonth(Number(v))}
+                    >
+                      <SelectTrigger className="w-36">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MONTHS.map((m, i) => (
+                          <SelectItem key={m} value={String(i)}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={String(dArrYear)}
+                      onValueChange={(v) => setDArrYear(Number(v))}
+                    >
+                      <SelectTrigger className="w-28">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((y) => (
+                          <SelectItem key={y} value={String(y)}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    Présent tout de suite (aucune date d'arrivée).
+                  </span>
                 )}
               </div>
 
               {/* Departure */}
               <div className="rounded-lg border border-border p-3">
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <Checkbox
+                    checked={depEnabled}
+                    onCheckedChange={(v) => setDepEnabled(v === true)}
+                  />
                   <LogOut className="size-4" /> Départ à partir de
-                </div>
-                <div className="flex flex-wrap items-end gap-2">
-                  <Select
-                    value={String(depMonth)}
-                    onValueChange={(v) => setDepMonth(Number(v))}
-                  >
-                    <SelectTrigger className="w-36">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MONTHS.map((m, i) => (
-                        <SelectItem key={m} value={String(i)}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={String(depYear)}
-                    onValueChange={(v) => setDepYear(Number(v))}
-                  >
-                    <SelectTrigger className="w-28">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map((y) => (
-                        <SelectItem key={y} value={String(y)}>
-                          {y}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={applyDeparture}>Enregistrer le départ</Button>
-                </div>
-                {dialogAgent && departureLabel(dialogAgent) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                    onClick={clearDeparture}
-                  >
-                    <X className="size-4" /> Annuler le départ (présent ensuite)
-                  </Button>
+                </label>
+                {depEnabled ? (
+                  <div className="flex flex-wrap items-end gap-2">
+                    <Select
+                      value={String(depMonth)}
+                      onValueChange={(v) => setDepMonth(Number(v))}
+                    >
+                      <SelectTrigger className="w-36">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MONTHS.map((m, i) => (
+                          <SelectItem key={m} value={String(i)}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={String(depYear)}
+                      onValueChange={(v) => setDepYear(Number(v))}
+                    >
+                      <SelectTrigger className="w-28">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((y) => (
+                          <SelectItem key={y} value={String(y)}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    Présent ensuite (aucune date de départ).
+                  </span>
                 )}
               </div>
 
