@@ -360,6 +360,9 @@
   .planning-pdf-content {
     inset: 5mm;
   }
+  .planning-pdf-sheet {
+    transform: translate(var(--print-x, 0px), var(--print-y, 0px)) scale(var(--print-scale, 1)) !important;
+  }
   .planning-pdf-sheet,
   .planning-pdf-sheet table,
   .planning-pdf-sheet tr {
