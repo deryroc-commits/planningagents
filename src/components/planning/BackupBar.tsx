@@ -30,6 +30,8 @@ export function BackupBar() {
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [status, setStatus] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
 
   useEffect(() => {
     setBackups(loadBackups());
