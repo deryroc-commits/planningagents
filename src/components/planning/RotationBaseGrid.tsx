@@ -182,30 +182,39 @@ export function RotationBaseGrid({
   const pasteSelection = () => {
     if (!bounds) return;
     const block = clipboard.current;
-    if (!block) return;
+    if (!block || !block.length) return;
+    const blockRows = block.length;
+    const blockCols = block[0].length;
+    const selRows = bounds.r1 - bounds.r0 + 1;
+    const selCols = bounds.c1 - bounds.c0 + 1;
+    // When several cells are selected, tile the copied block to fill the whole
+    // selection (Excel behaviour: 1 copied cell fills the entire selection).
+    const multi = selRows > 1 || selCols > 1;
+    const spanRows = multi ? Math.max(selRows, blockRows) : blockRows;
+    const spanCols = multi ? Math.max(selCols, blockCols) : blockCols;
     const cells: {
       agentId: string;
       week: number;
       day: number;
       code: string | null;
     }[] = [];
-    for (let dr = 0; dr < block.length; dr++) {
+    for (let dr = 0; dr < spanRows; dr++) {
       const r = bounds.r0 + dr;
       if (r >= agents.length) break;
-      for (let dc = 0; dc < block[dr].length; dc++) {
+      for (let dc = 0; dc < spanCols; dc++) {
         const c = bounds.c0 + dc;
         if (c >= cols) break;
         cells.push({
           agentId: agents[r].id,
           week: weekOf(c),
           day: dayOf(c),
-          code: block[dr][dc] ?? null,
+          code: block[dr % blockRows][dc % blockCols] ?? null,
         });
       }
     }
     setCells(cells);
-    const lastR = Math.min(bounds.r0 + block.length - 1, agents.length - 1);
-    const lastC = Math.min(bounds.c0 + block[0].length - 1, cols - 1);
+    const lastR = Math.min(bounds.r0 + spanRows - 1, agents.length - 1);
+    const lastC = Math.min(bounds.c0 + spanCols - 1, cols - 1);
     setSel({ r0: bounds.r0, c0: bounds.c0, r1: lastR, c1: lastC });
   };
 
