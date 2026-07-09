@@ -74,19 +74,8 @@ export function RotationTab() {
   };
 
 
-  const setTplCell = (
-    agentId: string,
-    week: number,
-    day: number,
-    code: string | null,
-  ) => {
-    const tpl = getAgentTemplate(rotation, agentId).map((r) => [...r]);
-    tpl[week][day] = code ?? "";
-    setRotation({
-      ...rotation,
-      agentTemplates: { ...rotation.agentTemplates, [agentId]: tpl },
-    });
-  };
+
+
 
   const clearAgent = (agentId: string) => {
     const next = { ...rotation.agentTemplates };
