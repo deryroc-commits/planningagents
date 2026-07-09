@@ -8,6 +8,7 @@ import {
   loadBackups,
   renameBackup,
   type Backup,
+  type BackupScope,
 } from "@/lib/planning/backups";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,8 +24,11 @@ import {
 /**
  * Save / restore bar: create a dated backup of the full application state
  * (data + colors/formatting) and restore any previous one from a dated list.
+ *
+ * Backups are kept per `scope` so the Planning tab and the Paramètres tab each
+ * have their own independent list of saves.
  */
-export function BackupBar() {
+export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
   const { snapshotState, restoreFullState } = usePlanning();
   const [backups, setBackups] = useState<Backup[]>([]);
   const [restoreOpen, setRestoreOpen] = useState(false);
@@ -34,8 +38,8 @@ export function BackupBar() {
   const [editLabel, setEditLabel] = useState("");
 
   useEffect(() => {
-    setBackups(loadBackups());
-  }, []);
+    setBackups(loadBackups(scope));
+  }, [scope]);
 
   const flash = (msg: string) => {
     setStatus(msg);
@@ -43,7 +47,7 @@ export function BackupBar() {
   };
 
   const onSave = () => {
-    const list = createBackup(snapshotState(), label);
+    const list = createBackup(scope, snapshotState(), label);
     setBackups(list);
     setLabel("");
     flash(`Sauvegarde créée le ${formatBackupDate(list[0].at)}.`);
@@ -56,7 +60,7 @@ export function BackupBar() {
   };
 
   const onDelete = (id: string) => {
-    setBackups(deleteBackup(id));
+    setBackups(deleteBackup(scope, id));
   };
 
   const startRename = (b: Backup) => {
@@ -66,7 +70,7 @@ export function BackupBar() {
 
   const saveRename = () => {
     if (!editingId) return;
-    setBackups(renameBackup(editingId, editLabel));
+    setBackups(renameBackup(scope, editingId, editLabel));
     setEditingId(null);
     setEditLabel("");
   };
@@ -74,7 +78,8 @@ export function BackupBar() {
   return (
     <div className="no-print flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card/60 p-2">
       <span className="mr-1 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-        <History className="size-4" /> Sauvegardes
+        <History className="size-4" />{" "}
+        {scope === "params" ? "Sauvegardes paramètres" : "Sauvegardes planning"}
       </span>
       <Input
         value={label}
@@ -92,7 +97,7 @@ export function BackupBar() {
         size="sm"
         variant="outline"
         onClick={() => {
-          setBackups(loadBackups());
+          setBackups(loadBackups(scope));
           setRestoreOpen(true);
         }}
       >

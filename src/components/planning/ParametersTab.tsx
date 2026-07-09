@@ -75,7 +75,7 @@ export function ParametersTab() {
 
   return (
     <div className="space-y-4">
-      <BackupBar />
+      <BackupBar scope="params" />
 
       <div className="flex items-center justify-between">
         <div>

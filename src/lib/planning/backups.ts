@@ -1,8 +1,19 @@
 import type { PlanningState } from "./types";
 import { STORAGE_KEY } from "./defaults";
 
-/** localStorage key that holds the list of dated backups. */
+/**
+ * Backups are kept in separate lists per "scope" so the Planning tab and the
+ * Paramètres tab each have their own independent saves.
+ */
+export type BackupScope = "planning" | "params";
+
+/** localStorage key that holds the list of dated backups for a scope. */
 export const BACKUPS_KEY = `${STORAGE_KEY}:backups`;
+
+function keyFor(scope: BackupScope): string {
+  // Keep the historical key for the planning scope so existing backups survive.
+  return scope === "planning" ? BACKUPS_KEY : `${BACKUPS_KEY}:${scope}`;
+}
 
 /** Maximum number of backups kept (oldest are dropped beyond this). */
 export const MAX_BACKUPS = 40;
@@ -18,11 +29,11 @@ export interface Backup {
   state: PlanningState;
 }
 
-/** Read all backups (most recent first). */
-export function loadBackups(): Backup[] {
+/** Read all backups (most recent first) for a scope. */
+export function loadBackups(scope: BackupScope): Backup[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(BACKUPS_KEY);
+    const raw = window.localStorage.getItem(keyFor(scope));
     if (!raw) return [];
     const parsed = JSON.parse(raw) as Backup[];
     if (!Array.isArray(parsed)) return [];
@@ -32,16 +43,20 @@ export function loadBackups(): Backup[] {
   }
 }
 
-function persist(list: Backup[]) {
+function persist(scope: BackupScope, list: Backup[]) {
   try {
-    window.localStorage.setItem(BACKUPS_KEY, JSON.stringify(list));
+    window.localStorage.setItem(keyFor(scope), JSON.stringify(list));
   } catch {
     /* ignore quota errors */
   }
 }
 
 /** Create a new backup from the given state; returns the updated list. */
-export function createBackup(state: PlanningState, label?: string): Backup[] {
+export function createBackup(
+  scope: BackupScope,
+  state: PlanningState,
+  label?: string,
+): Backup[] {
   const backup: Backup = {
     id: `bk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     at: Date.now(),
@@ -49,24 +64,28 @@ export function createBackup(state: PlanningState, label?: string): Backup[] {
     // Deep clone so later edits never mutate the stored snapshot.
     state: JSON.parse(JSON.stringify(state)) as PlanningState,
   };
-  const list = [backup, ...loadBackups()].slice(0, MAX_BACKUPS);
-  persist(list);
+  const list = [backup, ...loadBackups(scope)].slice(0, MAX_BACKUPS);
+  persist(scope, list);
   return list;
 }
 
 /** Delete one backup by id; returns the updated list. */
-export function deleteBackup(id: string): Backup[] {
-  const list = loadBackups().filter((b) => b.id !== id);
-  persist(list);
+export function deleteBackup(scope: BackupScope, id: string): Backup[] {
+  const list = loadBackups(scope).filter((b) => b.id !== id);
+  persist(scope, list);
   return list;
 }
 
 /** Rename one backup by id; returns the updated list. */
-export function renameBackup(id: string, label: string): Backup[] {
-  const list = loadBackups().map((b) =>
+export function renameBackup(
+  scope: BackupScope,
+  id: string,
+  label: string,
+): Backup[] {
+  const list = loadBackups(scope).map((b) =>
     b.id === id ? { ...b, label: label.trim() || undefined } : b,
   );
-  persist(list);
+  persist(scope, list);
   return list;
 }
 
