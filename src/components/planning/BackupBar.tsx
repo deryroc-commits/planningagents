@@ -96,7 +96,7 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
         size="sm"
         variant="outline"
         onClick={() => {
-          setBackups(loadBackups());
+          setBackups(loadBackups(scope));
           setRestoreOpen(true);
         }}
       >
