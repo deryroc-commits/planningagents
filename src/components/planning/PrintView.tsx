@@ -49,6 +49,8 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(1);
   const [previewOffset, setPreviewOffset] = useState({ x: 0, y: 0 });
+  const [printScale, setPrintScale] = useState(1);
+  const [printOffset, setPrintOffset] = useState({ x: 0, y: 0 });
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
@@ -101,6 +103,19 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
       y: Math.max(0, (contentRect.height - scaledHeight) / 2),
     });
     setPreviewScale(clamped);
+
+    // Compute a print-specific scale so the browser's native Print (Ctrl+P)
+    // fits the sheet to the A4 content box regardless of on-screen viewport.
+    // A4 landscape content box = 297mm x 210mm minus 5mm inset each side.
+    const MM = 96 / 25.4; // CSS px per mm
+    const printW = 287 * MM;
+    const printH = 200 * MM;
+    const pScale = Math.min(printW / sheetWidth, printH / sheetHeight);
+    setPrintScale(pScale);
+    setPrintOffset({
+      x: Math.max(0, (printW - sheetWidth * pScale) / 2),
+      y: Math.max(0, (printH - sheetHeight * pScale) / 2),
+    });
   }, []);
 
   useLayoutEffect(() => {
@@ -227,7 +242,10 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                 transform: `translate(${previewOffset.x}px, ${previewOffset.y}px) scale(${previewScale})`,
                 width: "1120px",
                 minWidth: "1120px",
-              }}
+                ["--print-x" as string]: `${printOffset.x}px`,
+                ["--print-y" as string]: `${printOffset.y}px`,
+                ["--print-scale" as string]: printScale,
+              } as React.CSSProperties}
             >
               <PlanningSheet
                 month={month}
