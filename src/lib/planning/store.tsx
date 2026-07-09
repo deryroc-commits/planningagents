@@ -80,6 +80,10 @@ interface PlanningContextValue {
     code: string | null,
   ) => void;
   fillRange: (agentId: string, indices: number[], code: string | null) => void;
+  /** Set many cells at once (used by range copy/paste). */
+  pasteBlock: (
+    cells: { agentId: string; dayIndex: number; code: string | null }[],
+  ) => void;
   // codes
   upsertCode: (code: PlanningCode, originalCode?: string) => void;
   removeCode: (code: string) => void;
