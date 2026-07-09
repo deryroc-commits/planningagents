@@ -121,7 +121,15 @@ interface PlanningContextValue {
   // rotation
   rotation: RotationState;
   setRotation: (r: RotationState) => void;
-  applyRotation: (mode: "replace" | "fill", fromDayIndex?: number) => number;
+  /** True when the current year uses its own rotation (vs the shared base). */
+  rotationYearSpecific: boolean;
+  /** Switch the current year between the shared base rotation and its own copy. */
+  setRotationYearSpecific: (specific: boolean) => void;
+  applyRotation: (
+    mode: "replace" | "fill",
+    fromDayIndex?: number,
+    toDayIndex?: number,
+  ) => number;
 }
 
 const PlanningContext = createContext<PlanningContextValue | null>(null);
