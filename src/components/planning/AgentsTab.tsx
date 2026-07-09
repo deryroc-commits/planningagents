@@ -460,9 +460,14 @@ export function AgentsTab() {
                 </Button>
               </>
             ) : (
-              <Button variant="outline" onClick={closeDialog}>
-                Fermer
-              </Button>
+              <>
+                <Button variant="outline" onClick={closeDialog}>
+                  Annuler
+                </Button>
+                <Button onClick={saveDialog}>
+                  <Save className="size-4" /> Enregistrer
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>
