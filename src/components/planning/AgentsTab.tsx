@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { CalendarX, LogOut, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { CalendarCheck, CalendarX, LogIn, LogOut, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
 import type { Agent } from "@/lib/planning/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+function arrivalLabel(a: Agent): string | null {
+  if (a.startYear == null || a.startMonth == null) return null;
+  return `${MONTHS[a.startMonth]} ${a.startYear}`;
+}
 function departureLabel(a: Agent): string | null {
   if (a.endYear == null || a.endMonth == null) return null;
   return `${MONTHS[a.endMonth]} ${a.endYear}`;
@@ -30,17 +35,25 @@ function departureLabel(a: Agent): string | null {
 export function AgentsTab() {
   const { agents, addAgent, updateAgent, removeAgent, yearRange } = usePlanning();
   const years = useSelectableYears(yearRange);
+  const now = new Date();
+
   const [editing, setEditing] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const [draftTeam, setDraftTeam] = useState("");
+
+  // Add form.
   const [newName, setNewName] = useState("");
   const [newTeam, setNewTeam] = useState("");
+  const [arrEnabled, setArrEnabled] = useState(false);
+  const [newArrMonth, setNewArrMonth] = useState(now.getMonth());
+  const [newArrYear, setNewArrYear] = useState(now.getFullYear());
 
-  // Departure / delete dialog state.
+  // Departure / arrival / delete dialog state.
   const [dialogAgent, setDialogAgent] = useState<Agent | null>(null);
-  const now = new Date();
   const [depMonth, setDepMonth] = useState(now.getMonth());
   const [depYear, setDepYear] = useState(now.getFullYear());
+  const [dArrMonth, setDArrMonth] = useState(now.getMonth());
+  const [dArrYear, setDArrYear] = useState(now.getFullYear());
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const startEdit = (id: string, name: string, team?: string) => {
@@ -59,9 +72,14 @@ export function AgentsTab() {
   };
   const addNew = () => {
     if (!newName.trim()) return;
-    addAgent({ name: newName.trim(), team: newTeam.trim() || undefined });
+    addAgent({
+      name: newName.trim(),
+      team: newTeam.trim() || undefined,
+      ...(arrEnabled ? { startYear: newArrYear, startMonth: newArrMonth } : {}),
+    });
     setNewName("");
     setNewTeam("");
+    setArrEnabled(false);
   };
 
   const openDialog = (a: Agent) => {
@@ -69,10 +87,22 @@ export function AgentsTab() {
     setConfirmDelete(false);
     setDepMonth(a.endMonth ?? now.getMonth());
     setDepYear(a.endYear ?? now.getFullYear());
+    setDArrMonth(a.startMonth ?? now.getMonth());
+    setDArrYear(a.startYear ?? now.getFullYear());
   };
   const closeDialog = () => {
     setDialogAgent(null);
     setConfirmDelete(false);
+  };
+  const applyArrival = () => {
+    if (!dialogAgent) return;
+    updateAgent(dialogAgent.id, { startYear: dArrYear, startMonth: dArrMonth });
+    closeDialog();
+  };
+  const clearArrival = () => {
+    if (!dialogAgent) return;
+    updateAgent(dialogAgent.id, { startYear: undefined, startMonth: undefined });
+    closeDialog();
   };
   const applyDeparture = () => {
     if (!dialogAgent) return;
@@ -99,32 +129,82 @@ export function AgentsTab() {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-card p-3">
-        <div className="flex-1 min-w-[180px]">
-          <label className="mb-1 block text-xs font-medium text-muted-foreground">
-            Nom de l'agent
-          </label>
-          <Input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addNew()}
-            placeholder="Nom Prénom"
-          />
+      <div className="space-y-3 rounded-lg border border-border bg-card p-3">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="flex-1 min-w-[180px]">
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Nom de l'agent
+            </label>
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addNew()}
+              placeholder="Nom Prénom"
+            />
+          </div>
+          <div className="flex-1 min-w-[160px]">
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Équipe (optionnel)
+            </label>
+            <Input
+              value={newTeam}
+              onChange={(e) => setNewTeam(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addNew()}
+              placeholder="Équipe A"
+            />
+          </div>
+          <Button onClick={addNew}>
+            <Plus /> Ajouter
+          </Button>
         </div>
-        <div className="flex-1 min-w-[160px]">
-          <label className="mb-1 block text-xs font-medium text-muted-foreground">
-            Équipe (optionnel)
+
+        <div className="flex flex-wrap items-center gap-3 rounded-md bg-muted/50 p-2">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <Checkbox
+              checked={arrEnabled}
+              onCheckedChange={(v) => setArrEnabled(v === true)}
+            />
+            Arrivée à partir d'un mois
           </label>
-          <Input
-            value={newTeam}
-            onChange={(e) => setNewTeam(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addNew()}
-            placeholder="Équipe A"
-          />
+          {arrEnabled ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={String(newArrMonth)}
+                onValueChange={(v) => setNewArrMonth(Number(v))}
+              >
+                <SelectTrigger className="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map((m, i) => (
+                    <SelectItem key={m} value={String(i)}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={String(newArrYear)}
+                onValueChange={(v) => setNewArrYear(Number(v))}
+              >
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <span className="text-sm text-muted-foreground">
+              Présent tout de suite (tous les mois).
+            </span>
+          )}
         </div>
-        <Button onClick={addNew}>
-          <Plus /> Ajouter
-        </Button>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-border bg-card">
@@ -133,12 +213,14 @@ export function AgentsTab() {
             <tr className="border-b border-border bg-muted text-left">
               <th className="px-3 py-2 font-medium">Nom</th>
               <th className="px-3 py-2 font-medium">Équipe</th>
+              <th className="px-3 py-2 font-medium">Arrivée</th>
               <th className="px-3 py-2 font-medium">Départ</th>
               <th className="px-3 py-2 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
             {agents.map((a) => {
+              const arr = arrivalLabel(a);
               const dep = departureLabel(a);
               return (
                 <tr key={a.id} className="border-b border-border last:border-0">
@@ -157,6 +239,9 @@ export function AgentsTab() {
                           onChange={(e) => setDraftTeam(e.target.value)}
                           className="h-8"
                         />
+                      </td>
+                      <td className="px-3 py-2 text-muted-foreground">
+                        {arr ?? "—"}
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">
                         {dep ?? "—"}
@@ -184,6 +269,15 @@ export function AgentsTab() {
                         {a.team ?? "—"}
                       </td>
                       <td className="px-3 py-2">
+                        {arr ? (
+                          <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
+                            <CalendarCheck className="size-3.5" /> {arr}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
                         {dep ? (
                           <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
                             <CalendarX className="size-3.5" /> {dep}
@@ -206,7 +300,7 @@ export function AgentsTab() {
                             variant="ghost"
                             size="icon"
                             className="size-8 text-destructive hover:text-destructive"
-                            title="Départ / Suppression"
+                            title="Arrivée / Départ / Suppression"
                             onClick={() => openDialog(a)}
                           >
                             <Trash2 />
@@ -222,67 +316,107 @@ export function AgentsTab() {
         </table>
       </div>
 
-      {/* Departure / delete dialog */}
+      {/* Arrival / departure / delete dialog */}
       <Dialog open={!!dialogAgent} onOpenChange={(o) => !o && closeDialog()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {dialogAgent?.name}
-            </DialogTitle>
+            <DialogTitle>{dialogAgent?.name}</DialogTitle>
             <DialogDescription>
-              Enregistrer un départ conserve le planning des mois précédents et
-              masque l'agent à partir du mois choisi (et pour les années
-              suivantes). La suppression définitive efface tout son planning.
+              L'arrivée masque l'agent avant le mois choisi ; le départ le masque
+              à partir du mois choisi (et les années suivantes). Les mois hors de
+              cette période restent vides et l'historique est conservé. La
+              suppression définitive efface tout son planning.
             </DialogDescription>
           </DialogHeader>
 
           {!confirmDelete ? (
             <div className="space-y-4">
+              {/* Arrival */}
+              <div className="rounded-lg border border-border p-3">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <LogIn className="size-4" /> Arrivée à partir de
+                </div>
+                <div className="flex flex-wrap items-end gap-2">
+                  <Select
+                    value={String(dArrMonth)}
+                    onValueChange={(v) => setDArrMonth(Number(v))}
+                  >
+                    <SelectTrigger className="w-36">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MONTHS.map((m, i) => (
+                        <SelectItem key={m} value={String(i)}>
+                          {m}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={String(dArrYear)}
+                    onValueChange={(v) => setDArrYear(Number(v))}
+                  >
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map((y) => (
+                        <SelectItem key={y} value={String(y)}>
+                          {y}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={applyArrival}>Enregistrer l'arrivée</Button>
+                </div>
+                {dialogAgent && arrivalLabel(dialogAgent) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-2"
+                    onClick={clearArrival}
+                  >
+                    <X className="size-4" /> Retirer l'arrivée (présent tout de suite)
+                  </Button>
+                )}
+              </div>
+
+              {/* Departure */}
               <div className="rounded-lg border border-border p-3">
                 <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
                   <LogOut className="size-4" /> Départ à partir de
                 </div>
                 <div className="flex flex-wrap items-end gap-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-muted-foreground">
-                      Mois
-                    </label>
-                    <Select
-                      value={String(depMonth)}
-                      onValueChange={(v) => setDepMonth(Number(v))}
-                    >
-                      <SelectTrigger className="w-36">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MONTHS.map((m, i) => (
-                          <SelectItem key={m} value={String(i)}>
-                            {m}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-muted-foreground">
-                      Année
-                    </label>
-                    <Select
-                      value={String(depYear)}
-                      onValueChange={(v) => setDepYear(Number(v))}
-                    >
-                      <SelectTrigger className="w-28">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {years.map((y) => (
-                          <SelectItem key={y} value={String(y)}>
-                            {y}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Select
+                    value={String(depMonth)}
+                    onValueChange={(v) => setDepMonth(Number(v))}
+                  >
+                    <SelectTrigger className="w-36">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MONTHS.map((m, i) => (
+                        <SelectItem key={m} value={String(i)}>
+                          {m}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={String(depYear)}
+                    onValueChange={(v) => setDepYear(Number(v))}
+                  >
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map((y) => (
+                        <SelectItem key={y} value={String(y)}>
+                          {y}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Button onClick={applyDeparture}>Enregistrer le départ</Button>
                 </div>
                 {dialogAgent && departureLabel(dialogAgent) && (
@@ -292,7 +426,7 @@ export function AgentsTab() {
                     className="mt-2"
                     onClick={clearDeparture}
                   >
-                    <X className="size-4" /> Annuler le départ (rendre présent partout)
+                    <X className="size-4" /> Annuler le départ (présent ensuite)
                   </Button>
                 )}
               </div>

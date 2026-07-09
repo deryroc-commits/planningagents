@@ -20,6 +20,13 @@ export interface Agent {
   name: string;
   team?: string;
   /**
+   * Optional arrival (absolute, continues into following years). When set, the
+   * agent is hidden from the planning before `startMonth` (0-11) of
+   * `startYear`, so earlier months stay empty (the agent wasn't there yet).
+   */
+  startYear?: number;
+  startMonth?: number;
+  /**
    * Optional departure (absolute, continues into following years). When set,
    * the agent is hidden from the planning starting from `endMonth` (0-11) of
    * `endYear`, and hidden entirely for every following year. Months before the
@@ -31,18 +38,24 @@ export interface Agent {
 
 /**
  * Whether an agent should appear in the planning for a given year/month.
- * An agent with a departure date is hidden from that month onward and for all
- * subsequent years, while earlier months stay visible (history preserved).
+ * An agent is visible only within its optional arrival→departure window:
+ * hidden before the arrival month and from the departure month onward (both
+ * absolute and continuing across following years), so history is preserved.
  */
 export function isAgentActiveInMonth(
-  agent: Pick<Agent, "endYear" | "endMonth">,
+  agent: Pick<Agent, "startYear" | "startMonth" | "endYear" | "endMonth">,
   year: number,
   month: number,
 ): boolean {
-  if (agent.endYear == null || agent.endMonth == null) return true;
-  if (year < agent.endYear) return true;
-  if (year > agent.endYear) return false;
-  return month < agent.endMonth;
+  if (agent.startYear != null && agent.startMonth != null) {
+    if (year < agent.startYear) return false;
+    if (year === agent.startYear && month < agent.startMonth) return false;
+  }
+  if (agent.endYear != null && agent.endMonth != null) {
+    if (year > agent.endYear) return false;
+    if (year === agent.endYear && month >= agent.endMonth) return false;
+  }
+  return true;
 }
 
 /** Keys for every colorable element shown in the legend. */
