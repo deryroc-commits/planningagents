@@ -47,6 +47,15 @@ export function PlanningGrid({ month }: PlanningGridProps) {
   const clipboard = useRef<(string | undefined)[][] | null>(null);
   // Right-click context menu (mouse copy/paste).
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  // Excel-style autofill: drag the small handle at the bottom-right of the
+  // selection to copy the selected block onto adjacent days / agents.
+  const [fillBase, setFillBase] = useState<{
+    r0: number;
+    c0: number;
+    r1: number;
+    c1: number;
+  } | null>(null);
+  const [fillTo, setFillTo] = useState<{ r: number; c: number } | null>(null);
 
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
