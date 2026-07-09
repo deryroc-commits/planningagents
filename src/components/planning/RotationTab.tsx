@@ -433,112 +433,18 @@ export function RotationTab() {
           Les {cycle} semaines de base — 1 week-end sur {cycle}
         </h3>
         <p className="text-sm text-muted-foreground">
-          Cliquez sur une case pour choisir un code. Utilisez l'ascenseur
-          horizontal pour parcourir les {cycle} semaines. Colonnes S/D =
-          week-ends.
+          Cliquez sur une case pour choisir un code. Sélectionnez un bloc à la
+          souris, copiez/collez (Ctrl/Cmd+C / V ou clic droit) et glissez la
+          poignée en bas à droite pour recopier — comme dans le planning.
         </p>
-        <div className="overflow-auto rounded-lg border border-border bg-card">
-          <table className="border-collapse text-xs">
-            <thead>
-              {/* Week band */}
-              <tr>
-                <th
-                  rowSpan={2}
-                  className="sticky left-0 z-20 min-w-[170px] border-b border-r border-border bg-muted px-3 py-1.5 text-left align-bottom font-semibold"
-                >
-                  Agents
-                </th>
-                {Array.from({ length: cycle }).map((_, w) => (
-                  <th
-                    key={w}
-                    colSpan={7}
-                    className={`border-b border-r-2 border-border px-2 py-1 text-center font-semibold ${
-                      w % 2 === 0 ? "bg-primary/15" : "bg-accent"
-                    }`}
-                  >
-                    Semaine {w + 1}
-                  </th>
-                ))}
-              </tr>
-              <tr className="bg-muted">
-                {Array.from({ length: cycle }).map((_, w) =>
-                  WEEK_DAYS.map((d, i) => (
-                    <th
-                      key={`${w}-${i}`}
-                      className={`min-w-[34px] border-b border-border px-1 py-1 text-center font-medium ${
-                        i === 6 ? "border-r-2" : "border-r"
-                      } ${i >= 5 ? "cell-weekend" : ""}`}
-                    >
-                      {d}
-                    </th>
-                  )),
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {groups.map((g) => (
-                <Fragment key={`team-${g.team}`}>
-                  <tr className="bg-muted/70">
-                    <td
-                      colSpan={cycle * 7 + 1}
-                      className="sticky left-0 border-b border-border px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-muted-foreground"
-                    >
-                      {g.team}
-                    </td>
-                  </tr>
-                  {g.agents.map((a) => {
-                    const tpl = getAgentTemplate(rotation, a.id);
-                    return (
-                      <tr key={a.id} className="hover:bg-muted/30">
-                        <td className="group sticky left-0 z-10 border-b border-r border-border bg-card px-3 py-1 font-medium">
-                          <span className="flex items-center justify-between gap-2">
-                            <span className="truncate">{a.name}</span>
-                            <button
-                              type="button"
-                              title="Vider ce roulement"
-                              onClick={() => clearAgent(a.id)}
-                              className="hidden text-[10px] text-muted-foreground hover:text-destructive group-hover:inline"
-                            >
-                              vider
-                            </button>
-                          </span>
-                        </td>
-                        {tpl.map((row, w) =>
-                          row.map((code, d) => (
-                            <td
-                              key={`${w}-${d}`}
-                              className={`border-b border-border p-0 ${
-                                d === 6 ? "border-r-2" : "border-r"
-                              }`}
-                            >
-                              <button
-                                type="button"
-                                onClick={(e) =>
-                                  setActive({
-                                    agentId: a.id,
-                                    week: w,
-                                    day: d,
-                                    rect: e.currentTarget.getBoundingClientRect(),
-                                  })
-                                }
-                                className={`h-7 w-full min-w-[34px] cursor-pointer text-center text-[11px] font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary ${
-                                  d >= 5 && !code ? "cell-weekend" : ""
-                                } ${cellClassFor(code)}`}
-                                style={cellStyleFor(code)}
-                              >
-                                {code || ""}
-                              </button>
-                            </td>
-                          )),
-                        )}
-                      </tr>
-                    );
-                  })}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <RotationBaseGrid
+          agents={agents}
+          groups={groups}
+          cycle={cycle}
+          rotation={rotation}
+          codes={codes}
+          setRotation={setRotation}
+        />
       </section>
 
       {/* Weekend preview */}
