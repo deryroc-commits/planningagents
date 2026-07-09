@@ -109,7 +109,12 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Sauvegarder {scope === "params" ? "les paramètres" : "le planning"}
+              Sauvegarder{" "}
+              {scope === "params"
+                ? "les paramètres"
+                : scope === "rotation"
+                  ? "le roulement"
+                  : "le planning"}
             </DialogTitle>
             <DialogDescription>
               Donnez un nom personnalisé à cette sauvegarde, ou laissez vide pour
