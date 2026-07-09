@@ -61,6 +61,15 @@ export function deleteBackup(id: string): Backup[] {
   return list;
 }
 
+/** Rename one backup by id; returns the updated list. */
+export function renameBackup(id: string, label: string): Backup[] {
+  const list = loadBackups().map((b) =>
+    b.id === id ? { ...b, label: label.trim() || undefined } : b,
+  );
+  persist(list);
+  return list;
+}
+
 /** Human-readable date/time for a backup (fr-FR). */
 export function formatBackupDate(at: number): string {
   return new Date(at).toLocaleString("fr-FR", {

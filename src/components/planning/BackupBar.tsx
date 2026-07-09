@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { History, RotateCcw, Save, Trash2 } from "lucide-react";
+import { Check, History, Pencil, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
   createBackup,
   deleteBackup,
   formatBackupDate,
   loadBackups,
+  renameBackup,
   type Backup,
 } from "@/lib/planning/backups";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,8 @@ export function BackupBar() {
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [status, setStatus] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
 
   useEffect(() => {
     setBackups(loadBackups());
@@ -54,6 +57,18 @@ export function BackupBar() {
 
   const onDelete = (id: string) => {
     setBackups(deleteBackup(id));
+  };
+
+  const startRename = (b: Backup) => {
+    setEditingId(b.id);
+    setEditLabel(b.label ?? "");
+  };
+
+  const saveRename = () => {
+    if (!editingId) return;
+    setBackups(renameBackup(editingId, editLabel));
+    setEditingId(null);
+    setEditLabel("");
   };
 
   return (
@@ -108,24 +123,63 @@ export function BackupBar() {
                 key={b.id}
                 className="flex items-center gap-2 rounded-lg border border-border p-2.5"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    {b.label || "Sauvegarde"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{formatBackupDate(b.at)}</p>
-                </div>
-                <Button size="sm" onClick={() => onRestore(b)}>
-                  Restaurer
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => onDelete(b.id)}
-                  aria-label="Supprimer la sauvegarde"
-                >
-                  <Trash2 />
-                </Button>
+                {editingId === b.id ? (
+                  <>
+                    <Input
+                      autoFocus
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      placeholder="Nom de la sauvegarde"
+                      className="h-8 flex-1"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveRename();
+                        if (e.key === "Escape") setEditingId(null);
+                      }}
+                    />
+                    <Button size="icon" onClick={saveRename} aria-label="Enregistrer le nom">
+                      <Check />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setEditingId(null)}
+                      aria-label="Annuler"
+                    >
+                      <X />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {b.label || "Sauvegarde"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatBackupDate(b.at)}
+                      </p>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => startRename(b)}
+                      aria-label="Renommer la sauvegarde"
+                    >
+                      <Pencil />
+                    </Button>
+                    <Button size="sm" onClick={() => onRestore(b)}>
+                      Restaurer
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      onClick={() => onDelete(b.id)}
+                      aria-label="Supprimer la sauvegarde"
+                    >
+                      <Trash2 />
+                    </Button>
+                  </>
+                )}
               </div>
             ))}
           </div>
