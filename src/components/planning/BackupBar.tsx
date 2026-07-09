@@ -62,6 +62,12 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
     flash(`Sauvegarde du ${formatBackupDate(b.at)} restaurée.`);
   };
 
+  const onRestoreYearRotation = (b: Backup) => {
+    restoreYearRotation(b.state);
+    setRestoreOpen(false);
+    flash(`Roulement ${year} restauré depuis le ${formatBackupDate(b.at)}.`);
+  };
+
   const onDelete = (id: string) => {
     setBackups(deleteBackup(scope, id));
   };
