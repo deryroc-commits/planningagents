@@ -32,6 +32,7 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
   const { snapshotState, restoreFullState } = usePlanning();
   const [backups, setBackups] = useState<Backup[]>([]);
   const [restoreOpen, setRestoreOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -46,10 +47,11 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
     setTimeout(() => setStatus(null), 4000);
   };
 
-  const onSave = () => {
+  const confirmSave = () => {
     const list = createBackup(scope, snapshotState(), label);
     setBackups(list);
     setLabel("");
+    setSaveOpen(false);
     flash(`Sauvegarde créée le ${formatBackupDate(list[0].at)}.`);
   };
 
