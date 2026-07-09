@@ -1,7 +1,9 @@
 import { Fragment, useMemo, useState } from "react";
-import { CalendarClock, Wand2, RotateCcw } from "lucide-react";
+import { CalendarClock, CalendarRange, Wand2, RotateCcw } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -14,7 +16,7 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
-import type { Agent } from "@/lib/planning/types";
+import type { Agent, RotationPeriod } from "@/lib/planning/types";
 import {
   MONTHS,
   codesMap,
@@ -28,7 +30,9 @@ import {
   codeForCell,
   getAgentTemplate,
 } from "@/lib/planning/rotation";
+import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { CodePicker } from "./CodePicker";
+import { BackupBar } from "./BackupBar";
 
 interface ActiveCell {
   agentId: string;
