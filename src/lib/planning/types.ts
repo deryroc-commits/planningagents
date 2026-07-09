@@ -19,6 +19,30 @@ export interface Agent {
   id: string;
   name: string;
   team?: string;
+  /**
+   * Optional departure (absolute, continues into following years). When set,
+   * the agent is hidden from the planning starting from `endMonth` (0-11) of
+   * `endYear`, and hidden entirely for every following year. Months before the
+   * departure keep their history untouched.
+   */
+  endYear?: number;
+  endMonth?: number;
+}
+
+/**
+ * Whether an agent should appear in the planning for a given year/month.
+ * An agent with a departure date is hidden from that month onward and for all
+ * subsequent years, while earlier months stay visible (history preserved).
+ */
+export function isAgentActiveInMonth(
+  agent: Pick<Agent, "endYear" | "endMonth">,
+  year: number,
+  month: number,
+): boolean {
+  if (agent.endYear == null || agent.endMonth == null) return true;
+  if (year < agent.endYear) return true;
+  if (year > agent.endYear) return false;
+  return month < agent.endMonth;
 }
 
 /** Keys for every colorable element shown in the legend. */

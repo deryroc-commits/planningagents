@@ -12,7 +12,7 @@ import {
 } from "@/lib/planning/calc";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
 import type { Agent } from "@/lib/planning/types";
 import { exportStyledMonthExcel } from "@/lib/planning/excel";
 import { exportElementToPdf, type PdfFormat } from "@/lib/planning/pdf";
@@ -64,16 +64,18 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   );
 
   // Group agents by team, preserving order — inserts a section band per team.
+  // Agents who have left (departure date) are excluded from this month onward.
   const groups = useMemo(() => {
     const out: { team: string; agents: Agent[] }[] = [];
     for (const a of agents) {
+      if (!isAgentActiveInMonth(a, year, month)) continue;
       const team = a.team?.trim() || "Sans équipe";
       const last = out[out.length - 1];
       if (last && last.team === team) last.agents.push(a);
       else out.push({ team, agents: [a] });
     }
     return out;
-  }, [agents]);
+  }, [agents, year, month]);
 
   const colCount = indices.length + 1;
 

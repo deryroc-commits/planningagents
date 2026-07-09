@@ -14,7 +14,7 @@ import {
   isInvalid,
   isWeekend,
 } from "@/lib/planning/calc";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
 import { CodePicker } from "./CodePicker";
 
 interface PlanningGridProps {
@@ -28,7 +28,7 @@ interface ActiveCell {
 }
 
 export function PlanningGrid({ month }: PlanningGridProps) {
-  const { year, agents, codes, planning, changes, setCell, pasteBlock } =
+  const { year, agents: allAgents, codes, planning, changes, setCell, pasteBlock } =
     usePlanning();
   const [active, setActive] = useState<ActiveCell | null>(null);
 
@@ -62,6 +62,13 @@ export function PlanningGrid({ month }: PlanningGridProps) {
   const indices = useMemo(
     () => dayIndicesForMonth(year, month),
     [year, month],
+  );
+
+  // Only agents active for the displayed month are shown; agents who have left
+  // (departure date) stay in earlier months but disappear from this month on.
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInMonth(a, year, month)),
+    [allAgents, year, month],
   );
 
   const posteCodes = useMemo(
