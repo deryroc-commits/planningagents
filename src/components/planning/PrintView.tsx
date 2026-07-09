@@ -242,7 +242,10 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                 transform: `translate(${previewOffset.x}px, ${previewOffset.y}px) scale(${previewScale})`,
                 width: "1120px",
                 minWidth: "1120px",
-              }}
+                ["--print-x" as string]: `${printOffset.x}px`,
+                ["--print-y" as string]: `${printOffset.y}px`,
+                ["--print-scale" as string]: printScale,
+              } as React.CSSProperties}
             >
               <PlanningSheet
                 month={month}
