@@ -626,6 +626,35 @@ export function PlanningProvider({
     [year],
   );
 
+  const pasteBlock = useCallback(
+    (cells: { agentId: string; dayIndex: number; code: string | null }[]) => {
+      if (cells.length === 0) return;
+      setState((prev) => {
+        const yp = { ...(prev.planningByYear[year] ?? {}) };
+        let yc = prev.changesByYear?.[year] ?? {};
+        const rows: Record<string, Record<number, string>> = {};
+        for (const { agentId, dayIndex, code } of cells) {
+          const row = rows[agentId] ?? { ...(yp[agentId] ?? {}) };
+          const before = row[dayIndex];
+          const after = code === null || code === "" ? undefined : code;
+          if (after === undefined) delete row[dayIndex];
+          else row[dayIndex] = after;
+          rows[agentId] = row;
+          yc = recordChange(yc, agentId, dayIndex, before, after);
+        }
+        for (const agentId in rows) yp[agentId] = rows[agentId];
+        return {
+          ...prev,
+          planningByYear: { ...prev.planningByYear, [year]: yp },
+          changesByYear: { ...prev.changesByYear, [year]: yc },
+        };
+      });
+    },
+    [year],
+  );
+
+
+
   const upsertCode = useCallback((code: PlanningCode, originalCode?: string) => {
     setState((prev) => {
       const codes = [...prev.codes];
