@@ -822,6 +822,7 @@ export function PlanningProvider({
       planningByYear: s.planningByYear ?? {},
       colors: { ...DEFAULT_COLORS, ...(s.colors ?? {}) },
       rotation: normalizeRotation(s.rotation ?? DEFAULT_ROTATION),
+      rotationByYear: normalizeRotationByYear(s.rotationByYear),
       changesByYear: s.changesByYear ?? {},
       overtimeByYear: s.overtimeByYear ?? {},
       overtimeThreshold:
