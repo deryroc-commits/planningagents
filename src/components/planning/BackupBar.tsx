@@ -85,6 +85,7 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
       </span>
       <Button
         size="sm"
+        variant="outline"
         onClick={() => {
           setBackups(loadBackups(scope));
           setRestoreOpen(true);
@@ -97,19 +98,6 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
       </Button>
       <Button size="sm" onClick={() => setSaveOpen(true)}>
         <Save /> Sauvegarder
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => {
-          setBackups(loadBackups(scope));
-          setRestoreOpen(true);
-        }}
-      >
-        <RotateCcw /> Restaurer
-        {backups.length > 0 && (
-          <span className="ml-1 rounded bg-muted px-1.5 text-xs">{backups.length}</span>
-        )}
       </Button>
       {status && <span className="text-sm text-muted-foreground">{status}</span>}
 
