@@ -44,18 +44,42 @@ interface ActiveCell {
 const CYCLE_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12];
 
 export function RotationTab() {
-  const { year, agents, codes, rotation, setRotation, applyRotation } =
-    usePlanning();
+  const {
+    year,
+    agents,
+    codes,
+    rotation,
+    setRotation,
+    rotationYearSpecific,
+    setRotationYearSpecific,
+    applyRotation,
+    yearRange,
+  } = usePlanning();
   const map = useMemo(() => codesMap(codes), [codes]);
+  const yearOptions = useSelectableYears(yearRange);
   const [active, setActive] = useState<ActiveCell | null>(null);
   const [mode, setMode] = useState<"replace" | "fill">("fill");
   const [fromMonth, setFromMonth] = useState<number>(0);
+  // -1 = jusqu'à la fin de l'année (décembre inclus).
+  const [toMonth, setToMonth] = useState<number>(-1);
   const [status, setStatus] = useState<string | null>(null);
 
   const cycle = rotation.cycleWeeks;
 
   const setCycle = (n: number) =>
     setRotation({ ...rotation, cycleWeeks: n });
+
+  /** Enable/disable a validity bound, seeding it with a sensible default. */
+  const setValidity = (
+    which: "validFrom" | "validUntil",
+    period: RotationPeriod | undefined,
+  ) => {
+    const next = { ...rotation };
+    if (period) next[which] = period;
+    else delete next[which];
+    setRotation(next);
+  };
+
 
   const setTplCell = (
     agentId: string,
