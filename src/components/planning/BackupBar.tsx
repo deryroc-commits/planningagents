@@ -81,7 +81,11 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
     <div className="no-print flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card/60 p-2">
       <span className="mr-1 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
         <History className="size-4" />{" "}
-        {scope === "params" ? "Sauvegardes paramètres" : "Sauvegardes planning"}
+        {scope === "params"
+          ? "Sauvegardes paramètres"
+          : scope === "rotation"
+            ? "Sauvegardes roulement"
+            : "Sauvegardes planning"}
       </span>
       <Button
         size="sm"
@@ -105,7 +109,12 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Sauvegarder {scope === "params" ? "les paramètres" : "le planning"}
+              Sauvegarder{" "}
+              {scope === "params"
+                ? "les paramètres"
+                : scope === "rotation"
+                  ? "le roulement"
+                  : "le planning"}
             </DialogTitle>
             <DialogDescription>
               Donnez un nom personnalisé à cette sauvegarde, ou laissez vide pour

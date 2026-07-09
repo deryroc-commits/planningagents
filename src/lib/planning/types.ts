@@ -93,6 +93,14 @@ export interface PlanningChange {
 export type YearChanges = Record<string, PlanningChange>;
 
 /**
+ * A month/year marker (month is 0-11) used to bound a rotation's validity.
+ */
+export interface RotationPeriod {
+  year: number;
+  month: number;
+}
+
+/**
  * Base weekend-rotation model ("1 week-end sur N").
  * The cycle spans `cycleWeeks` weeks. Each AGENT has their own template of
  * `cycleWeeks` weeks of 7 codes (Monday..Sunday): weekdays are usually a fixed
@@ -105,7 +113,16 @@ export interface RotationState {
   cycleWeeks: number;
   /** agentId -> [weekIndex 0..cycleWeeks-1][dayMon0 0..6] = code ("" empty). */
   agentTemplates: Record<string, string[][]>;
+  /**
+   * Optional validity window. When set, the rotation produces no code before
+   * `validFrom` or after `validUntil` (both inclusive, month-granularity), so a
+   * rotation can start and/or stop mid-year while earlier/later months keep
+   * their own history untouched.
+   */
+  validFrom?: RotationPeriod;
+  validUntil?: RotationPeriod;
 }
+
 
 /**
  * A single overtime movement for an agent: positive `hours` add overtime,
@@ -144,8 +161,10 @@ export interface PlanningState {
   planningByYear: Record<number, YearPlanning>;
   /** Optional user color overrides; when absent the app uses DEFAULT_COLORS. */
   colors?: ColorScheme;
-  /** Optional weekend-rotation configuration. */
+  /** Optional weekend-rotation configuration (base, applies to years without an override). */
   rotation?: RotationState;
+  /** Optional per-year rotation overrides; when present for a year it replaces the base. */
+  rotationByYear?: Record<number, RotationState>;
   /** Tracked manual modifications per year (for the "Modifications" tab). */
   changesByYear?: Record<number, YearChanges>;
   /** Overtime movements per year (for the "Heures supp." tab). */

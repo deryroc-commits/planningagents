@@ -1,7 +1,9 @@
 import { Fragment, useMemo, useState } from "react";
-import { CalendarClock, Wand2, RotateCcw } from "lucide-react";
+import { CalendarClock, CalendarRange, Wand2, RotateCcw } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -14,7 +16,7 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
-import type { Agent } from "@/lib/planning/types";
+import type { Agent, RotationPeriod } from "@/lib/planning/types";
 import {
   MONTHS,
   codesMap,
@@ -28,7 +30,9 @@ import {
   codeForCell,
   getAgentTemplate,
 } from "@/lib/planning/rotation";
+import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { CodePicker } from "./CodePicker";
+import { BackupBar } from "./BackupBar";
 
 interface ActiveCell {
   agentId: string;
@@ -40,18 +44,42 @@ interface ActiveCell {
 const CYCLE_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12];
 
 export function RotationTab() {
-  const { year, agents, codes, rotation, setRotation, applyRotation } =
-    usePlanning();
+  const {
+    year,
+    agents,
+    codes,
+    rotation,
+    setRotation,
+    rotationYearSpecific,
+    setRotationYearSpecific,
+    applyRotation,
+    yearRange,
+  } = usePlanning();
   const map = useMemo(() => codesMap(codes), [codes]);
+  const yearOptions = useSelectableYears(yearRange);
   const [active, setActive] = useState<ActiveCell | null>(null);
   const [mode, setMode] = useState<"replace" | "fill">("fill");
   const [fromMonth, setFromMonth] = useState<number>(0);
+  // -1 = jusqu'à la fin de l'année (décembre inclus).
+  const [toMonth, setToMonth] = useState<number>(-1);
   const [status, setStatus] = useState<string | null>(null);
 
   const cycle = rotation.cycleWeeks;
 
   const setCycle = (n: number) =>
     setRotation({ ...rotation, cycleWeeks: n });
+
+  /** Enable/disable a validity bound, seeding it with a sensible default. */
+  const setValidity = (
+    which: "validFrom" | "validUntil",
+    period: RotationPeriod | undefined,
+  ) => {
+    const next = { ...rotation };
+    if (period) next[which] = period;
+    else delete next[which];
+    setRotation(next);
+  };
+
 
   const setTplCell = (
     agentId: string,
@@ -96,20 +124,28 @@ export function RotationTab() {
   const doApply = () => {
     const fromDayIndex =
       fromMonth > 0 ? dayIndicesForMonth(year, fromMonth)[0] ?? 0 : 0;
+    const toDayIndex =
+      toMonth >= 0
+        ? dayIndicesForMonth(year, toMonth).slice(-1)[0]
+        : undefined;
+    const fromLabel =
+      fromMonth > 0 ? `à partir de ${MONTHS[fromMonth]}` : "de janvier";
+    const toLabel = toMonth >= 0 ? ` jusqu'à ${MONTHS[toMonth]}` : "";
     const scope =
-      fromMonth > 0
-        ? ` à partir de ${MONTHS[fromMonth]} (les mois précédents ne seront pas modifiés)`
+      fromMonth > 0 || toMonth >= 0
+        ? ` ${fromLabel}${toLabel} (les autres mois ne seront pas modifiés)`
         : " sur toute l'année";
     const msg =
       mode === "replace"
         ? `Remplacer le planning ${year}${scope} par le roulement généré ?\nLes saisies manuelles des cases concernées seront écrasées.`
         : `Compléter les cases vides du planning ${year}${scope} avec le roulement ?\nLes saisies existantes seront conservées.`;
     if (!window.confirm(msg)) return;
-    const n = applyRotation(mode, fromDayIndex);
+    const n = applyRotation(mode, fromDayIndex, toDayIndex);
     setStatus(
       `Roulement appliqué : ${n} case${n > 1 ? "s" : ""} mise${n > 1 ? "s" : ""} à jour.`,
     );
     setTimeout(() => setStatus(null), 6000);
+
   };
 
   // Group agents by team, keeping input order.
@@ -187,6 +223,177 @@ export function RotationTab() {
           Le cycle se répète ensuite sur toute l'année {year}.
         </p>
       </div>
+
+      {/* Backups dedicated to the rotation */}
+      <BackupBar scope="rotation" />
+
+      {/* Per-year scope: shared base vs a rotation specific to this year */}
+      <section className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
+        <div className="flex items-center gap-2.5">
+          <Switch
+            id="rotation-year-specific"
+            checked={rotationYearSpecific}
+            onCheckedChange={(v) => setRotationYearSpecific(v)}
+          />
+          <Label htmlFor="rotation-year-specific" className="cursor-pointer">
+            Roulement spécifique à {year}
+          </Label>
+        </div>
+        <span className="text-sm text-muted-foreground">
+          {rotationYearSpecific
+            ? `Ce roulement ne concerne que ${year} — les autres années gardent le leur (historique préservé).`
+            : "Roulement de base commun à toutes les années sans réglage propre. Activez pour créer une version dédiée à cette année."}
+        </span>
+      </section>
+
+      {/* Optional validity window (start / end months) */}
+      <section className="space-y-3 rounded-lg border border-border bg-card p-3">
+        <span className="flex items-center gap-2 text-sm font-medium">
+          <CalendarRange className="size-4 text-primary" /> Période de validité du
+          roulement (optionnel)
+        </span>
+        <p className="text-sm text-muted-foreground">
+          Limitez le roulement à une période. En dehors, aucun code n'est généré
+          — pratique pour un roulement qui démarre ou s'arrête en cours d'année
+          tout en gardant l'historique des autres mois.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {/* Start */}
+          <div className="flex flex-wrap items-center gap-2 rounded-md border border-border/70 p-2.5">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="rotation-valid-from"
+                checked={!!rotation.validFrom}
+                onCheckedChange={(v) =>
+                  setValidity(
+                    "validFrom",
+                    v ? { year, month: 0 } : undefined,
+                  )
+                }
+              />
+              <Label htmlFor="rotation-valid-from" className="cursor-pointer">
+                Début
+              </Label>
+            </div>
+            {rotation.validFrom ? (
+              <div className="flex items-center gap-1.5">
+                <Select
+                  value={String(rotation.validFrom.month)}
+                  onValueChange={(v) =>
+                    setValidity("validFrom", {
+                      year: rotation.validFrom!.year,
+                      month: Number(v),
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map((m, i) => (
+                      <SelectItem key={i} value={String(i)}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={String(rotation.validFrom.year)}
+                  onValueChange={(v) =>
+                    setValidity("validFrom", {
+                      year: Number(v),
+                      month: rotation.validFrom!.month,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearOptions.map((y) => (
+                      <SelectItem key={y} value={String(y)}>
+                        {y}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                Dès le début
+              </span>
+            )}
+          </div>
+
+          {/* End */}
+          <div className="flex flex-wrap items-center gap-2 rounded-md border border-border/70 p-2.5">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="rotation-valid-until"
+                checked={!!rotation.validUntil}
+                onCheckedChange={(v) =>
+                  setValidity(
+                    "validUntil",
+                    v ? { year, month: 11 } : undefined,
+                  )
+                }
+              />
+              <Label htmlFor="rotation-valid-until" className="cursor-pointer">
+                Fin
+              </Label>
+            </div>
+            {rotation.validUntil ? (
+              <div className="flex items-center gap-1.5">
+                <Select
+                  value={String(rotation.validUntil.month)}
+                  onValueChange={(v) =>
+                    setValidity("validUntil", {
+                      year: rotation.validUntil!.year,
+                      month: Number(v),
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map((m, i) => (
+                      <SelectItem key={i} value={String(i)}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={String(rotation.validUntil.year)}
+                  onValueChange={(v) =>
+                    setValidity("validUntil", {
+                      year: Number(v),
+                      month: rotation.validUntil!.month,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearOptions.map((y) => (
+                      <SelectItem key={y} value={String(y)}>
+                        {y}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                Jusqu'à la fin
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
 
       {/* Cycle length */}
       <section className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
@@ -431,15 +638,34 @@ export function RotationTab() {
             )}
           </SelectContent>
         </Select>
+        <span className="text-sm font-medium">Jusqu'à :</span>
+        <Select
+          value={String(toMonth)}
+          onValueChange={(v) => setToMonth(Number(v))}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="-1">Fin de l'année (décembre)</SelectItem>
+            {MONTHS.map((m, i) => (
+              <SelectItem key={i} value={String(i)}>
+                {m}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button onClick={doApply}>
           <Wand2 /> Générer le roulement
         </Button>
-        {fromMonth > 0 && (
+        {(fromMonth > 0 || toMonth >= 0) && (
           <span className="w-full text-xs text-muted-foreground">
-            Les mois avant {MONTHS[fromMonth]} ne seront pas modifiés — pratique
-            pour changer le roulement en cours d'année.
+            Seuls les mois {fromMonth > 0 ? `de ${MONTHS[fromMonth]}` : "de janvier"}
+            {toMonth >= 0 ? ` à ${MONTHS[toMonth]}` : " à décembre"} seront
+            modifiés — pratique pour changer le roulement en cours d'année.
           </span>
         )}
+
         {status && (
           <span className="inline-flex items-center gap-1.5 text-sm text-primary">
             <RotateCcw className="size-4" /> {status}

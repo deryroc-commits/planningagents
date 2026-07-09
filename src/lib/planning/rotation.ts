@@ -1,4 +1,4 @@
-import type { RotationState } from "./types";
+import type { RotationPeriod, RotationState } from "./types";
 import { dateOfDayIndex } from "./calc";
 
 /** Day headers of the rotation template, Monday-first. */
@@ -39,6 +39,16 @@ export function normalizeAgentTemplate(
   return out;
 }
 
+/** Normalize an optional validity marker (drops invalid values). */
+function normalizePeriod(p: RotationPeriod | undefined): RotationPeriod | undefined {
+  if (!p) return undefined;
+  const year = Math.round(p.year);
+  const month = Math.round(p.month);
+  if (!Number.isFinite(year) || !Number.isFinite(month)) return undefined;
+  if (month < 0 || month > 11) return undefined;
+  return { year, month };
+}
+
 /** Ensure the rotation has a valid cycle length and per-agent templates. */
 export function normalizeRotation(r: RotationState | undefined): RotationState {
   const cycle = Math.max(1, Math.min(12, Math.round(r?.cycleWeeks || 1)));
@@ -47,7 +57,34 @@ export function normalizeRotation(r: RotationState | undefined): RotationState {
   for (const id in src) {
     agentTemplates[id] = normalizeAgentTemplate(src[id], cycle);
   }
-  return { cycleWeeks: cycle, agentTemplates };
+  const out: RotationState = { cycleWeeks: cycle, agentTemplates };
+  const validFrom = normalizePeriod(r?.validFrom);
+  const validUntil = normalizePeriod(r?.validUntil);
+  if (validFrom) out.validFrom = validFrom;
+  if (validUntil) out.validUntil = validUntil;
+  return out;
+}
+
+/** Absolute month index (year*12+month) for comparing validity bounds. */
+function periodValue(p: RotationPeriod): number {
+  return p.year * 12 + p.month;
+}
+
+/**
+ * Whether a given day falls inside the rotation's validity window. A rotation
+ * with no bounds is always valid; bounds are inclusive at month granularity.
+ */
+export function isWithinValidity(
+  r: RotationState,
+  year: number,
+  dayIndex: number,
+): boolean {
+  if (!r.validFrom && !r.validUntil) return true;
+  const d = dateOfDayIndex(year, dayIndex);
+  const v = year * 12 + d.getMonth();
+  if (r.validFrom && v < periodValue(r.validFrom)) return false;
+  if (r.validUntil && v > periodValue(r.validUntil)) return false;
+  return true;
 }
 
 /** Get an agent's template, normalized to the current cycle length. */
@@ -88,6 +125,7 @@ export function codeForCell(
   dayIndex: number,
 ): string | undefined {
   if (!r.agentTemplates[agentId]) return undefined;
+  if (!isWithinValidity(r, year, dayIndex)) return undefined;
   const tpl = getAgentTemplate(r, agentId);
   const pos = cyclePosition(year, dayIndex, r.cycleWeeks);
   const d = dateOfDayIndex(year, dayIndex);
