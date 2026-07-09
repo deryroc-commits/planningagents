@@ -5,7 +5,7 @@ import { STORAGE_KEY } from "./defaults";
  * Backups are kept in separate lists per "scope" so the Planning tab and the
  * Paramètres tab each have their own independent saves.
  */
-export type BackupScope = "planning" | "params";
+export type BackupScope = "planning" | "params" | "rotation";
 
 /** localStorage key that holds the list of dated backups for a scope. */
 export const BACKUPS_KEY = `${STORAGE_KEY}:backups`;
