@@ -97,6 +97,12 @@ interface PlanningContextValue {
   snapshotState: () => PlanningState;
   /** Replace the ENTIRE application state (restore a backup). */
   restoreFullState: (s: PlanningState) => void;
+  /**
+   * Restore only the rotation of the currently selected year from a backup.
+   * Every other year and all other data are left untouched, so restoring one
+   * year's rotation never overwrites the other years' history.
+   */
+  restoreYearRotation: (s: PlanningState) => void;
   resetAll: () => void;
   clearPlanning: () => void;
   clearYear: (year: number) => void;
