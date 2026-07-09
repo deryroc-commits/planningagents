@@ -14,7 +14,7 @@ import {
   isInvalid,
   isWeekend,
 } from "@/lib/planning/calc";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
 import { CodePicker } from "./CodePicker";
 
 interface PlanningGridProps {
