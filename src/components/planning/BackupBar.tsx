@@ -153,8 +153,9 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
           <DialogHeader>
             <DialogTitle>Restaurer une sauvegarde</DialogTitle>
             <DialogDescription>
-              Choisissez une sauvegarde datée. La restauration remplace l'ensemble des
-              données et de la mise en forme actuelles.
+              {scope === "rotation"
+                ? `Choisissez une sauvegarde datée. « Roulement ${year} » ne restaure que le roulement de l'année sélectionnée (les autres années sont préservées) ; « Tout restaurer » remplace l'ensemble des données.`
+                : "Choisissez une sauvegarde datée. La restauration remplace l'ensemble des données et de la mise en forme actuelles."}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[50vh] space-y-2 overflow-auto py-1">
