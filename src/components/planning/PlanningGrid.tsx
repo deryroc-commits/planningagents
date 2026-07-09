@@ -64,6 +64,13 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     [year, month],
   );
 
+  // Only agents active for the displayed month are shown; agents who have left
+  // (departure date) stay in earlier months but disappear from this month on.
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInMonth(a, year, month)),
+    [allAgents, year, month],
+  );
+
   const posteCodes = useMemo(
     () => codes.filter((c) => c.category === "poste"),
     [codes],
