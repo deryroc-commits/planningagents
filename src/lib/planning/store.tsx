@@ -927,6 +927,7 @@ export function PlanningProvider({
       setCell,
       setCellForYear,
       fillRange,
+      pasteBlock,
       upsertCode,
       removeCode,
       addAgent,
