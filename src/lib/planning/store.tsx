@@ -190,6 +190,21 @@ function normalizeYearRange(input: unknown): YearRangeConfig {
   };
 }
 
+/** Normalize a per-year rotation map, dropping empty/invalid entries. */
+function normalizeRotationByYear(
+  input: Record<number, RotationState> | undefined,
+): Record<number, RotationState> {
+  const out: Record<number, RotationState> = {};
+  if (!input) return out;
+  for (const key in input) {
+    const y = Number(key);
+    if (!Number.isFinite(y)) continue;
+    if (!input[key as unknown as number]) continue;
+    out[y] = normalizeRotation(input[key as unknown as number]);
+  }
+  return out;
+}
+
 function normalizePlanningState(input: Partial<PlanningState> | null | undefined): PlanningState {
   const parsed = input ?? {};
   const agents = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
@@ -207,6 +222,7 @@ function normalizePlanningState(input: Partial<PlanningState> | null | undefined
     planningByYear: parsed.planningByYear ?? {},
     colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
     rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
+    rotationByYear: normalizeRotationByYear(parsed.rotationByYear),
     changesByYear: parsed.changesByYear ?? {},
     overtimeByYear: parsed.overtimeByYear ?? {},
     overtimeThreshold:
