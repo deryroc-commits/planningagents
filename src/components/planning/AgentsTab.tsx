@@ -87,8 +87,10 @@ export function AgentsTab() {
   const openDialog = (a: Agent) => {
     setDialogAgent(a);
     setConfirmDelete(false);
+    setDepEnabled(a.endYear != null && a.endMonth != null);
     setDepMonth(a.endMonth ?? now.getMonth());
     setDepYear(a.endYear ?? now.getFullYear());
+    setDArrEnabled(a.startYear != null && a.startMonth != null);
     setDArrMonth(a.startMonth ?? now.getMonth());
     setDArrYear(a.startYear ?? now.getFullYear());
   };
@@ -96,24 +98,14 @@ export function AgentsTab() {
     setDialogAgent(null);
     setConfirmDelete(false);
   };
-  const applyArrival = () => {
+  const saveDialog = () => {
     if (!dialogAgent) return;
-    updateAgent(dialogAgent.id, { startYear: dArrYear, startMonth: dArrMonth });
-    closeDialog();
-  };
-  const clearArrival = () => {
-    if (!dialogAgent) return;
-    updateAgent(dialogAgent.id, { startYear: undefined, startMonth: undefined });
-    closeDialog();
-  };
-  const applyDeparture = () => {
-    if (!dialogAgent) return;
-    updateAgent(dialogAgent.id, { endYear: depYear, endMonth: depMonth });
-    closeDialog();
-  };
-  const clearDeparture = () => {
-    if (!dialogAgent) return;
-    updateAgent(dialogAgent.id, { endYear: undefined, endMonth: undefined });
+    updateAgent(dialogAgent.id, {
+      startYear: dArrEnabled ? dArrYear : undefined,
+      startMonth: dArrEnabled ? dArrMonth : undefined,
+      endYear: depEnabled ? depYear : undefined,
+      endMonth: depEnabled ? depMonth : undefined,
+    });
     closeDialog();
   };
   const deletePermanently = () => {
