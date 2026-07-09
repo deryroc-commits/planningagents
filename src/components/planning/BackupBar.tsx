@@ -29,7 +29,8 @@ import {
  * have their own independent list of saves.
  */
 export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
-  const { snapshotState, restoreFullState } = usePlanning();
+  const { year, snapshotState, restoreFullState, restoreYearRotation } =
+    usePlanning();
   const [backups, setBackups] = useState<Backup[]>([]);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
