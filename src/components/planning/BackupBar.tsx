@@ -24,8 +24,11 @@ import {
 /**
  * Save / restore bar: create a dated backup of the full application state
  * (data + colors/formatting) and restore any previous one from a dated list.
+ *
+ * Backups are kept per `scope` so the Planning tab and the Paramètres tab each
+ * have their own independent list of saves.
  */
-export function BackupBar() {
+export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
   const { snapshotState, restoreFullState } = usePlanning();
   const [backups, setBackups] = useState<Backup[]>([]);
   const [restoreOpen, setRestoreOpen] = useState(false);
@@ -35,8 +38,8 @@ export function BackupBar() {
   const [editLabel, setEditLabel] = useState("");
 
   useEffect(() => {
-    setBackups(loadBackups());
-  }, []);
+    setBackups(loadBackups(scope));
+  }, [scope]);
 
   const flash = (msg: string) => {
     setStatus(msg);
