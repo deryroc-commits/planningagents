@@ -707,21 +707,66 @@ export function PlanningProvider({
   }, []);
 
   const replaceState = useCallback((s: Partial<PlanningState>) => {
-    setState((prev) => ({
-      catalogVersion: DEFAULT_CATALOG_VERSION,
-      codes: s.codes ?? prev.codes,
-      agents: s.agents ?? prev.agents,
-      // Merge per-year so importing one year never wipes other years.
-      planningByYear: s.planningByYear
-        ? { ...prev.planningByYear, ...s.planningByYear }
-        : prev.planningByYear,
-      colors: s.colors ?? prev.colors,
-      rotation: s.rotation ? normalizeRotation(s.rotation) : prev.rotation,
-      changesByYear: s.changesByYear
-        ? { ...prev.changesByYear, ...s.changesByYear }
-        : prev.changesByYear,
-    }));
+    setState((prev) => {
+      // Reconcile imported agents with the existing roster by name so a fresh
+      // import (which mints new random agent IDs) reuses the IDs already in
+      // use. Without this, re-importing another year re-keys the agents and
+      // orphans every previously imported year's planning (it disappears).
+      const norm = (name: string) => name.trim().toLowerCase();
+      const idRemap: Record<string, string> = {};
+      let agents = prev.agents;
+
+      if (s.agents) {
+        const existingByName = new Map(prev.agents.map((a) => [norm(a.name), a]));
+        const usedIds = new Set<string>();
+        agents = s.agents.map((incoming) => {
+          const match = existingByName.get(norm(incoming.name));
+          const id = match && !usedIds.has(match.id) ? match.id : incoming.id;
+          usedIds.add(id);
+          if (id !== incoming.id) idRemap[incoming.id] = id;
+          return { ...incoming, id };
+        });
+        // Keep existing agents that weren't part of the import so their data
+        // from other years survives.
+        const importedIds = new Set(agents.map((a) => a.id));
+        for (const a of prev.agents) {
+          if (!importedIds.has(a.id)) agents.push(a);
+        }
+      }
+
+      // Apply the ID remap to the imported planning years before merging.
+      const remapYear = (yp: YearPlanning): YearPlanning => {
+        if (!Object.keys(idRemap).length) return yp;
+        const out: YearPlanning = {};
+        for (const [agId, cells] of Object.entries(yp)) {
+          out[idRemap[agId] ?? agId] = cells;
+        }
+        return out;
+      };
+      let incomingPlanning = s.planningByYear;
+      if (incomingPlanning && Object.keys(idRemap).length) {
+        incomingPlanning = Object.fromEntries(
+          Object.entries(incomingPlanning).map(([y, yp]) => [y, remapYear(yp)]),
+        );
+      }
+
+      return {
+        catalogVersion: DEFAULT_CATALOG_VERSION,
+        codes: s.codes ?? prev.codes,
+        agents,
+        // Merge per-year so importing one year never wipes other years.
+        planningByYear: incomingPlanning
+          ? { ...prev.planningByYear, ...incomingPlanning }
+          : prev.planningByYear,
+        colors: s.colors ?? prev.colors,
+        rotation: s.rotation ? normalizeRotation(s.rotation) : prev.rotation,
+        changesByYear: s.changesByYear
+          ? { ...prev.changesByYear, ...s.changesByYear }
+          : prev.changesByYear,
+      };
+    });
   }, []);
+
 
   const snapshotState = useCallback((): PlanningState => {
     return JSON.parse(JSON.stringify(state)) as PlanningState;
