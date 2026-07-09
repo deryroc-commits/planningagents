@@ -964,29 +964,70 @@ export function PlanningProvider({
     setState((prev) => ({ ...prev, colors: DEFAULT_COLORS }));
   }, []);
 
-  const rotation = normalizeRotation(state.rotation ?? DEFAULT_ROTATION);
+  // Effective rotation for the current year: a per-year override when present,
+  // otherwise the shared base rotation.
+  const rotationYearSpecific = !!state.rotationByYear?.[year];
+  const rotation = normalizeRotation(
+    state.rotationByYear?.[year] ?? state.rotation ?? DEFAULT_ROTATION,
+  );
 
-  const setRotation = useCallback((r: RotationState) => {
-    setState((prev) => ({ ...prev, rotation: normalizeRotation(r) }));
-  }, []);
+  const setRotation = useCallback(
+    (r: RotationState) => {
+      setState((prev) => {
+        const norm = normalizeRotation(r);
+        // Write into the year-specific slot if this year has one, else the base.
+        if (prev.rotationByYear?.[year]) {
+          return {
+            ...prev,
+            rotationByYear: { ...prev.rotationByYear, [year]: norm },
+          };
+        }
+        return { ...prev, rotation: norm };
+      });
+    },
+    [year],
+  );
+
+  const setRotationYearSpecific = useCallback(
+    (specific: boolean) => {
+      setState((prev) => {
+        const byYear = { ...(prev.rotationByYear ?? {}) };
+        if (specific) {
+          // Seed the year's copy from the current base so nothing is lost.
+          if (!byYear[year]) {
+            byYear[year] = normalizeRotation(prev.rotation ?? DEFAULT_ROTATION);
+          }
+        } else {
+          delete byYear[year];
+        }
+        return { ...prev, rotationByYear: byYear };
+      });
+    },
+    [year],
+  );
 
   /**
    * Generate the weekend rotation into the current year's planning.
    * "replace" overwrites every cell the rotation produces; "fill" only writes
-   * into empty cells. Returns the number of cells written.
+   * into empty cells. An optional `toDayIndex` (inclusive) bounds the range so
+   * only a slice of the year is touched. Returns the number of cells written.
    */
   const applyRotation = useCallback(
-    (mode: "replace" | "fill", fromDayIndex = 0) => {
+    (mode: "replace" | "fill", fromDayIndex = 0, toDayIndex?: number) => {
       let written = 0;
       setState((prev) => {
-        const rot = normalizeRotation(prev.rotation ?? DEFAULT_ROTATION);
+        const rot = normalizeRotation(
+          prev.rotationByYear?.[year] ?? prev.rotation ?? DEFAULT_ROTATION,
+        );
         const total = daysInYear(year);
         const start = Math.max(0, fromDayIndex);
+        const end =
+          toDayIndex != null ? Math.min(total - 1, toDayIndex) : total - 1;
         const yp = { ...(prev.planningByYear[year] ?? {}) };
         for (const a of prev.agents) {
           if (!rot.agentTemplates[a.id]) continue;
           const row = { ...(yp[a.id] ?? {}) };
-          for (let i = start; i < total; i++) {
+          for (let i = start; i <= end; i++) {
             const code = codeForCell(rot, a.id, year, i);
             if (!code) continue;
             if (mode === "fill" && row[i]) continue;
