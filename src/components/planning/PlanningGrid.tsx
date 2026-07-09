@@ -325,15 +325,20 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                   const style = invalid ? undefined : codeInlineStyle(codeDef);
                   const changed = !!changes[`${a.id}:${i}`];
                   const selected =
+                    hi &&
+                    r >= hi.r0 &&
+                    r <= hi.r1 &&
+                    col >= hi.c0 &&
+                    col <= hi.c1;
+                  const isFillCorner =
                     bounds &&
-                    r >= bounds.r0 &&
-                    r <= bounds.r1 &&
-                    col >= bounds.c0 &&
-                    col <= bounds.c1;
+                    !fillBase &&
+                    r === bounds.r1 &&
+                    col === bounds.c1;
                   return (
                     <td
                       key={i}
-                      className="border-b border-r border-border p-0"
+                      className="relative border-b border-r border-border p-0"
                     >
                       <button
                         type="button"
@@ -350,6 +355,10 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                           setSelecting(true);
                         }}
                         onPointerEnter={() => {
+                          if (fillBase) {
+                            setFillTo({ r, c: col });
+                            return;
+                          }
                           if (!selecting) return;
                           movedRef.current = true;
                           setSel((s) =>
@@ -380,6 +389,22 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                       >
                         {value ?? ""}
                       </button>
+                      {isFillCorner && (
+                        <span
+                          role="button"
+                          aria-label="Recopier vers le bas / la droite"
+                          title="Glisser pour recopier"
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (bounds) {
+                              setFillBase(bounds);
+                              setFillTo({ r: bounds.r1, c: bounds.c1 });
+                            }
+                          }}
+                          className="absolute -bottom-[3px] -right-[3px] z-10 size-2 cursor-crosshair rounded-[1px] border border-background bg-primary"
+                        />
+                      )}
                     </td>
                   );
                 })}
