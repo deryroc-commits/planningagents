@@ -300,6 +300,17 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                             rect: e.currentTarget.getBoundingClientRect(),
                           });
                         }}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          const inSel =
+                            bounds &&
+                            r >= bounds.r0 &&
+                            r <= bounds.r1 &&
+                            col >= bounds.c0 &&
+                            col <= bounds.c1;
+                          if (!inSel) setSel({ r0: r, c0: col, r1: r, c1: col });
+                          setMenu({ x: e.clientX, y: e.clientY });
+                        }}
                         className={`h-9 w-10 cursor-pointer select-none text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls} ${changed ? "cell-changed" : ""} ${selected ? "ring-2 ring-inset ring-primary" : ""}`}
                         style={style}
                       >
