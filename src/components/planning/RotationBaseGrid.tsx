@@ -15,9 +15,9 @@ interface RotationBaseGridProps {
   agents: Agent[];
   groups: { team: string; agents: Agent[] }[];
   cycle: number;
-  rotation: Rotation;
-  codes: Code[];
-  setRotation: (r: Rotation) => void;
+  rotation: RotationState;
+  codes: PlanningCode[];
+  setRotation: (r: RotationState) => void;
 }
 
 interface ActiveCell {
