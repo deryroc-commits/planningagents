@@ -224,6 +224,177 @@ export function RotationTab() {
         </p>
       </div>
 
+      {/* Backups dedicated to the rotation */}
+      <BackupBar scope="rotation" />
+
+      {/* Per-year scope: shared base vs a rotation specific to this year */}
+      <section className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
+        <div className="flex items-center gap-2.5">
+          <Switch
+            id="rotation-year-specific"
+            checked={rotationYearSpecific}
+            onCheckedChange={(v) => setRotationYearSpecific(v)}
+          />
+          <Label htmlFor="rotation-year-specific" className="cursor-pointer">
+            Roulement spécifique à {year}
+          </Label>
+        </div>
+        <span className="text-sm text-muted-foreground">
+          {rotationYearSpecific
+            ? `Ce roulement ne concerne que ${year} — les autres années gardent le leur (historique préservé).`
+            : "Roulement de base commun à toutes les années sans réglage propre. Activez pour créer une version dédiée à cette année."}
+        </span>
+      </section>
+
+      {/* Optional validity window (start / end months) */}
+      <section className="space-y-3 rounded-lg border border-border bg-card p-3">
+        <span className="flex items-center gap-2 text-sm font-medium">
+          <CalendarRange className="size-4 text-primary" /> Période de validité du
+          roulement (optionnel)
+        </span>
+        <p className="text-sm text-muted-foreground">
+          Limitez le roulement à une période. En dehors, aucun code n'est généré
+          — pratique pour un roulement qui démarre ou s'arrête en cours d'année
+          tout en gardant l'historique des autres mois.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {/* Start */}
+          <div className="flex flex-wrap items-center gap-2 rounded-md border border-border/70 p-2.5">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="rotation-valid-from"
+                checked={!!rotation.validFrom}
+                onCheckedChange={(v) =>
+                  setValidity(
+                    "validFrom",
+                    v ? { year, month: 0 } : undefined,
+                  )
+                }
+              />
+              <Label htmlFor="rotation-valid-from" className="cursor-pointer">
+                Début
+              </Label>
+            </div>
+            {rotation.validFrom ? (
+              <div className="flex items-center gap-1.5">
+                <Select
+                  value={String(rotation.validFrom.month)}
+                  onValueChange={(v) =>
+                    setValidity("validFrom", {
+                      year: rotation.validFrom!.year,
+                      month: Number(v),
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map((m, i) => (
+                      <SelectItem key={i} value={String(i)}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={String(rotation.validFrom.year)}
+                  onValueChange={(v) =>
+                    setValidity("validFrom", {
+                      year: Number(v),
+                      month: rotation.validFrom!.month,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearOptions.map((y) => (
+                      <SelectItem key={y} value={String(y)}>
+                        {y}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                Dès le début
+              </span>
+            )}
+          </div>
+
+          {/* End */}
+          <div className="flex flex-wrap items-center gap-2 rounded-md border border-border/70 p-2.5">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="rotation-valid-until"
+                checked={!!rotation.validUntil}
+                onCheckedChange={(v) =>
+                  setValidity(
+                    "validUntil",
+                    v ? { year, month: 11 } : undefined,
+                  )
+                }
+              />
+              <Label htmlFor="rotation-valid-until" className="cursor-pointer">
+                Fin
+              </Label>
+            </div>
+            {rotation.validUntil ? (
+              <div className="flex items-center gap-1.5">
+                <Select
+                  value={String(rotation.validUntil.month)}
+                  onValueChange={(v) =>
+                    setValidity("validUntil", {
+                      year: rotation.validUntil!.year,
+                      month: Number(v),
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map((m, i) => (
+                      <SelectItem key={i} value={String(i)}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={String(rotation.validUntil.year)}
+                  onValueChange={(v) =>
+                    setValidity("validUntil", {
+                      year: Number(v),
+                      month: rotation.validUntil!.month,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearOptions.map((y) => (
+                      <SelectItem key={y} value={String(y)}>
+                        {y}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                Jusqu'à la fin
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+
       {/* Cycle length */}
       <section className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
         <span className="text-sm font-medium">Roulement de week-end :</span>
