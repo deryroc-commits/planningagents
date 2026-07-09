@@ -842,17 +842,22 @@ export function PlanningProvider({
   }, []);
 
   const restoreYearRotation = useCallback(
-    (s: PlanningState) => {
+    (s: PlanningState, targetYear?: number) => {
+      const dest = targetYear ?? year;
       setState((prev) => {
-        // Take the backup's effective rotation for the selected year (its
+        // Take the backup's effective rotation for the source year (its
         // year-specific copy, or the backup's shared base) and write it into
-        // this year only, leaving every other year and all other data intact.
+        // the destination year only, leaving every other year and all other
+        // data intact. This lets an existing rotation seed a brand-new year.
         const rot = normalizeRotation(
-          s.rotationByYear?.[year] ?? s.rotation ?? DEFAULT_ROTATION,
+          s.rotationByYear?.[dest] ??
+            s.rotationByYear?.[year] ??
+            s.rotation ??
+            DEFAULT_ROTATION,
         );
         return {
           ...prev,
-          rotationByYear: { ...prev.rotationByYear, [year]: rot },
+          rotationByYear: { ...prev.rotationByYear, [dest]: rot },
         };
       });
     },
