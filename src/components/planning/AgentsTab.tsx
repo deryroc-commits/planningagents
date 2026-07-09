@@ -50,8 +50,10 @@ export function AgentsTab() {
 
   // Departure / arrival / delete dialog state.
   const [dialogAgent, setDialogAgent] = useState<Agent | null>(null);
+  const [depEnabled, setDepEnabled] = useState(false);
   const [depMonth, setDepMonth] = useState(now.getMonth());
   const [depYear, setDepYear] = useState(now.getFullYear());
+  const [dArrEnabled, setDArrEnabled] = useState(false);
   const [dArrMonth, setDArrMonth] = useState(now.getMonth());
   const [dArrYear, setDArrYear] = useState(now.getFullYear());
   const [confirmDelete, setConfirmDelete] = useState(false);
