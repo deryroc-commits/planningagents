@@ -47,7 +47,7 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
   };
 
   const onSave = () => {
-    const list = createBackup(snapshotState(), label);
+    const list = createBackup(scope, snapshotState(), label);
     setBackups(list);
     setLabel("");
     flash(`Sauvegarde créée le ${formatBackupDate(list[0].at)}.`);
@@ -60,7 +60,7 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
   };
 
   const onDelete = (id: string) => {
-    setBackups(deleteBackup(id));
+    setBackups(deleteBackup(scope, id));
   };
 
   const startRename = (b: Backup) => {
@@ -70,7 +70,7 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
 
   const saveRename = () => {
     if (!editingId) return;
-    setBackups(renameBackup(editingId, editLabel));
+    setBackups(renameBackup(scope, editingId, editLabel));
     setEditingId(null);
     setEditLabel("");
   };
