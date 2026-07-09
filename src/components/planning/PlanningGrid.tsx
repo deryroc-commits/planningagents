@@ -453,6 +453,45 @@ export function PlanningGrid({ month }: PlanningGridProps) {
           onClose={() => setActive(null)}
         />
       )}
+
+      {menu &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              top: Math.min(menu.y, window.innerHeight - 96),
+              left: Math.min(menu.x, window.innerWidth - 180),
+              width: 168,
+            }}
+            className="z-50 overflow-hidden rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                copySelection();
+                setMenu(null);
+              }}
+              className="flex w-full items-center justify-between px-3 py-1.5 text-left text-sm hover:bg-accent"
+            >
+              Copier
+              <span className="text-xs text-muted-foreground">Ctrl+C</span>
+            </button>
+            <button
+              type="button"
+              disabled={!clipboard.current}
+              onClick={() => {
+                pasteSelection();
+                setMenu(null);
+              }}
+              className="flex w-full items-center justify-between px-3 py-1.5 text-left text-sm hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Coller
+              <span className="text-xs text-muted-foreground">Ctrl+V</span>
+            </button>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
