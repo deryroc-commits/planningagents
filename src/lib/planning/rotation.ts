@@ -125,6 +125,7 @@ export function codeForCell(
   dayIndex: number,
 ): string | undefined {
   if (!r.agentTemplates[agentId]) return undefined;
+  if (!isWithinValidity(r, year, dayIndex)) return undefined;
   const tpl = getAgentTemplate(r, agentId);
   const pos = cyclePosition(year, dayIndex, r.cycleWeeks);
   const d = dateOfDayIndex(year, dayIndex);
