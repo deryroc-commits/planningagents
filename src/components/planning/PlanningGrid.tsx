@@ -28,7 +28,7 @@ interface ActiveCell {
 }
 
 export function PlanningGrid({ month }: PlanningGridProps) {
-  const { year, agents, codes, planning, changes, setCell, pasteBlock } =
+  const { year, agents: allAgents, codes, planning, changes, setCell, pasteBlock } =
     usePlanning();
   const [active, setActive] = useState<ActiveCell | null>(null);
 
