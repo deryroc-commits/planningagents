@@ -51,7 +51,6 @@ export function RotationTab() {
   } = usePlanning();
   const map = useMemo(() => codesMap(codes), [codes]);
   const yearOptions = useSelectableYears(yearRange);
-  const [active, setActive] = useState<ActiveCell | null>(null);
   const [mode, setMode] = useState<"replace" | "fill">("fill");
   const [fromMonth, setFromMonth] = useState<number>(0);
   // -1 = jusqu'à la fin de l'année (décembre inclus).
