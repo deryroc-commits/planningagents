@@ -638,15 +638,34 @@ export function RotationTab() {
             )}
           </SelectContent>
         </Select>
+        <span className="text-sm font-medium">Jusqu'à :</span>
+        <Select
+          value={String(toMonth)}
+          onValueChange={(v) => setToMonth(Number(v))}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="-1">Fin de l'année (décembre)</SelectItem>
+            {MONTHS.map((m, i) => (
+              <SelectItem key={i} value={String(i)}>
+                {m}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button onClick={doApply}>
           <Wand2 /> Générer le roulement
         </Button>
-        {fromMonth > 0 && (
+        {(fromMonth > 0 || toMonth >= 0) && (
           <span className="w-full text-xs text-muted-foreground">
-            Les mois avant {MONTHS[fromMonth]} ne seront pas modifiés — pratique
-            pour changer le roulement en cours d'année.
+            Seuls les mois {fromMonth > 0 ? `de ${MONTHS[fromMonth]}` : "de janvier"}
+            {toMonth >= 0 ? ` à ${MONTHS[toMonth]}` : " à décembre"} seront
+            modifiés — pratique pour changer le roulement en cours d'année.
           </span>
         )}
+
         {status && (
           <span className="inline-flex items-center gap-1.5 text-sm text-primary">
             <RotateCcw className="size-4" /> {status}
