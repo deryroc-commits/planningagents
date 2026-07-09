@@ -241,9 +241,9 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
                       <Button
                         size="sm"
                         onClick={() => onRestoreYearRotation(b)}
-                        title={`Ne restaurer que le roulement de ${year} (les autres années sont préservées)`}
+                        title={`Réutiliser ce roulement pour ${targetYear} (les autres années sont préservées)`}
                       >
-                        Roulement {year}
+                        Roulement → {targetYear}
                       </Button>
                     )}
                     <Button
