@@ -33,6 +33,7 @@ import {
 import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { CodePicker } from "./CodePicker";
 import { BackupBar } from "./BackupBar";
+import { RotationBaseGrid } from "./RotationBaseGrid";
 
 interface ActiveCell {
   agentId: string;
