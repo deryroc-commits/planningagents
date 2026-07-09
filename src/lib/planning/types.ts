@@ -161,8 +161,10 @@ export interface PlanningState {
   planningByYear: Record<number, YearPlanning>;
   /** Optional user color overrides; when absent the app uses DEFAULT_COLORS. */
   colors?: ColorScheme;
-  /** Optional weekend-rotation configuration. */
+  /** Optional weekend-rotation configuration (base, applies to years without an override). */
   rotation?: RotationState;
+  /** Optional per-year rotation overrides; when present for a year it replaces the base. */
+  rotationByYear?: Record<number, RotationState>;
   /** Tracked manual modifications per year (for the "Modifications" tab). */
   changesByYear?: Record<number, YearChanges>;
   /** Overtime movements per year (for the "Heures supp." tab). */
