@@ -231,12 +231,12 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                           : "";
                   const style = invalid ? undefined : codeInlineStyle(codeDef);
                   const changed = !!changes[`${a.id}:${i}`];
-                  const inDragRange =
-                    drag &&
-                    drag.agentId === a.id &&
-                    dragEndCol !== null &&
-                    col >= Math.min(drag.startCol, dragEndCol) &&
-                    col <= Math.max(drag.startCol, dragEndCol);
+                  const selected =
+                    bounds &&
+                    r >= bounds.r0 &&
+                    r <= bounds.r1 &&
+                    col >= bounds.c0 &&
+                    col <= bounds.c1;
                   return (
                     <td
                       key={i}
@@ -252,24 +252,26 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                               : value
                         }
                         onPointerDown={() => {
-                          dragMovedRef.current = false;
-                          setDrag({ agentId: a.id, startCol: col, value });
-                          setDragEndCol(col);
+                          movedRef.current = false;
+                          setSel({ r0: r, c0: col, r1: r, c1: col });
+                          setSelecting(true);
                         }}
                         onPointerEnter={() => {
-                          if (!drag || drag.agentId !== a.id) return;
-                          if (col !== drag.startCol) dragMovedRef.current = true;
-                          setDragEndCol(col);
+                          if (!selecting) return;
+                          movedRef.current = true;
+                          setSel((s) =>
+                            s ? { ...s, r1: r, c1: col } : s,
+                          );
                         }}
                         onClick={(e) => {
-                          if (dragMovedRef.current) return;
+                          if (movedRef.current) return;
                           setActive({
                             agentId: a.id,
                             dayIndex: i,
                             rect: e.currentTarget.getBoundingClientRect(),
                           });
                         }}
-                        className={`h-9 w-10 cursor-pointer select-none text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls} ${changed ? "cell-changed" : ""} ${inDragRange ? "ring-2 ring-inset ring-primary" : ""}`}
+                        className={`h-9 w-10 cursor-pointer select-none text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls} ${changed ? "cell-changed" : ""} ${selected ? "ring-2 ring-inset ring-primary" : ""}`}
                         style={style}
                       >
                         {value ?? ""}
