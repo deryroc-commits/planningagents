@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePlanning } from "@/lib/planning/store";
 import {
   agentHoursForIndices,
@@ -44,6 +45,8 @@ export function PlanningGrid({ month }: PlanningGridProps) {
   const movedRef = useRef(false);
   // Copied block: rows of agents × columns of days (values or undefined).
   const clipboard = useRef<(string | undefined)[][] | null>(null);
+  // Right-click context menu (mouse copy/paste).
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
 
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
@@ -89,6 +92,49 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     return () => window.removeEventListener("pointerup", onUp);
   }, [selecting]);
 
+  // Shared copy/paste logic used by both keyboard shortcuts and the mouse menu.
+  const copySelection = () => {
+    if (!bounds) return;
+    const block: (string | undefined)[][] = [];
+    for (let r = bounds.r0; r <= bounds.r1; r++) {
+      const rowVals: (string | undefined)[] = [];
+      for (let c = bounds.c0; c <= bounds.c1; c++) {
+        rowVals.push(planning[agents[r].id]?.[indices[c]]);
+      }
+      block.push(rowVals);
+    }
+    clipboard.current = block;
+  };
+
+  const pasteSelection = () => {
+    if (!bounds) return;
+    const block = clipboard.current;
+    if (!block) return;
+    const cells: {
+      agentId: string;
+      dayIndex: number;
+      code: string | null;
+    }[] = [];
+    for (let dr = 0; dr < block.length; dr++) {
+      const r = bounds.r0 + dr;
+      if (r >= agents.length) break;
+      for (let dc = 0; dc < block[dr].length; dc++) {
+        const c = bounds.c0 + dc;
+        if (c >= indices.length) break;
+        cells.push({
+          agentId: agents[r].id,
+          dayIndex: indices[c],
+          code: block[dr][dc] ?? null,
+        });
+      }
+    }
+    pasteBlock(cells);
+    // Reflect the pasted block as the new selection.
+    const lastR = Math.min(bounds.r0 + block.length - 1, agents.length - 1);
+    const lastC = Math.min(bounds.c0 + block[0].length - 1, indices.length - 1);
+    setSel({ r0: bounds.r0, c0: bounds.c0, r1: lastR, c1: lastC });
+  };
+
   // Copy (Ctrl/Cmd+C) the selected block; paste (Ctrl/Cmd+V) at the selection
   // top-left. Ignored while typing in an input (e.g. the code picker search).
   useEffect(() => {
@@ -105,51 +151,34 @@ export function PlanningGrid({ month }: PlanningGridProps) {
       if (!bounds) return;
       const key = e.key.toLowerCase();
       if (key === "c") {
-        const block: (string | undefined)[][] = [];
-        for (let r = bounds.r0; r <= bounds.r1; r++) {
-          const rowVals: (string | undefined)[] = [];
-          for (let c = bounds.c0; c <= bounds.c1; c++) {
-            rowVals.push(planning[agents[r].id]?.[indices[c]]);
-          }
-          block.push(rowVals);
-        }
-        clipboard.current = block;
+        copySelection();
         e.preventDefault();
       } else if (key === "v") {
-        const block = clipboard.current;
-        if (!block) return;
-        const cells: {
-          agentId: string;
-          dayIndex: number;
-          code: string | null;
-        }[] = [];
-        for (let dr = 0; dr < block.length; dr++) {
-          const r = bounds.r0 + dr;
-          if (r >= agents.length) break;
-          for (let dc = 0; dc < block[dr].length; dc++) {
-            const c = bounds.c0 + dc;
-            if (c >= indices.length) break;
-            cells.push({
-              agentId: agents[r].id,
-              dayIndex: indices[c],
-              code: block[dr][dc] ?? null,
-            });
-          }
-        }
-        pasteBlock(cells);
-        // Reflect the pasted block as the new selection.
-        const lastR = Math.min(bounds.r0 + block.length - 1, agents.length - 1);
-        const lastC = Math.min(
-          bounds.c0 + block[0].length - 1,
-          indices.length - 1,
-        );
-        setSel({ r0: bounds.r0, c0: bounds.c0, r1: lastR, c1: lastC });
+        pasteSelection();
         e.preventDefault();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bounds, agents, indices, planning, pasteBlock]);
+
+  // Close the mouse context menu on any outside click / scroll / escape.
+  useEffect(() => {
+    if (!menu) return;
+    const close = () => setMenu(null);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenu(null);
+    };
+    window.addEventListener("click", close);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("click", close);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menu]);
 
   if (agents.length === 0) {
     return (
@@ -270,6 +299,17 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                             dayIndex: i,
                             rect: e.currentTarget.getBoundingClientRect(),
                           });
+                        }}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          const inSel =
+                            bounds &&
+                            r >= bounds.r0 &&
+                            r <= bounds.r1 &&
+                            col >= bounds.c0 &&
+                            col <= bounds.c1;
+                          if (!inSel) setSel({ r0: r, c0: col, r1: r, c1: col });
+                          setMenu({ x: e.clientX, y: e.clientY });
                         }}
                         className={`h-9 w-10 cursor-pointer select-none text-center text-xs font-semibold outline-none transition-colors hover:ring-1 hover:ring-inset hover:ring-primary focus:ring-1 focus:ring-inset focus:ring-primary ${cls} ${changed ? "cell-changed" : ""} ${selected ? "ring-2 ring-inset ring-primary" : ""}`}
                         style={style}
@@ -413,6 +453,45 @@ export function PlanningGrid({ month }: PlanningGridProps) {
           onClose={() => setActive(null)}
         />
       )}
+
+      {menu &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              top: Math.min(menu.y, window.innerHeight - 96),
+              left: Math.min(menu.x, window.innerWidth - 180),
+              width: 168,
+            }}
+            className="z-50 overflow-hidden rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                copySelection();
+                setMenu(null);
+              }}
+              className="flex w-full items-center justify-between px-3 py-1.5 text-left text-sm hover:bg-accent"
+            >
+              Copier
+              <span className="text-xs text-muted-foreground">Ctrl+C</span>
+            </button>
+            <button
+              type="button"
+              disabled={!clipboard.current}
+              onClick={() => {
+                pasteSelection();
+                setMenu(null);
+              }}
+              className="flex w-full items-center justify-between px-3 py-1.5 text-left text-sm hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Coller
+              <span className="text-xs text-muted-foreground">Ctrl+V</span>
+            </button>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
