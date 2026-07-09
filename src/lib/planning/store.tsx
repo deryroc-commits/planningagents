@@ -752,7 +752,21 @@ export function PlanningProvider({
 
       return {
         catalogVersion: DEFAULT_CATALOG_VERSION,
-        codes: s.codes ?? prev.codes,
+        // Preserve the user's own code parameters (labels, hours, categories,
+        // colors). Keep every existing code untouched and only append codes
+        // from the import that aren't already defined, so a new-year import
+        // never overwrites the settings the user configured.
+        codes: s.codes
+          ? [
+              ...prev.codes,
+              ...s.codes.filter(
+                (ic) =>
+                  !prev.codes.some(
+                    (pc) => pc.code.toUpperCase() === ic.code.toUpperCase(),
+                  ),
+              ),
+            ]
+          : prev.codes,
         agents,
         // Merge per-year so importing one year never wipes other years.
         planningByYear: incomingPlanning
