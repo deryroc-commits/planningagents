@@ -38,6 +38,15 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
   const [status, setStatus] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
+  const [targetYear, setTargetYear] = useState<number>(year);
+
+  // Keep the target year in sync with the selected year when the dialog opens.
+  useEffect(() => {
+    if (restoreOpen) setTargetYear(year);
+  }, [restoreOpen, year]);
+
+  // Offer a small window of years around the current one as restore targets.
+  const yearOptions = Array.from({ length: 8 }, (_, i) => year - 2 + i);
 
   useEffect(() => {
     setBackups(loadBackups(scope));
