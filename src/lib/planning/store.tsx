@@ -1090,6 +1090,7 @@ export function PlanningProvider({
       replaceState,
       snapshotState,
       restoreFullState,
+      restoreYearRotation,
       resetAll,
       clearPlanning,
       clearYear,
