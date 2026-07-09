@@ -113,6 +113,37 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
       </Button>
       {status && <span className="text-sm text-muted-foreground">{status}</span>}
 
+      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Sauvegarder {scope === "params" ? "les paramètres" : "le planning"}
+            </DialogTitle>
+            <DialogDescription>
+              Donnez un nom personnalisé à cette sauvegarde, ou laissez vide pour
+              utiliser la date seule.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            autoFocus
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Nom (optionnel)"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") confirmSave();
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={confirmSave}>
+              <Save /> Sauvegarder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={restoreOpen} onOpenChange={setRestoreOpen}>
         <DialogContent>
           <DialogHeader>
