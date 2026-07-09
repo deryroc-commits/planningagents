@@ -5,8 +5,8 @@ import {
   CATEGORY_META,
   codeInlineStyle,
   type Agent,
-  type Code,
-  type Rotation,
+  type PlanningCode,
+  type RotationState,
 } from "@/lib/planning/types";
 import { WEEK_DAYS, getAgentTemplate } from "@/lib/planning/rotation";
 import { CodePicker } from "./CodePicker";
