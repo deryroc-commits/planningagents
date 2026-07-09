@@ -344,6 +344,7 @@ function mergeCloudState(
     ),
     colors: pick("colors"),
     rotation: pick("rotation"),
+    rotationByYear: pick("rotationByYear"),
     changesByYear: mergeRecordOfRecords(
       base.changesByYear,
       remote.changesByYear,
