@@ -91,6 +91,49 @@ export function PlanningGrid({ month }: PlanningGridProps) {
     return () => window.removeEventListener("pointerup", onUp);
   }, [selecting]);
 
+  // Shared copy/paste logic used by both keyboard shortcuts and the mouse menu.
+  const copySelection = () => {
+    if (!bounds) return;
+    const block: (string | undefined)[][] = [];
+    for (let r = bounds.r0; r <= bounds.r1; r++) {
+      const rowVals: (string | undefined)[] = [];
+      for (let c = bounds.c0; c <= bounds.c1; c++) {
+        rowVals.push(planning[agents[r].id]?.[indices[c]]);
+      }
+      block.push(rowVals);
+    }
+    clipboard.current = block;
+  };
+
+  const pasteSelection = () => {
+    if (!bounds) return;
+    const block = clipboard.current;
+    if (!block) return;
+    const cells: {
+      agentId: string;
+      dayIndex: number;
+      code: string | null;
+    }[] = [];
+    for (let dr = 0; dr < block.length; dr++) {
+      const r = bounds.r0 + dr;
+      if (r >= agents.length) break;
+      for (let dc = 0; dc < block[dr].length; dc++) {
+        const c = bounds.c0 + dc;
+        if (c >= indices.length) break;
+        cells.push({
+          agentId: agents[r].id,
+          dayIndex: indices[c],
+          code: block[dr][dc] ?? null,
+        });
+      }
+    }
+    pasteBlock(cells);
+    // Reflect the pasted block as the new selection.
+    const lastR = Math.min(bounds.r0 + block.length - 1, agents.length - 1);
+    const lastC = Math.min(bounds.c0 + block[0].length - 1, indices.length - 1);
+    setSel({ r0: bounds.r0, c0: bounds.c0, r1: lastR, c1: lastC });
+  };
+
   // Copy (Ctrl/Cmd+C) the selected block; paste (Ctrl/Cmd+V) at the selection
   // top-left. Ignored while typing in an input (e.g. the code picker search).
   useEffect(() => {
@@ -107,51 +150,34 @@ export function PlanningGrid({ month }: PlanningGridProps) {
       if (!bounds) return;
       const key = e.key.toLowerCase();
       if (key === "c") {
-        const block: (string | undefined)[][] = [];
-        for (let r = bounds.r0; r <= bounds.r1; r++) {
-          const rowVals: (string | undefined)[] = [];
-          for (let c = bounds.c0; c <= bounds.c1; c++) {
-            rowVals.push(planning[agents[r].id]?.[indices[c]]);
-          }
-          block.push(rowVals);
-        }
-        clipboard.current = block;
+        copySelection();
         e.preventDefault();
       } else if (key === "v") {
-        const block = clipboard.current;
-        if (!block) return;
-        const cells: {
-          agentId: string;
-          dayIndex: number;
-          code: string | null;
-        }[] = [];
-        for (let dr = 0; dr < block.length; dr++) {
-          const r = bounds.r0 + dr;
-          if (r >= agents.length) break;
-          for (let dc = 0; dc < block[dr].length; dc++) {
-            const c = bounds.c0 + dc;
-            if (c >= indices.length) break;
-            cells.push({
-              agentId: agents[r].id,
-              dayIndex: indices[c],
-              code: block[dr][dc] ?? null,
-            });
-          }
-        }
-        pasteBlock(cells);
-        // Reflect the pasted block as the new selection.
-        const lastR = Math.min(bounds.r0 + block.length - 1, agents.length - 1);
-        const lastC = Math.min(
-          bounds.c0 + block[0].length - 1,
-          indices.length - 1,
-        );
-        setSel({ r0: bounds.r0, c0: bounds.c0, r1: lastR, c1: lastC });
+        pasteSelection();
         e.preventDefault();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bounds, agents, indices, planning, pasteBlock]);
+
+  // Close the mouse context menu on any outside click / scroll / escape.
+  useEffect(() => {
+    if (!menu) return;
+    const close = () => setMenu(null);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenu(null);
+    };
+    window.addEventListener("click", close);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("click", close);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menu]);
 
   if (agents.length === 0) {
     return (
