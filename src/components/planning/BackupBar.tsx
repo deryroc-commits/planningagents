@@ -8,6 +8,7 @@ import {
   loadBackups,
   renameBackup,
   type Backup,
+  type BackupScope,
 } from "@/lib/planning/backups";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
