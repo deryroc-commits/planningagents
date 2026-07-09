@@ -799,6 +799,9 @@ export function PlanningProvider({
           : prev.planningByYear,
         colors: s.colors ?? prev.colors,
         rotation: s.rotation ? normalizeRotation(s.rotation) : prev.rotation,
+        rotationByYear: s.rotationByYear
+          ? { ...prev.rotationByYear, ...normalizeRotationByYear(s.rotationByYear) }
+          : prev.rotationByYear,
         changesByYear: s.changesByYear
           ? { ...prev.changesByYear, ...s.changesByYear }
           : prev.changesByYear,
