@@ -841,6 +841,7 @@ export function PlanningProvider({
       planningByYear: {},
       colors: DEFAULT_COLORS,
       rotation: DEFAULT_ROTATION,
+      rotationByYear: {},
       changesByYear: {},
       overtimeByYear: {},
       overtimeThreshold: DEFAULT_OVERTIME_THRESHOLD,
