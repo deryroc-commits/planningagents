@@ -38,6 +38,15 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
   const [status, setStatus] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
+  const [targetYear, setTargetYear] = useState<number>(year);
+
+  // Keep the target year in sync with the selected year when the dialog opens.
+  useEffect(() => {
+    if (restoreOpen) setTargetYear(year);
+  }, [restoreOpen, year]);
+
+  // Offer a small window of years around the current one as restore targets.
+  const yearOptions = Array.from({ length: 8 }, (_, i) => year - 2 + i);
 
   useEffect(() => {
     setBackups(loadBackups(scope));
@@ -63,9 +72,9 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
   };
 
   const onRestoreYearRotation = (b: Backup) => {
-    restoreYearRotation(b.state);
+    restoreYearRotation(b.state, targetYear);
     setRestoreOpen(false);
-    flash(`Roulement ${year} restauré depuis le ${formatBackupDate(b.at)}.`);
+    flash(`Roulement ${targetYear} restauré depuis le ${formatBackupDate(b.at)}.`);
   };
 
   const onDelete = (id: string) => {
@@ -154,10 +163,26 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
             <DialogTitle>Restaurer une sauvegarde</DialogTitle>
             <DialogDescription>
               {scope === "rotation"
-                ? `Choisissez une sauvegarde datée. « Roulement ${year} » ne restaure que le roulement de l'année sélectionnée (les autres années sont préservées) ; « Tout restaurer » remplace l'ensemble des données.`
+                ? `Choisissez une sauvegarde datée. « Roulement → année » ne restaure le roulement que dans l'année cible choisie ci-dessous (idéal pour réutiliser un roulement existant sur une nouvelle année) ; les autres années sont préservées. « Tout restaurer » remplace l'ensemble des données.`
                 : "Choisissez une sauvegarde datée. La restauration remplace l'ensemble des données et de la mise en forme actuelles."}
             </DialogDescription>
           </DialogHeader>
+          {scope === "rotation" && (
+            <div className="flex items-center gap-2 rounded-lg bg-muted/50 p-2.5 text-sm">
+              <span className="text-muted-foreground">Année cible du roulement :</span>
+              <select
+                value={targetYear}
+                onChange={(e) => setTargetYear(Number(e.target.value))}
+                className="h-8 rounded-md border border-border bg-background px-2 text-sm"
+              >
+                {yearOptions.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="max-h-[50vh] space-y-2 overflow-auto py-1">
             {backups.length === 0 && (
               <p className="py-6 text-center text-sm text-muted-foreground">
@@ -216,9 +241,9 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
                       <Button
                         size="sm"
                         onClick={() => onRestoreYearRotation(b)}
-                        title={`Ne restaurer que le roulement de ${year} (les autres années sont préservées)`}
+                        title={`Réutiliser ce roulement pour ${targetYear} (les autres années sont préservées)`}
                       >
-                        Roulement {year}
+                        Roulement → {targetYear}
                       </Button>
                     )}
                     <Button

@@ -98,11 +98,13 @@ interface PlanningContextValue {
   /** Replace the ENTIRE application state (restore a backup). */
   restoreFullState: (s: PlanningState) => void;
   /**
-   * Restore only the rotation of the currently selected year from a backup.
-   * Every other year and all other data are left untouched, so restoring one
-   * year's rotation never overwrites the other years' history.
+   * Restore only the rotation from a backup into a single year (the currently
+   * selected year by default, or an explicit `targetYear`). Every other year
+   * and all other data are left untouched, so restoring one year's rotation
+   * never overwrites the other years' history. Useful to reuse an existing
+   * rotation as the starting point for a brand-new year.
    */
-  restoreYearRotation: (s: PlanningState) => void;
+  restoreYearRotation: (s: PlanningState, targetYear?: number) => void;
   resetAll: () => void;
   clearPlanning: () => void;
   clearYear: (year: number) => void;
@@ -840,17 +842,22 @@ export function PlanningProvider({
   }, []);
 
   const restoreYearRotation = useCallback(
-    (s: PlanningState) => {
+    (s: PlanningState, targetYear?: number) => {
+      const dest = targetYear ?? year;
       setState((prev) => {
-        // Take the backup's effective rotation for the selected year (its
+        // Take the backup's effective rotation for the source year (its
         // year-specific copy, or the backup's shared base) and write it into
-        // this year only, leaving every other year and all other data intact.
+        // the destination year only, leaving every other year and all other
+        // data intact. This lets an existing rotation seed a brand-new year.
         const rot = normalizeRotation(
-          s.rotationByYear?.[year] ?? s.rotation ?? DEFAULT_ROTATION,
+          s.rotationByYear?.[dest] ??
+            s.rotationByYear?.[year] ??
+            s.rotation ??
+            DEFAULT_ROTATION,
         );
         return {
           ...prev,
-          rotationByYear: { ...prev.rotationByYear, [year]: rot },
+          rotationByYear: { ...prev.rotationByYear, [dest]: rot },
         };
       });
     },
