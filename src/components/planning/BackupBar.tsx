@@ -83,16 +83,19 @@ export function BackupBar({ scope = "planning" }: { scope?: BackupScope }) {
         <History className="size-4" />{" "}
         {scope === "params" ? "Sauvegardes paramètres" : "Sauvegardes planning"}
       </span>
-      <Input
-        value={label}
-        onChange={(e) => setLabel(e.target.value)}
-        placeholder="Nom (optionnel)"
-        className="h-8 w-44"
-        onKeyDown={(e) => {
-          if (e.key === "Enter") onSave();
+      <Button
+        size="sm"
+        onClick={() => {
+          setBackups(loadBackups(scope));
+          setRestoreOpen(true);
         }}
-      />
-      <Button size="sm" onClick={onSave}>
+      >
+        <RotateCcw /> Restaurer
+        {backups.length > 0 && (
+          <span className="ml-1 rounded bg-muted px-1.5 text-xs">{backups.length}</span>
+        )}
+      </Button>
+      <Button size="sm" onClick={() => setSaveOpen(true)}>
         <Save /> Sauvegarder
       </Button>
       <Button
