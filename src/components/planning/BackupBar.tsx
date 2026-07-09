@@ -59,6 +59,18 @@ export function BackupBar() {
     setBackups(deleteBackup(id));
   };
 
+  const startRename = (b: Backup) => {
+    setEditingId(b.id);
+    setEditLabel(b.label ?? "");
+  };
+
+  const saveRename = () => {
+    if (!editingId) return;
+    setBackups(renameBackup(editingId, editLabel));
+    setEditingId(null);
+    setEditLabel("");
+  };
+
   return (
     <div className="no-print flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card/60 p-2">
       <span className="mr-1 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
