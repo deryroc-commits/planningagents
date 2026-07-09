@@ -31,6 +31,7 @@ import {
   getAgentTemplate,
 } from "@/lib/planning/rotation";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
+import { BackupBar } from "./BackupBar";
 import { RotationBaseGrid } from "./RotationBaseGrid";
 
 
