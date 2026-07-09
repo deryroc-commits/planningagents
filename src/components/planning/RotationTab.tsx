@@ -124,20 +124,28 @@ export function RotationTab() {
   const doApply = () => {
     const fromDayIndex =
       fromMonth > 0 ? dayIndicesForMonth(year, fromMonth)[0] ?? 0 : 0;
+    const toDayIndex =
+      toMonth >= 0
+        ? dayIndicesForMonth(year, toMonth).slice(-1)[0]
+        : undefined;
+    const fromLabel =
+      fromMonth > 0 ? `à partir de ${MONTHS[fromMonth]}` : "de janvier";
+    const toLabel = toMonth >= 0 ? ` jusqu'à ${MONTHS[toMonth]}` : "";
     const scope =
-      fromMonth > 0
-        ? ` à partir de ${MONTHS[fromMonth]} (les mois précédents ne seront pas modifiés)`
+      fromMonth > 0 || toMonth >= 0
+        ? ` ${fromLabel}${toLabel} (les autres mois ne seront pas modifiés)`
         : " sur toute l'année";
     const msg =
       mode === "replace"
         ? `Remplacer le planning ${year}${scope} par le roulement généré ?\nLes saisies manuelles des cases concernées seront écrasées.`
         : `Compléter les cases vides du planning ${year}${scope} avec le roulement ?\nLes saisies existantes seront conservées.`;
     if (!window.confirm(msg)) return;
-    const n = applyRotation(mode, fromDayIndex);
+    const n = applyRotation(mode, fromDayIndex, toDayIndex);
     setStatus(
       `Roulement appliqué : ${n} case${n > 1 ? "s" : ""} mise${n > 1 ? "s" : ""} à jour.`,
     );
     setTimeout(() => setStatus(null), 6000);
+
   };
 
   // Group agents by team, keeping input order.
