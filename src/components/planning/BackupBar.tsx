@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { History, RotateCcw, Save, Trash2 } from "lucide-react";
+import { Check, History, Pencil, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import {
   createBackup,
   deleteBackup,
   formatBackupDate,
   loadBackups,
+  renameBackup,
   type Backup,
 } from "@/lib/planning/backups";
 import { Button } from "@/components/ui/button";
