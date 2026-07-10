@@ -752,7 +752,29 @@ export function PlanningProvider({
     });
   }, []);
 
-  const replaceState = useCallback((s: Partial<PlanningState>) => {
+  const agentSort = normalizeAgentSort(state.agentSort);
+
+  const setAgentSort = useCallback((mode: AgentSortMode) => {
+    setState((prev) => ({ ...prev, agentSort: normalizeAgentSort(mode) }));
+  }, []);
+
+  const moveAgent = useCallback((id: string, dir: "up" | "down") => {
+    setState((prev) => {
+      const arr = [...prev.agents];
+      const i = arr.findIndex((a) => a.id === id);
+      if (i < 0) return prev;
+      const j = dir === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= arr.length) return prev;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      return { ...prev, agents: arr };
+    });
+  }, []);
+
+  /** Agents ordered per the chosen mode; every view reads this. */
+  const sortedAgents = useMemo(
+    () => sortAgents(state.agents, agentSort),
+    [state.agents, agentSort],
+  );
     setState((prev) => {
       // Reconcile imported agents with the existing roster by name so a fresh
       // import (which mints new random agent IDs) reuses the IDs already in
