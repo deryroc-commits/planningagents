@@ -236,7 +236,7 @@ export function AgentsTab() {
             </tr>
           </thead>
           <tbody>
-            {agents.map((a) => {
+            {agents.map((a, idx) => {
               const arr = arrivalLabel(a);
               const dep = departureLabel(a);
               return (
