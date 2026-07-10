@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { CalendarCheck, CalendarX, LogIn, LogOut, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarCheck, CalendarX, LogIn, LogOut, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
-import type { Agent } from "@/lib/planning/types";
+import type { Agent, AgentSortMode } from "@/lib/planning/types";
+import { AGENT_SORT_LABELS } from "@/lib/planning/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
