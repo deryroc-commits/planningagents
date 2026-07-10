@@ -234,6 +234,7 @@ function normalizePlanningState(input: Partial<PlanningState> | null | undefined
     catalogVersion: DEFAULT_CATALOG_VERSION,
     codes,
     agents: agents?.length ? agents : DEFAULT_AGENTS,
+    agentSort: normalizeAgentSort(parsed.agentSort),
     planningByYear: parsed.planningByYear ?? {},
     colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
     rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
