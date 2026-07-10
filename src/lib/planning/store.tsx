@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type {
   Agent,
+  AgentSortMode,
   ColorKey,
   ColorScheme,
   OvertimeEntry,
@@ -23,6 +24,7 @@ import type {
   YearPlanning,
   YearRangeConfig,
 } from "./types";
+import { sortAgents } from "./types";
 import {
   DEFAULT_AGENTS,
   DEFAULT_CATALOG_VERSION,
@@ -91,6 +93,11 @@ interface PlanningContextValue {
   addAgent: (a: Omit<Agent, "id">) => void;
   updateAgent: (id: string, patch: Partial<Omit<Agent, "id">>) => void;
   removeAgent: (id: string) => void;
+  /** How agents are ordered in every view. */
+  agentSort: AgentSortMode;
+  setAgentSort: (mode: AgentSortMode) => void;
+  /** Move an agent up/down in the custom (manual) order. */
+  moveAgent: (id: string, dir: "up" | "down") => void;
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
   /** Full, deep snapshot of the whole application state (for backups). */
@@ -198,6 +205,11 @@ function normalizeYearRange(input: unknown): YearRangeConfig {
   };
 }
 
+/** Validate a stored agent-sort mode, defaulting to "custom". */
+function normalizeAgentSort(v: unknown): AgentSortMode {
+  return v === "alpha" || v === "team" || v === "team-alpha" ? v : "custom";
+}
+
 /** Normalize a per-year rotation map, dropping empty/invalid entries. */
 function normalizeRotationByYear(
   input: Record<number, RotationState> | undefined,
@@ -227,6 +239,7 @@ function normalizePlanningState(input: Partial<PlanningState> | null | undefined
     catalogVersion: DEFAULT_CATALOG_VERSION,
     codes,
     agents: agents?.length ? agents : DEFAULT_AGENTS,
+    agentSort: normalizeAgentSort(parsed.agentSort),
     planningByYear: parsed.planningByYear ?? {},
     colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
     rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
@@ -739,6 +752,30 @@ export function PlanningProvider({
     });
   }, []);
 
+  const agentSort = normalizeAgentSort(state.agentSort);
+
+  const setAgentSort = useCallback((mode: AgentSortMode) => {
+    setState((prev) => ({ ...prev, agentSort: normalizeAgentSort(mode) }));
+  }, []);
+
+  const moveAgent = useCallback((id: string, dir: "up" | "down") => {
+    setState((prev) => {
+      const arr = [...prev.agents];
+      const i = arr.findIndex((a) => a.id === id);
+      if (i < 0) return prev;
+      const j = dir === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= arr.length) return prev;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      return { ...prev, agents: arr };
+    });
+  }, []);
+
+  /** Agents ordered per the chosen mode; every view reads this. */
+  const sortedAgents = useMemo(
+    () => sortAgents(state.agents, agentSort),
+    [state.agents, agentSort],
+  );
+
   const replaceState = useCallback((s: Partial<PlanningState>) => {
     setState((prev) => {
       // Reconcile imported agents with the existing roster by name so a fresh
@@ -801,6 +838,7 @@ export function PlanningProvider({
             ]
           : prev.codes,
         agents,
+        agentSort: s.agentSort ?? prev.agentSort,
         // Merge per-year so importing one year never wipes other years.
         planningByYear: incomingPlanning
           ? { ...prev.planningByYear, ...incomingPlanning }
@@ -827,6 +865,7 @@ export function PlanningProvider({
       catalogVersion: DEFAULT_CATALOG_VERSION,
       codes: s.codes?.length ? s.codes : DEFAULT_CODES,
       agents: s.agents?.length ? s.agents : DEFAULT_AGENTS,
+      agentSort: normalizeAgentSort(s.agentSort),
       planningByYear: s.planningByYear ?? {},
       colors: { ...DEFAULT_COLORS, ...(s.colors ?? {}) },
       rotation: normalizeRotation(s.rotation ?? DEFAULT_ROTATION),
@@ -1082,7 +1121,7 @@ export function PlanningProvider({
       year,
       setYear,
       codes: state.codes,
-      agents: state.agents,
+      agents: sortedAgents,
       planning,
       planningByYear: state.planningByYear,
       setCell,
@@ -1094,6 +1133,9 @@ export function PlanningProvider({
       addAgent,
       updateAgent,
       removeAgent,
+      agentSort,
+      setAgentSort,
+      moveAgent,
       replaceState,
       snapshotState,
       restoreFullState,
@@ -1124,7 +1166,7 @@ export function PlanningProvider({
     [
       year,
       state.codes,
-      state.agents,
+      sortedAgents,
       planning,
       state.planningByYear,
       setCell,
@@ -1136,6 +1178,9 @@ export function PlanningProvider({
       addAgent,
       updateAgent,
       removeAgent,
+      agentSort,
+      setAgentSort,
+      moveAgent,
       replaceState,
       snapshotState,
       restoreFullState,

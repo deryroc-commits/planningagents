@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { CalendarCheck, CalendarX, LogIn, LogOut, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarCheck, CalendarX, LogIn, LogOut, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
-import type { Agent } from "@/lib/planning/types";
+import type { Agent, AgentSortMode } from "@/lib/planning/types";
+import { AGENT_SORT_LABELS } from "@/lib/planning/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,7 +34,7 @@ function departureLabel(a: Agent): string | null {
 }
 
 export function AgentsTab() {
-  const { agents, addAgent, updateAgent, removeAgent, yearRange } = usePlanning();
+  const { agents, addAgent, updateAgent, removeAgent, yearRange, agentSort, setAgentSort, moveAgent } = usePlanning();
   const years = useSelectableYears(yearRange);
   const now = new Date();
 
@@ -116,11 +117,33 @@ export function AgentsTab() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">Base agents</h2>
-        <p className="text-sm text-muted-foreground">
-          Liste des agents affichés dans le planning ({agents.length}).
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Base agents</h2>
+          <p className="text-sm text-muted-foreground">
+            Liste des agents affichés dans le planning ({agents.length}).
+          </p>
+        </div>
+        <div className="min-w-[220px]">
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+            Classement des agents (tous les onglets)
+          </label>
+          <Select
+            value={agentSort}
+            onValueChange={(v) => setAgentSort(v as AgentSortMode)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(AGENT_SORT_LABELS) as AgentSortMode[]).map((m) => (
+                <SelectItem key={m} value={m}>
+                  {AGENT_SORT_LABELS[m]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="space-y-3 rounded-lg border border-border bg-card p-3">
@@ -213,7 +236,7 @@ export function AgentsTab() {
             </tr>
           </thead>
           <tbody>
-            {agents.map((a) => {
+            {agents.map((a, idx) => {
               const arr = arrivalLabel(a);
               const dep = departureLabel(a);
               return (
@@ -282,6 +305,30 @@ export function AgentsTab() {
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex justify-end gap-1">
+                          {agentSort === "custom" && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                                title="Monter"
+                                disabled={idx === 0}
+                                onClick={() => moveAgent(a.id, "up")}
+                              >
+                                <ArrowUp />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                                title="Descendre"
+                                disabled={idx === agents.length - 1}
+                                onClick={() => moveAgent(a.id, "down")}
+                              >
+                                <ArrowDown />
+                              </Button>
+                            </>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
