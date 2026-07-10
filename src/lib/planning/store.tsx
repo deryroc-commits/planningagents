@@ -1121,7 +1121,7 @@ export function PlanningProvider({
       year,
       setYear,
       codes: state.codes,
-      agents: state.agents,
+      agents: sortedAgents,
       planning,
       planningByYear: state.planningByYear,
       setCell,
