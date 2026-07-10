@@ -835,6 +835,7 @@ export function PlanningProvider({
       catalogVersion: DEFAULT_CATALOG_VERSION,
       codes: s.codes?.length ? s.codes : DEFAULT_CODES,
       agents: s.agents?.length ? s.agents : DEFAULT_AGENTS,
+      agentSort: normalizeAgentSort(s.agentSort),
       planningByYear: s.planningByYear ?? {},
       colors: { ...DEFAULT_COLORS, ...(s.colors ?? {}) },
       rotation: normalizeRotation(s.rotation ?? DEFAULT_ROTATION),
