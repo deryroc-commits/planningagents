@@ -205,7 +205,7 @@ function normalizeAgentSort(v: unknown): AgentSortMode {
   return v === "alpha" || v === "team" || v === "team-alpha" ? v : "custom";
 }
 
-
+/** Normalize a per-year rotation map, dropping empty/invalid entries. */
 function normalizeRotationByYear(
   input: Record<number, RotationState> | undefined,
 ): Record<number, RotationState> {
