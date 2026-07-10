@@ -200,6 +200,8 @@ export interface PlanningState {
   catalogVersion?: number;
   codes: PlanningCode[];
   agents: Agent[];
+  /** How agents are ordered in every view (defaults to "custom"). */
+  agentSort?: AgentSortMode;
   planningByYear: Record<number, YearPlanning>;
   /** Optional user color overrides; when absent the app uses DEFAULT_COLORS. */
   colors?: ColorScheme;
