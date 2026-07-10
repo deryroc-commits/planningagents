@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type {
   Agent,
+  AgentSortMode,
   ColorKey,
   ColorScheme,
   OvertimeEntry,
@@ -23,6 +24,7 @@ import type {
   YearPlanning,
   YearRangeConfig,
 } from "./types";
+import { sortAgents } from "./types";
 import {
   DEFAULT_AGENTS,
   DEFAULT_CATALOG_VERSION,
