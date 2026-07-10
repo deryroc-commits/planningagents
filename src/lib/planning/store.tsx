@@ -93,6 +93,11 @@ interface PlanningContextValue {
   addAgent: (a: Omit<Agent, "id">) => void;
   updateAgent: (id: string, patch: Partial<Omit<Agent, "id">>) => void;
   removeAgent: (id: string) => void;
+  /** How agents are ordered in every view. */
+  agentSort: AgentSortMode;
+  setAgentSort: (mode: AgentSortMode) => void;
+  /** Move an agent up/down in the custom (manual) order. */
+  moveAgent: (id: string, dir: "up" | "down") => void;
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
   /** Full, deep snapshot of the whole application state (for backups). */
