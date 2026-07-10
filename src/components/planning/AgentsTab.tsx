@@ -305,6 +305,30 @@ export function AgentsTab() {
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex justify-end gap-1">
+                          {agentSort === "custom" && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                                title="Monter"
+                                disabled={idx === 0}
+                                onClick={() => moveAgent(a.id, "up")}
+                              >
+                                <ArrowUp />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                                title="Descendre"
+                                disabled={idx === agents.length - 1}
+                                onClick={() => moveAgent(a.id, "down")}
+                              >
+                                <ArrowDown />
+                              </Button>
+                            </>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
