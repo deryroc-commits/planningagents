@@ -200,7 +200,12 @@ function normalizeYearRange(input: unknown): YearRangeConfig {
   };
 }
 
-/** Normalize a per-year rotation map, dropping empty/invalid entries. */
+/** Validate a stored agent-sort mode, defaulting to "custom". */
+function normalizeAgentSort(v: unknown): AgentSortMode {
+  return v === "alpha" || v === "team" || v === "team-alpha" ? v : "custom";
+}
+
+
 function normalizeRotationByYear(
   input: Record<number, RotationState> | undefined,
 ): Record<number, RotationState> {
