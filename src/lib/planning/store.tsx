@@ -775,6 +775,8 @@ export function PlanningProvider({
     () => sortAgents(state.agents, agentSort),
     [state.agents, agentSort],
   );
+
+  const replaceState = useCallback((s: Partial<PlanningState>) => {
     setState((prev) => {
       // Reconcile imported agents with the existing roster by name so a fresh
       // import (which mints new random agent IDs) reuses the IDs already in
