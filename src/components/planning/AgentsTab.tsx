@@ -117,11 +117,33 @@ export function AgentsTab() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">Base agents</h2>
-        <p className="text-sm text-muted-foreground">
-          Liste des agents affichés dans le planning ({agents.length}).
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Base agents</h2>
+          <p className="text-sm text-muted-foreground">
+            Liste des agents affichés dans le planning ({agents.length}).
+          </p>
+        </div>
+        <div className="min-w-[220px]">
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+            Classement des agents (tous les onglets)
+          </label>
+          <Select
+            value={agentSort}
+            onValueChange={(v) => setAgentSort(v as AgentSortMode)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(AGENT_SORT_LABELS) as AgentSortMode[]).map((m) => (
+                <SelectItem key={m} value={m}>
+                  {AGENT_SORT_LABELS[m]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="space-y-3 rounded-lg border border-border bg-card p-3">
