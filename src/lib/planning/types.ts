@@ -58,6 +58,48 @@ export function isAgentActiveInMonth(
   return true;
 }
 
+/**
+ * How agents are ordered everywhere their name appears (planning grids, stats,
+ * modifications, overtime, print, exports…).
+ * - `custom`     : manual order (as arranged in « Base agents »).
+ * - `alpha`      : alphabetical by name.
+ * - `team`       : grouped by team (agents without team last).
+ * - `team-alpha` : grouped by team, then alphabetical inside each team.
+ */
+export type AgentSortMode = "custom" | "alpha" | "team" | "team-alpha";
+
+export const AGENT_SORT_LABELS: Record<AgentSortMode, string> = {
+  custom: "Personnalisé",
+  alpha: "Alphabétique",
+  team: "Par équipe",
+  "team-alpha": "Par équipe + alphabétique",
+};
+
+/**
+ * Return a NEW array of agents sorted per the chosen mode. `custom` keeps the
+ * stored order untouched. Sorting is stable so equal keys preserve order.
+ */
+export function sortAgents(
+  agents: Agent[],
+  mode: AgentSortMode | undefined,
+): Agent[] {
+  if (!mode || mode === "custom") return agents;
+  const byName = (a: Agent, b: Agent) =>
+    a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+  const byTeam = (a: Agent, b: Agent) => {
+    const ta = a.team?.trim() ?? "";
+    const tb = b.team?.trim() ?? "";
+    if (!ta && tb) return 1; // agents without team go last
+    if (ta && !tb) return -1;
+    return ta.localeCompare(tb, "fr", { sensitivity: "base" });
+  };
+  const arr = [...agents];
+  if (mode === "alpha") arr.sort(byName);
+  else if (mode === "team") arr.sort(byTeam);
+  else if (mode === "team-alpha") arr.sort((a, b) => byTeam(a, b) || byName(a, b));
+  return arr;
+}
+
 /** Keys for every colorable element shown in the legend. */
 export type ColorKey =
   | CodeCategory
