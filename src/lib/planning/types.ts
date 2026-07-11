@@ -76,14 +76,62 @@ export const AGENT_SORT_LABELS: Record<AgentSortMode, string> = {
 };
 
 /**
+ * List every distinct, non-empty team present in the roster, in first-appearance
+ * order. Used to build the administrator-controlled team ordering.
+ */
+export function listTeams(agents: Agent[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const a of agents) {
+    const t = a.team?.trim();
+    if (t && !seen.has(t)) {
+      seen.add(t);
+      out.push(t);
+    }
+  }
+  return out;
+}
+
+/**
+ * Effective ordered list of the teams actually present: the ones listed in
+ * `stored` order first (kept only if still present), then any remaining team
+ * alphabetically. Lets the admin arrange teams while new teams still show up.
+ */
+export function orderTeams(
+  present: string[],
+  stored: string[] | undefined,
+): string[] {
+  const presentSet = new Set(present);
+  const ordered: string[] = [];
+  const used = new Set<string>();
+  for (const t of stored ?? []) {
+    if (presentSet.has(t) && !used.has(t)) {
+      ordered.push(t);
+      used.add(t);
+    }
+  }
+  const rest = present
+    .filter((t) => !used.has(t))
+    .sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
+  return [...ordered, ...rest];
+}
+
+/**
  * Return a NEW array of agents sorted per the chosen mode. `custom` keeps the
  * stored order untouched. Sorting is stable so equal keys preserve order.
+ * When `teamOrder` is provided, team-based modes order teams by that custom
+ * order first (teams absent from the list fall back to alphabetical after).
  */
 export function sortAgents(
   agents: Agent[],
   mode: AgentSortMode | undefined,
+  teamOrder?: string[],
 ): Agent[] {
   if (!mode || mode === "custom") return agents;
+  const rank = new Map<string, number>();
+  (teamOrder ?? []).forEach((t, i) => rank.set(t, i));
+  const teamRank = (t: string) =>
+    rank.has(t) ? (rank.get(t) as number) : Number.MAX_SAFE_INTEGER;
   const byName = (a: Agent, b: Agent) =>
     a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
   const byTeam = (a: Agent, b: Agent) => {
@@ -91,6 +139,10 @@ export function sortAgents(
     const tb = b.team?.trim() ?? "";
     if (!ta && tb) return 1; // agents without team go last
     if (ta && !tb) return -1;
+    if (!ta && !tb) return 0;
+    const ra = teamRank(ta);
+    const rb = teamRank(tb);
+    if (ra !== rb) return ra - rb;
     return ta.localeCompare(tb, "fr", { sensitivity: "base" });
   };
   const arr = [...agents];
