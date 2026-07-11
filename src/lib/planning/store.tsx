@@ -364,6 +364,8 @@ function mergeCloudState(
     catalogVersion: remote.catalogVersion,
     codes: pick("codes"),
     agents: pick("agents"),
+    agentSort: pick("agentSort"),
+    teamOrder: pick("teamOrder"),
     planningByYear: mergeRecordOfRecords(
       base.planningByYear,
       remote.planningByYear,
