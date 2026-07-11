@@ -254,6 +254,8 @@ export interface PlanningState {
   agents: Agent[];
   /** How agents are ordered in every view (defaults to "custom"). */
   agentSort?: AgentSortMode;
+  /** Admin-defined team order used by the "team" / "team-alpha" sort modes. */
+  teamOrder?: string[];
   planningByYear: Record<number, YearPlanning>;
   /** Optional user color overrides; when absent the app uses DEFAULT_COLORS. */
   colors?: ColorScheme;
