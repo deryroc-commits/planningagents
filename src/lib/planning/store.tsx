@@ -1212,6 +1212,8 @@ export function PlanningProvider({
       agentSort,
       setAgentSort,
       moveAgent,
+      teamOrder,
+      moveTeam,
       replaceState,
       snapshotState,
       restoreFullState,
