@@ -864,6 +864,7 @@ export function PlanningProvider({
           : prev.codes,
         agents,
         agentSort: s.agentSort ?? prev.agentSort,
+        teamOrder: s.teamOrder ?? prev.teamOrder,
         // Merge per-year so importing one year never wipes other years.
         planningByYear: incomingPlanning
           ? { ...prev.planningByYear, ...incomingPlanning }
