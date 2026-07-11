@@ -98,6 +98,10 @@ interface PlanningContextValue {
   setAgentSort: (mode: AgentSortMode) => void;
   /** Move an agent up/down in the custom (manual) order. */
   moveAgent: (id: string, dir: "up" | "down") => void;
+  /** Effective ordered list of the teams present (for the "team" sort modes). */
+  teamOrder: string[];
+  /** Move a team up/down in the admin-defined team order. */
+  moveTeam: (team: string, dir: "up" | "down") => void;
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
   /** Full, deep snapshot of the whole application state (for backups). */
