@@ -34,7 +34,7 @@ function departureLabel(a: Agent): string | null {
 }
 
 export function AgentsTab() {
-  const { agents, addAgent, updateAgent, removeAgent, yearRange, agentSort, setAgentSort, moveAgent } = usePlanning();
+  const { agents, addAgent, updateAgent, removeAgent, yearRange, agentSort, setAgentSort, moveAgent, teamOrder, moveTeam } = usePlanning();
   const years = useSelectableYears(yearRange);
   const now = new Date();
 
@@ -145,6 +145,46 @@ export function AgentsTab() {
           </Select>
         </div>
       </div>
+
+      {(agentSort === "team" || agentSort === "team-alpha") && teamOrder.length > 0 && (
+        <div className="space-y-2 rounded-lg border border-border bg-card p-3">
+          <div>
+            <h3 className="text-sm font-semibold">Ordre des équipes</h3>
+            <p className="text-xs text-muted-foreground">
+              Choisissez l'ordre d'affichage des équipes dans tous les onglets.
+            </p>
+          </div>
+          <ul className="divide-y divide-border rounded-md border border-border">
+            {teamOrder.map((team, idx) => (
+              <li key={team} className="flex items-center justify-between gap-2 px-3 py-1.5">
+                <span className="text-sm font-medium">{team}</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    title="Monter"
+                    disabled={idx === 0}
+                    onClick={() => moveTeam(team, "up")}
+                  >
+                    <ArrowUp />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    title="Descendre"
+                    disabled={idx === teamOrder.length - 1}
+                    onClick={() => moveTeam(team, "down")}
+                  >
+                    <ArrowDown />
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="space-y-3 rounded-lg border border-border bg-card p-3">
         <div className="flex flex-wrap items-end gap-2">

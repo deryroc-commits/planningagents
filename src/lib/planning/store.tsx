@@ -24,7 +24,7 @@ import type {
   YearPlanning,
   YearRangeConfig,
 } from "./types";
-import { sortAgents } from "./types";
+import { sortAgents, listTeams, orderTeams } from "./types";
 import {
   DEFAULT_AGENTS,
   DEFAULT_CATALOG_VERSION,
@@ -98,6 +98,10 @@ interface PlanningContextValue {
   setAgentSort: (mode: AgentSortMode) => void;
   /** Move an agent up/down in the custom (manual) order. */
   moveAgent: (id: string, dir: "up" | "down") => void;
+  /** Effective ordered list of the teams present (for the "team" sort modes). */
+  teamOrder: string[];
+  /** Move a team up/down in the admin-defined team order. */
+  moveTeam: (team: string, dir: "up" | "down") => void;
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
   /** Full, deep snapshot of the whole application state (for backups). */
@@ -240,6 +244,9 @@ function normalizePlanningState(input: Partial<PlanningState> | null | undefined
     codes,
     agents: agents?.length ? agents : DEFAULT_AGENTS,
     agentSort: normalizeAgentSort(parsed.agentSort),
+    teamOrder: Array.isArray(parsed.teamOrder)
+      ? parsed.teamOrder.filter((t): t is string => typeof t === "string")
+      : [],
     planningByYear: parsed.planningByYear ?? {},
     colors: { ...DEFAULT_COLORS, ...(parsed.colors ?? {}) },
     rotation: normalizeRotation(parsed.rotation ?? DEFAULT_ROTATION),
@@ -357,6 +364,8 @@ function mergeCloudState(
     catalogVersion: remote.catalogVersion,
     codes: pick("codes"),
     agents: pick("agents"),
+    agentSort: pick("agentSort"),
+    teamOrder: pick("teamOrder"),
     planningByYear: mergeRecordOfRecords(
       base.planningByYear,
       remote.planningByYear,
@@ -770,10 +779,28 @@ export function PlanningProvider({
     });
   }, []);
 
+  /** Effective ordered list of the teams present (admin order first). */
+  const teamOrder = useMemo(
+    () => orderTeams(listTeams(state.agents), state.teamOrder),
+    [state.agents, state.teamOrder],
+  );
+
+  const moveTeam = useCallback((team: string, dir: "up" | "down") => {
+    setState((prev) => {
+      const ordered = orderTeams(listTeams(prev.agents), prev.teamOrder);
+      const i = ordered.indexOf(team);
+      if (i < 0) return prev;
+      const j = dir === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= ordered.length) return prev;
+      [ordered[i], ordered[j]] = [ordered[j], ordered[i]];
+      return { ...prev, teamOrder: ordered };
+    });
+  }, []);
+
   /** Agents ordered per the chosen mode; every view reads this. */
   const sortedAgents = useMemo(
-    () => sortAgents(state.agents, agentSort),
-    [state.agents, agentSort],
+    () => sortAgents(state.agents, agentSort, teamOrder),
+    [state.agents, agentSort, teamOrder],
   );
 
   const replaceState = useCallback((s: Partial<PlanningState>) => {
@@ -839,6 +866,7 @@ export function PlanningProvider({
           : prev.codes,
         agents,
         agentSort: s.agentSort ?? prev.agentSort,
+        teamOrder: s.teamOrder ?? prev.teamOrder,
         // Merge per-year so importing one year never wipes other years.
         planningByYear: incomingPlanning
           ? { ...prev.planningByYear, ...incomingPlanning }
@@ -866,6 +894,7 @@ export function PlanningProvider({
       codes: s.codes?.length ? s.codes : DEFAULT_CODES,
       agents: s.agents?.length ? s.agents : DEFAULT_AGENTS,
       agentSort: normalizeAgentSort(s.agentSort),
+      teamOrder: Array.isArray(s.teamOrder) ? s.teamOrder : [],
       planningByYear: s.planningByYear ?? {},
       colors: { ...DEFAULT_COLORS, ...(s.colors ?? {}) },
       rotation: normalizeRotation(s.rotation ?? DEFAULT_ROTATION),
@@ -1136,6 +1165,8 @@ export function PlanningProvider({
       agentSort,
       setAgentSort,
       moveAgent,
+      teamOrder,
+      moveTeam,
       replaceState,
       snapshotState,
       restoreFullState,
@@ -1181,6 +1212,8 @@ export function PlanningProvider({
       agentSort,
       setAgentSort,
       moveAgent,
+      teamOrder,
+      moveTeam,
       replaceState,
       snapshotState,
       restoreFullState,
