@@ -777,10 +777,28 @@ export function PlanningProvider({
     });
   }, []);
 
+  /** Effective ordered list of the teams present (admin order first). */
+  const teamOrder = useMemo(
+    () => orderTeams(listTeams(state.agents), state.teamOrder),
+    [state.agents, state.teamOrder],
+  );
+
+  const moveTeam = useCallback((team: string, dir: "up" | "down") => {
+    setState((prev) => {
+      const ordered = orderTeams(listTeams(prev.agents), prev.teamOrder);
+      const i = ordered.indexOf(team);
+      if (i < 0) return prev;
+      const j = dir === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= ordered.length) return prev;
+      [ordered[i], ordered[j]] = [ordered[j], ordered[i]];
+      return { ...prev, teamOrder: ordered };
+    });
+  }, []);
+
   /** Agents ordered per the chosen mode; every view reads this. */
   const sortedAgents = useMemo(
-    () => sortAgents(state.agents, agentSort),
-    [state.agents, agentSort],
+    () => sortAgents(state.agents, agentSort, teamOrder),
+    [state.agents, agentSort, teamOrder],
   );
 
   const replaceState = useCallback((s: Partial<PlanningState>) => {
