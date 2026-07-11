@@ -24,7 +24,7 @@ import type {
   YearPlanning,
   YearRangeConfig,
 } from "./types";
-import { sortAgents } from "./types";
+import { sortAgents, listTeams, orderTeams } from "./types";
 import {
   DEFAULT_AGENTS,
   DEFAULT_CATALOG_VERSION,
