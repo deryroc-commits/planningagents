@@ -395,7 +395,14 @@ export function AgentsTab() {
                     </>
                   ) : (
                     <>
-                      <td className="px-3 py-2 font-medium">{a.name}</td>
+                      <td className="px-3 py-2 font-medium">
+                        <span className="flex items-center gap-2">
+                          {agentSort === "custom" && (
+                            <GripVertical className="size-4 cursor-grab text-muted-foreground" />
+                          )}
+                          {a.name}
+                        </span>
+                      </td>
                       <td className="px-3 py-2 text-muted-foreground">
                         {a.team ?? "—"}
                       </td>
