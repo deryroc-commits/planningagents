@@ -102,6 +102,8 @@ interface PlanningContextValue {
   teamOrder: string[];
   /** Move a team up/down in the admin-defined team order. */
   moveTeam: (team: string, dir: "up" | "down") => void;
+  /** Reset the admin-defined team order to the default (alphabetical). */
+  resetTeamOrder: () => void;
   // bulk
   replaceState: (s: Partial<PlanningState>) => void;
   /** Full, deep snapshot of the whole application state (for backups). */
@@ -797,6 +799,10 @@ export function PlanningProvider({
     });
   }, []);
 
+  const resetTeamOrder = useCallback(() => {
+    setState((prev) => ({ ...prev, teamOrder: [] }));
+  }, []);
+
   /** Agents ordered per the chosen mode; every view reads this. */
   const sortedAgents = useMemo(
     () => sortAgents(state.agents, agentSort, teamOrder),
@@ -1167,6 +1173,7 @@ export function PlanningProvider({
       moveAgent,
       teamOrder,
       moveTeam,
+      resetTeamOrder,
       replaceState,
       snapshotState,
       restoreFullState,
@@ -1214,6 +1221,7 @@ export function PlanningProvider({
       moveAgent,
       teamOrder,
       moveTeam,
+      resetTeamOrder,
       replaceState,
       snapshotState,
       restoreFullState,
