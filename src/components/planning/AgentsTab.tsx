@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDown, ArrowUp, CalendarCheck, CalendarX, LogIn, LogOut, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarCheck, CalendarX, LogIn, LogOut, Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
@@ -34,7 +34,7 @@ function departureLabel(a: Agent): string | null {
 }
 
 export function AgentsTab() {
-  const { agents, addAgent, updateAgent, removeAgent, yearRange, agentSort, setAgentSort, moveAgent, teamOrder, moveTeam } = usePlanning();
+  const { agents, addAgent, updateAgent, removeAgent, yearRange, agentSort, setAgentSort, moveAgent, teamOrder, moveTeam, resetTeamOrder } = usePlanning();
   const years = useSelectableYears(yearRange);
   const now = new Date();
 
@@ -148,11 +148,21 @@ export function AgentsTab() {
 
       {(agentSort === "team" || agentSort === "team-alpha") && teamOrder.length > 0 && (
         <div className="space-y-2 rounded-lg border border-border bg-card p-3">
-          <div>
-            <h3 className="text-sm font-semibold">Ordre des équipes</h3>
-            <p className="text-xs text-muted-foreground">
-              Choisissez l'ordre d'affichage des équipes dans tous les onglets.
-            </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold">Ordre des équipes</h3>
+              <p className="text-xs text-muted-foreground">
+                Choisissez l'ordre d'affichage des équipes dans tous les onglets.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 text-xs"
+              onClick={resetTeamOrder}
+            >
+              <RotateCcw className="size-3.5" /> Réinitialiser
+            </Button>
           </div>
           <ul className="divide-y divide-border rounded-md border border-border">
             {teamOrder.map((team, idx) => (
