@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDown, ArrowUp, CalendarCheck, CalendarX, LogIn, LogOut, Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarCheck, CalendarX, GripVertical, LogIn, LogOut, Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
