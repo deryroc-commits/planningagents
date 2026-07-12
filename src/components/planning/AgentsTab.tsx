@@ -42,6 +42,14 @@ export function AgentsTab() {
   const [draftName, setDraftName] = useState("");
   const [draftTeam, setDraftTeam] = useState("");
 
+  // Drag & drop reordering.
+  const [dragTeam, setDragTeam] = useState<string | null>(null);
+  const [overTeam, setOverTeam] = useState<string | null>(null);
+  const [dragAgent, setDragAgent] = useState<string | null>(null);
+  const [overAgent, setOverAgent] = useState<string | null>(null);
+
+
+
   // Add form.
   const [newName, setNewName] = useState("");
   const [newTeam, setNewTeam] = useState("");
