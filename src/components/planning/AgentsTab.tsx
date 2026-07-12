@@ -174,8 +174,36 @@ export function AgentsTab() {
           </div>
           <ul className="divide-y divide-border rounded-md border border-border">
             {teamOrder.map((team, idx) => (
-              <li key={team} className="flex items-center justify-between gap-2 px-3 py-1.5">
-                <span className="text-sm font-medium">{team}</span>
+              <li
+                key={team}
+                draggable
+                onDragStart={(e) => {
+                  setDragTeam(team);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (dragTeam && dragTeam !== team) setOverTeam(team);
+                }}
+                onDragLeave={() => setOverTeam((t) => (t === team ? null : t))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (dragTeam && dragTeam !== team) reorderTeam(dragTeam, idx);
+                  setDragTeam(null);
+                  setOverTeam(null);
+                }}
+                onDragEnd={() => {
+                  setDragTeam(null);
+                  setOverTeam(null);
+                }}
+                className={`flex items-center justify-between gap-2 px-3 py-1.5 transition-colors ${
+                  dragTeam === team ? "opacity-50" : ""
+                } ${overTeam === team ? "bg-accent" : ""}`}
+              >
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <GripVertical className="size-4 cursor-grab text-muted-foreground" />
+                  {team}
+                </span>
                 <div className="flex gap-1">
                   <Button
                     variant="ghost"
