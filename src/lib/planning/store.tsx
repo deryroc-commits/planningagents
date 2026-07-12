@@ -785,7 +785,18 @@ export function PlanningProvider({
     });
   }, []);
 
-  /** Effective ordered list of the teams present (admin order first). */
+  const reorderAgent = useCallback((id: string, toIndex: number) => {
+    setState((prev) => {
+      const arr = [...prev.agents];
+      const from = arr.findIndex((a) => a.id === id);
+      if (from < 0) return prev;
+      let to = Math.max(0, Math.min(toIndex, arr.length - 1));
+      if (from === to) return prev;
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
+      return { ...prev, agents: arr };
+    });
+  }, []);
   const teamOrder = useMemo(
     () => orderTeams(listTeams(state.agents), state.teamOrder),
     [state.agents, state.teamOrder],
