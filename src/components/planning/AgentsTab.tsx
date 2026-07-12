@@ -34,7 +34,7 @@ function departureLabel(a: Agent): string | null {
 }
 
 export function AgentsTab() {
-  const { agents, addAgent, updateAgent, removeAgent, yearRange, agentSort, setAgentSort, moveAgent, teamOrder, moveTeam, resetTeamOrder } = usePlanning();
+  const { agents, addAgent, updateAgent, removeAgent, yearRange, agentSort, setAgentSort, moveAgent, reorderAgent, teamOrder, moveTeam, reorderTeam, resetTeamOrder } = usePlanning();
   const years = useSelectableYears(yearRange);
   const now = new Date();
 
