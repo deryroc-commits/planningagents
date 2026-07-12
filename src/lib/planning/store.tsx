@@ -826,6 +826,9 @@ export function PlanningProvider({
       return { ...prev, teamOrder: ordered };
     });
   }, []);
+
+  const resetTeamOrder = useCallback(() => {
+    setState((prev) => ({ ...prev, teamOrder: [] }));
   }, []);
 
   /** Agents ordered per the chosen mode; every view reads this. */
