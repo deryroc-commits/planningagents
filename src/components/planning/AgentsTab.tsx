@@ -326,7 +326,35 @@ export function AgentsTab() {
               const arr = arrivalLabel(a);
               const dep = departureLabel(a);
               return (
-                <tr key={a.id} className="border-b border-border last:border-0">
+                <tr
+                  key={a.id}
+                  draggable={agentSort === "custom" && editing !== a.id}
+                  onDragStart={(e) => {
+                    if (agentSort !== "custom") return;
+                    setDragAgent(a.id);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragOver={(e) => {
+                    if (agentSort !== "custom" || !dragAgent) return;
+                    e.preventDefault();
+                    if (dragAgent !== a.id) setOverAgent(a.id);
+                  }}
+                  onDragLeave={() => setOverAgent((x) => (x === a.id ? null : x))}
+                  onDrop={(e) => {
+                    if (agentSort !== "custom") return;
+                    e.preventDefault();
+                    if (dragAgent && dragAgent !== a.id) reorderAgent(dragAgent, idx);
+                    setDragAgent(null);
+                    setOverAgent(null);
+                  }}
+                  onDragEnd={() => {
+                    setDragAgent(null);
+                    setOverAgent(null);
+                  }}
+                  className={`border-b border-border last:border-0 transition-colors ${
+                    dragAgent === a.id ? "opacity-50" : ""
+                  } ${overAgent === a.id ? "bg-accent" : ""}`}
+                >
                   {editing === a.id ? (
                     <>
                       <td className="px-3 py-2">
