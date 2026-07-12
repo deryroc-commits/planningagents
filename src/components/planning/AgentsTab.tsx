@@ -160,7 +160,7 @@ export function AgentsTab() {
             <div>
               <h3 className="text-sm font-semibold">Ordre des équipes</h3>
               <p className="text-xs text-muted-foreground">
-                Choisissez l'ordre d'affichage des équipes dans tous les onglets.
+                Glissez-déposez les équipes (ou utilisez les flèches) pour définir leur ordre dans tous les onglets.
               </p>
             </div>
             <Button
