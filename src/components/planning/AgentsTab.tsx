@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDown, ArrowUp, CalendarCheck, CalendarX, LogIn, LogOut, Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarCheck, CalendarX, GripVertical, LogIn, LogOut, Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
@@ -34,13 +34,21 @@ function departureLabel(a: Agent): string | null {
 }
 
 export function AgentsTab() {
-  const { agents, addAgent, updateAgent, removeAgent, yearRange, agentSort, setAgentSort, moveAgent, teamOrder, moveTeam, resetTeamOrder } = usePlanning();
+  const { agents, addAgent, updateAgent, removeAgent, yearRange, agentSort, setAgentSort, moveAgent, reorderAgent, teamOrder, moveTeam, reorderTeam, resetTeamOrder } = usePlanning();
   const years = useSelectableYears(yearRange);
   const now = new Date();
 
   const [editing, setEditing] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const [draftTeam, setDraftTeam] = useState("");
+
+  // Drag & drop reordering.
+  const [dragTeam, setDragTeam] = useState<string | null>(null);
+  const [overTeam, setOverTeam] = useState<string | null>(null);
+  const [dragAgent, setDragAgent] = useState<string | null>(null);
+  const [overAgent, setOverAgent] = useState<string | null>(null);
+
+
 
   // Add form.
   const [newName, setNewName] = useState("");
@@ -152,7 +160,7 @@ export function AgentsTab() {
             <div>
               <h3 className="text-sm font-semibold">Ordre des équipes</h3>
               <p className="text-xs text-muted-foreground">
-                Choisissez l'ordre d'affichage des équipes dans tous les onglets.
+                Glissez-déposez les équipes (ou utilisez les flèches) pour définir leur ordre dans tous les onglets.
               </p>
             </div>
             <Button
@@ -166,8 +174,36 @@ export function AgentsTab() {
           </div>
           <ul className="divide-y divide-border rounded-md border border-border">
             {teamOrder.map((team, idx) => (
-              <li key={team} className="flex items-center justify-between gap-2 px-3 py-1.5">
-                <span className="text-sm font-medium">{team}</span>
+              <li
+                key={team}
+                draggable
+                onDragStart={(e) => {
+                  setDragTeam(team);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (dragTeam && dragTeam !== team) setOverTeam(team);
+                }}
+                onDragLeave={() => setOverTeam((t) => (t === team ? null : t))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (dragTeam && dragTeam !== team) reorderTeam(dragTeam, idx);
+                  setDragTeam(null);
+                  setOverTeam(null);
+                }}
+                onDragEnd={() => {
+                  setDragTeam(null);
+                  setOverTeam(null);
+                }}
+                className={`flex items-center justify-between gap-2 px-3 py-1.5 transition-colors ${
+                  dragTeam === team ? "opacity-50" : ""
+                } ${overTeam === team ? "bg-accent" : ""}`}
+              >
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <GripVertical className="size-4 cursor-grab text-muted-foreground" />
+                  {team}
+                </span>
                 <div className="flex gap-1">
                   <Button
                     variant="ghost"
@@ -290,7 +326,35 @@ export function AgentsTab() {
               const arr = arrivalLabel(a);
               const dep = departureLabel(a);
               return (
-                <tr key={a.id} className="border-b border-border last:border-0">
+                <tr
+                  key={a.id}
+                  draggable={agentSort === "custom" && editing !== a.id}
+                  onDragStart={(e) => {
+                    if (agentSort !== "custom") return;
+                    setDragAgent(a.id);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragOver={(e) => {
+                    if (agentSort !== "custom" || !dragAgent) return;
+                    e.preventDefault();
+                    if (dragAgent !== a.id) setOverAgent(a.id);
+                  }}
+                  onDragLeave={() => setOverAgent((x) => (x === a.id ? null : x))}
+                  onDrop={(e) => {
+                    if (agentSort !== "custom") return;
+                    e.preventDefault();
+                    if (dragAgent && dragAgent !== a.id) reorderAgent(dragAgent, idx);
+                    setDragAgent(null);
+                    setOverAgent(null);
+                  }}
+                  onDragEnd={() => {
+                    setDragAgent(null);
+                    setOverAgent(null);
+                  }}
+                  className={`border-b border-border last:border-0 transition-colors ${
+                    dragAgent === a.id ? "opacity-50" : ""
+                  } ${overAgent === a.id ? "bg-accent" : ""}`}
+                >
                   {editing === a.id ? (
                     <>
                       <td className="px-3 py-2">
@@ -331,7 +395,14 @@ export function AgentsTab() {
                     </>
                   ) : (
                     <>
-                      <td className="px-3 py-2 font-medium">{a.name}</td>
+                      <td className="px-3 py-2 font-medium">
+                        <span className="flex items-center gap-2">
+                          {agentSort === "custom" && (
+                            <GripVertical className="size-4 cursor-grab text-muted-foreground" />
+                          )}
+                          {a.name}
+                        </span>
+                      </td>
                       <td className="px-3 py-2 text-muted-foreground">
                         {a.team ?? "—"}
                       </td>

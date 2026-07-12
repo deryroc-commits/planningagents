@@ -98,10 +98,14 @@ interface PlanningContextValue {
   setAgentSort: (mode: AgentSortMode) => void;
   /** Move an agent up/down in the custom (manual) order. */
   moveAgent: (id: string, dir: "up" | "down") => void;
+  /** Drag-and-drop: move an agent to a target index in the custom order. */
+  reorderAgent: (id: string, toIndex: number) => void;
   /** Effective ordered list of the teams present (for the "team" sort modes). */
   teamOrder: string[];
   /** Move a team up/down in the admin-defined team order. */
   moveTeam: (team: string, dir: "up" | "down") => void;
+  /** Drag-and-drop: move a team to a target index in the admin order. */
+  reorderTeam: (team: string, toIndex: number) => void;
   /** Reset the admin-defined team order to the default (alphabetical). */
   resetTeamOrder: () => void;
   // bulk
@@ -781,7 +785,18 @@ export function PlanningProvider({
     });
   }, []);
 
-  /** Effective ordered list of the teams present (admin order first). */
+  const reorderAgent = useCallback((id: string, toIndex: number) => {
+    setState((prev) => {
+      const arr = [...prev.agents];
+      const from = arr.findIndex((a) => a.id === id);
+      if (from < 0) return prev;
+      let to = Math.max(0, Math.min(toIndex, arr.length - 1));
+      if (from === to) return prev;
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
+      return { ...prev, agents: arr };
+    });
+  }, []);
   const teamOrder = useMemo(
     () => orderTeams(listTeams(state.agents), state.teamOrder),
     [state.agents, state.teamOrder],
@@ -795,6 +810,19 @@ export function PlanningProvider({
       const j = dir === "up" ? i - 1 : i + 1;
       if (j < 0 || j >= ordered.length) return prev;
       [ordered[i], ordered[j]] = [ordered[j], ordered[i]];
+      return { ...prev, teamOrder: ordered };
+    });
+  }, []);
+
+  const reorderTeam = useCallback((team: string, toIndex: number) => {
+    setState((prev) => {
+      const ordered = orderTeams(listTeams(prev.agents), prev.teamOrder);
+      const from = ordered.indexOf(team);
+      if (from < 0) return prev;
+      let to = Math.max(0, Math.min(toIndex, ordered.length - 1));
+      if (from === to) return prev;
+      const [moved] = ordered.splice(from, 1);
+      ordered.splice(to, 0, moved);
       return { ...prev, teamOrder: ordered };
     });
   }, []);
@@ -1171,8 +1199,10 @@ export function PlanningProvider({
       agentSort,
       setAgentSort,
       moveAgent,
+      reorderAgent,
       teamOrder,
       moveTeam,
+      reorderTeam,
       resetTeamOrder,
       replaceState,
       snapshotState,
@@ -1219,8 +1249,10 @@ export function PlanningProvider({
       agentSort,
       setAgentSort,
       moveAgent,
+      reorderAgent,
       teamOrder,
       moveTeam,
+      reorderTeam,
       resetTeamOrder,
       replaceState,
       snapshotState,
