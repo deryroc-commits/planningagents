@@ -814,8 +814,18 @@ export function PlanningProvider({
     });
   }, []);
 
-  const resetTeamOrder = useCallback(() => {
-    setState((prev) => ({ ...prev, teamOrder: [] }));
+  const reorderTeam = useCallback((team: string, toIndex: number) => {
+    setState((prev) => {
+      const ordered = orderTeams(listTeams(prev.agents), prev.teamOrder);
+      const from = ordered.indexOf(team);
+      if (from < 0) return prev;
+      let to = Math.max(0, Math.min(toIndex, ordered.length - 1));
+      if (from === to) return prev;
+      const [moved] = ordered.splice(from, 1);
+      ordered.splice(to, 0, moved);
+      return { ...prev, teamOrder: ordered };
+    });
+  }, []);
   }, []);
 
   /** Agents ordered per the chosen mode; every view reads this. */
