@@ -77,6 +77,22 @@ export function RotationTab() {
 
 
 
+  /**
+   * Toggle the per-year rotation. Disabling drops this year's dedicated copy,
+   * which is irreversible, so ask for confirmation first when data exists.
+   */
+  const handleYearSpecific = (v: boolean) => {
+    if (!v && rotationYearSpecific) {
+      if (
+        !window.confirm(
+          `Désactiver le roulement spécifique à ${year} ?\nLe roulement dédié à cette année sera supprimé et l'année reviendra au roulement de base. Cette action est irréversible (sauf sauvegarde).`,
+        )
+      )
+        return;
+    }
+    setRotationYearSpecific(v);
+  };
+
   const clearAgent = (agentId: string) => {
     const next = { ...rotation.agentTemplates };
     delete next[agentId];
