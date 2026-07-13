@@ -231,7 +231,7 @@ export function RotationTab() {
           <Switch
             id="rotation-year-specific"
             checked={rotationYearSpecific}
-            onCheckedChange={(v) => setRotationYearSpecific(v)}
+            onCheckedChange={handleYearSpecific}
           />
           <Label htmlFor="rotation-year-specific" className="cursor-pointer">
             Roulement spécifique à {year}
