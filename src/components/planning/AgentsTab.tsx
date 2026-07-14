@@ -379,13 +379,19 @@ export function AgentsTab() {
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex justify-end gap-1">
-                          <Button size="icon" className="size-8" onClick={saveEdit}>
+                          <Button
+                            size="icon"
+                            className="size-10 sm:size-8"
+                            title="Enregistrer"
+                            onClick={saveEdit}
+                          >
                             <Save />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="size-8"
+                            className="size-10 sm:size-8"
+                            title="Annuler"
                             onClick={() => setEditing(null)}
                           >
                             <X />
@@ -416,22 +422,13 @@ export function AgentsTab() {
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        {dep ? (
-                          <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
-                            <CalendarX className="size-3.5" /> {dep}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2">
                         <div className="flex justify-end gap-1">
                           {agentSort === "custom" && (
                             <>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="size-8"
+                                className="size-10 sm:size-8"
                                 title="Monter"
                                 disabled={idx === 0}
                                 onClick={() => moveAgent(a.id, "up")}
@@ -441,7 +438,7 @@ export function AgentsTab() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="size-8"
+                                className="size-10 sm:size-8"
                                 title="Descendre"
                                 disabled={idx === agents.length - 1}
                                 onClick={() => moveAgent(a.id, "down")}
@@ -451,18 +448,21 @@ export function AgentsTab() {
                             </>
                           )}
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
-                            className="size-8"
+                            className="size-10 sm:size-8"
+                            title="Modifier"
+                            aria-label={`Modifier ${a.name}`}
                             onClick={() => startEdit(a.id, a.name, a.team)}
                           >
                             <Pencil />
                           </Button>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
-                            className="size-8 text-destructive hover:text-destructive"
+                            className="size-10 sm:size-8 border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                             title="Arrivée / Départ / Suppression"
+                            aria-label={`Supprimer ${a.name}`}
                             onClick={() => openDialog(a)}
                           >
                             <Trash2 />
