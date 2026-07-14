@@ -379,13 +379,19 @@ export function AgentsTab() {
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex justify-end gap-1">
-                          <Button size="icon" className="size-8" onClick={saveEdit}>
+                          <Button
+                            size="icon"
+                            className="size-10 sm:size-8"
+                            title="Enregistrer"
+                            onClick={saveEdit}
+                          >
                             <Save />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="size-8"
+                            className="size-10 sm:size-8"
+                            title="Annuler"
                             onClick={() => setEditing(null)}
                           >
                             <X />
