@@ -58,6 +58,7 @@ import { StatsTab } from "@/components/planning/StatsTab";
 import { RotationTab } from "@/components/planning/RotationTab";
 import { PrintView } from "@/components/planning/PrintView";
 import { ModificationsTab } from "@/components/planning/ModificationsTab";
+import { HelpTab } from "@/components/planning/HelpTab";
 import { OvertimeTab } from "@/components/planning/OvertimeTab";
 import { BackupBar } from "@/components/planning/BackupBar";
 import { CATEGORY_META } from "@/lib/planning/types";
