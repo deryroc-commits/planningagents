@@ -17,6 +17,7 @@ import {
   Settings2,
   Table2,
   Printer,
+  HelpCircle,
 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace } from "@/lib/workspace/workspace-context";
@@ -57,6 +58,7 @@ import { StatsTab } from "@/components/planning/StatsTab";
 import { RotationTab } from "@/components/planning/RotationTab";
 import { PrintView } from "@/components/planning/PrintView";
 import { ModificationsTab } from "@/components/planning/ModificationsTab";
+import { HelpTab } from "@/components/planning/HelpTab";
 import { OvertimeTab } from "@/components/planning/OvertimeTab";
 import { BackupBar } from "@/components/planning/BackupBar";
 import { CATEGORY_META } from "@/lib/planning/types";
@@ -279,6 +281,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <TabsTrigger value="qr" className="tt tt-agents">
               <QrCode className="mr-1.5 size-4" /> QR codes
             </TabsTrigger>
+            <TabsTrigger value="help" className="tt tt-params">
+              <HelpCircle className="mr-1.5 size-4" /> Aide
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="planning" className="tab-surface tint-planning space-y-3">
@@ -373,6 +378,10 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
           <TabsContent value="qr" className="tab-surface tint-agents">
             <ShareQrTab />
+          </TabsContent>
+
+          <TabsContent value="help" className="tab-surface tint-params">
+            <HelpTab />
           </TabsContent>
         </Tabs>
       </main>
