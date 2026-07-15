@@ -17,6 +17,7 @@ import {
   Settings2,
   Table2,
   Printer,
+  HelpCircle,
 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace } from "@/lib/workspace/workspace-context";
