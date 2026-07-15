@@ -314,7 +314,7 @@ export function AgentsTab() {
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-border bg-muted text-left">
-              <th className="px-3 py-2 font-medium">Nom</th>
+              <th className="sticky left-0 z-20 bg-muted px-3 py-2 font-medium">Nom</th>
               <th className="px-3 py-2 font-medium">Équipe</th>
               <th className="px-3 py-2 font-medium">Arrivée</th>
               <th className="px-3 py-2 font-medium">Départ</th>
@@ -357,7 +357,7 @@ export function AgentsTab() {
                 >
                   {editing === a.id ? (
                     <>
-                      <td className="px-3 py-2">
+                      <td className="sticky left-0 z-10 bg-card px-3 py-2">
                         <Input
                           value={draftName}
                           onChange={(e) => setDraftName(e.target.value)}
@@ -401,7 +401,7 @@ export function AgentsTab() {
                     </>
                   ) : (
                     <>
-                      <td className="px-3 py-2 font-medium">
+                      <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium">
                         <span className="flex items-center gap-2">
                           {agentSort === "custom" && (
                             <GripVertical className="size-4 cursor-grab text-muted-foreground" />
