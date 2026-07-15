@@ -422,6 +422,16 @@ export function AgentsTab() {
                         )}
                       </td>
                       <td className="px-3 py-2">
+                        {dep ? (
+                          <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
+                            <CalendarX className="size-3.5" /> {dep}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+
                         <div className="flex justify-end gap-1">
                           {agentSort === "custom" && (
                             <>
