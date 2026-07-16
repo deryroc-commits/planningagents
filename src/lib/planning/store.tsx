@@ -416,6 +416,10 @@ export function PlanningProvider({
     yearRange: DEFAULT_YEAR_RANGE,
   }));
   const [cloudReady, setCloudReady] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const [isOnline, setIsOnline] = useState<boolean>(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine,
+  );
   const hydrated = useRef(false);
   const lastCloudJson = useRef<string | null>(null);
   const cloudSaveTimer = useRef<number | null>(null);
@@ -423,6 +427,19 @@ export function PlanningProvider({
   // merge incoming updates against unsaved local edits without stale closures.
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+
 
   const writeLocalState = useCallback(
     (next: PlanningState) => {
