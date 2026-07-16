@@ -1340,10 +1340,21 @@ export function PlanningProvider({
     ],
   );
 
+  const syncValue = useMemo<SyncStatusValue>(
+    () => ({
+      status: syncStatus,
+      isOnline,
+      hasPendingChanges: syncStatus === "pending" || syncStatus === "syncing",
+    }),
+    [syncStatus, isOnline],
+  );
+
   return (
     <PlanningContext.Provider value={value}>
-      <style>{colorsToCss(colors)}</style>
-      {children}
+      <SyncStatusContext.Provider value={syncValue}>
+        <style>{colorsToCss(colors)}</style>
+        {children}
+      </SyncStatusContext.Provider>
     </PlanningContext.Provider>
   );
 }
