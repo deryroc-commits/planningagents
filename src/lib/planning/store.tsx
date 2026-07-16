@@ -38,6 +38,26 @@ import {
 import { codeForCell, normalizeRotation } from "./rotation";
 import { daysInYear } from "./calc";
 
+export type SyncStatus = "idle" | "pending" | "syncing" | "error" | "offline";
+
+type SyncStatusValue = {
+  status: SyncStatus;
+  isOnline: boolean;
+  hasPendingChanges: boolean;
+};
+
+const SyncStatusContext = createContext<SyncStatusValue | null>(null);
+
+export function useSyncStatus(): SyncStatusValue {
+  return (
+    useContext(SyncStatusContext) ?? {
+      status: "idle",
+      isOnline: true,
+      hasPendingChanges: false,
+    }
+  );
+}
+
 /**
  * Record (or clear) a change for one cell, relative to the original value the
  * cell held before editing started. Reverting a cell to its original value
