@@ -545,16 +545,31 @@ export function PlanningProvider({
 
   // Persist changes to Cloud after the first Cloud read has completed.
   useEffect(() => {
-    if (!cloudReady || !writable) return;
+    if (!cloudReady || !writable) {
+      setSyncStatus("idle");
+      return;
+    }
 
     const json = JSON.stringify(state);
-    if (json === lastCloudJson.current) return;
+    if (json === lastCloudJson.current) {
+      setSyncStatus(isOnline ? "idle" : "offline");
+      return;
+    }
+
+    // Local edits not yet reflected in the Cloud snapshot.
+    setSyncStatus(isOnline ? "pending" : "offline");
+
+    if (!isOnline) {
+      // Wait until we come back online — effect re-runs when isOnline flips.
+      return;
+    }
 
     if (cloudSaveTimer.current !== null) {
       window.clearTimeout(cloudSaveTimer.current);
     }
 
     cloudSaveTimer.current = window.setTimeout(() => {
+      setSyncStatus("syncing");
       void supabase
         .from(CLOUD_TABLE)
         .upsert(
@@ -564,9 +579,13 @@ export function PlanningProvider({
         .then(({ error }) => {
           if (error) {
             console.warn("Impossible de sauvegarder le planning dans le Cloud", error.message);
+            setSyncStatus(
+              typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "error",
+            );
             return;
           }
           lastCloudJson.current = json;
+          setSyncStatus("idle");
         });
     }, CLOUD_SAVE_DEBOUNCE_MS);
 
@@ -575,7 +594,8 @@ export function PlanningProvider({
         window.clearTimeout(cloudSaveTimer.current);
       }
     };
-  }, [cloudReady, writable, workspaceId, state]);
+  }, [cloudReady, writable, workspaceId, state, isOnline]);
+
 
   // Receive updates saved from another browser/device for this workspace.
   useEffect(() => {
