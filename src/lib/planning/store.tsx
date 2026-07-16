@@ -38,6 +38,26 @@ import {
 import { codeForCell, normalizeRotation } from "./rotation";
 import { daysInYear } from "./calc";
 
+export type SyncStatus = "idle" | "pending" | "syncing" | "error" | "offline";
+
+type SyncStatusValue = {
+  status: SyncStatus;
+  isOnline: boolean;
+  hasPendingChanges: boolean;
+};
+
+const SyncStatusContext = createContext<SyncStatusValue | null>(null);
+
+export function useSyncStatus(): SyncStatusValue {
+  return (
+    useContext(SyncStatusContext) ?? {
+      status: "idle",
+      isOnline: true,
+      hasPendingChanges: false,
+    }
+  );
+}
+
 /**
  * Record (or clear) a change for one cell, relative to the original value the
  * cell held before editing started. Reverting a cell to its original value
@@ -416,6 +436,10 @@ export function PlanningProvider({
     yearRange: DEFAULT_YEAR_RANGE,
   }));
   const [cloudReady, setCloudReady] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const [isOnline, setIsOnline] = useState<boolean>(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine,
+  );
   const hydrated = useRef(false);
   const lastCloudJson = useRef<string | null>(null);
   const cloudSaveTimer = useRef<number | null>(null);
@@ -423,6 +447,19 @@ export function PlanningProvider({
   // merge incoming updates against unsaved local edits without stale closures.
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+
 
   const writeLocalState = useCallback(
     (next: PlanningState) => {
@@ -508,16 +545,31 @@ export function PlanningProvider({
 
   // Persist changes to Cloud after the first Cloud read has completed.
   useEffect(() => {
-    if (!cloudReady || !writable) return;
+    if (!cloudReady || !writable) {
+      setSyncStatus("idle");
+      return;
+    }
 
     const json = JSON.stringify(state);
-    if (json === lastCloudJson.current) return;
+    if (json === lastCloudJson.current) {
+      setSyncStatus(isOnline ? "idle" : "offline");
+      return;
+    }
+
+    // Local edits not yet reflected in the Cloud snapshot.
+    setSyncStatus(isOnline ? "pending" : "offline");
+
+    if (!isOnline) {
+      // Wait until we come back online — effect re-runs when isOnline flips.
+      return;
+    }
 
     if (cloudSaveTimer.current !== null) {
       window.clearTimeout(cloudSaveTimer.current);
     }
 
     cloudSaveTimer.current = window.setTimeout(() => {
+      setSyncStatus("syncing");
       void supabase
         .from(CLOUD_TABLE)
         .upsert(
@@ -527,9 +579,13 @@ export function PlanningProvider({
         .then(({ error }) => {
           if (error) {
             console.warn("Impossible de sauvegarder le planning dans le Cloud", error.message);
+            setSyncStatus(
+              typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "error",
+            );
             return;
           }
           lastCloudJson.current = json;
+          setSyncStatus("idle");
         });
     }, CLOUD_SAVE_DEBOUNCE_MS);
 
@@ -538,7 +594,8 @@ export function PlanningProvider({
         window.clearTimeout(cloudSaveTimer.current);
       }
     };
-  }, [cloudReady, writable, workspaceId, state]);
+  }, [cloudReady, writable, workspaceId, state, isOnline]);
+
 
   // Receive updates saved from another browser/device for this workspace.
   useEffect(() => {
@@ -1283,10 +1340,21 @@ export function PlanningProvider({
     ],
   );
 
+  const syncValue = useMemo<SyncStatusValue>(
+    () => ({
+      status: syncStatus,
+      isOnline,
+      hasPendingChanges: syncStatus === "pending" || syncStatus === "syncing",
+    }),
+    [syncStatus, isOnline],
+  );
+
   return (
     <PlanningContext.Provider value={value}>
-      <style>{colorsToCss(colors)}</style>
-      {children}
+      <SyncStatusContext.Provider value={syncValue}>
+        <style>{colorsToCss(colors)}</style>
+        {children}
+      </SyncStatusContext.Provider>
     </PlanningContext.Provider>
   );
 }
