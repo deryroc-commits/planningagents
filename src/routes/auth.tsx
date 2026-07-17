@@ -33,6 +33,21 @@ function AuthPage() {
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const explainAuthError = (message: string) => {
+    const lower = message.toLowerCase();
+    if (lower.includes("already") || lower.includes("registered")) {
+      setMode("signin");
+      return "Ce compte existe déjà. Passez sur Connexion et utilisez le mot de passe choisi lors de la création.";
+    }
+    if (lower.includes("invalid login") || lower.includes("invalid credentials")) {
+      return "Email ou mot de passe incorrect. Si ce compte a été créé avec Google, utilisez le bouton Google.";
+    }
+    if (lower.includes("email not confirmed")) {
+      return "Ce compte attendait une confirmation email. Réessayez de créer le compte avec un autre email, ou contactez l’administrateur.";
+    }
+    return message;
+  };
+
   useEffect(() => {
     if (!loading && session) {
       navigate({ to: "/" });
@@ -44,7 +59,7 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
             options: {
@@ -53,16 +68,22 @@ function AuthPage() {
             },
         });
         if (error) throw error;
+        if (data.session) {
+          toast.success("Compte créé", { description: "Vous êtes connecté." });
+          navigate({ to: "/" });
+          return;
+        }
         toast.success("Compte créé", {
-          description: "Vérifiez vos emails si une confirmation est demandée.",
+          description: "Vous pouvez maintenant vous connecter avec cet email et ce mot de passe.",
         });
+        setMode("signin");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
     } catch (err) {
       toast.error("Échec", {
-        description: err instanceof Error ? err.message : "Une erreur est survenue.",
+        description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
       });
     } finally {
       setBusy(false);
