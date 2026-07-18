@@ -102,6 +102,7 @@ export type Database = {
           id: string
           joined_at: string
           role: Database["public"]["Enums"]["app_role"]
+          status: string
           user_id: string
           workspace_id: string
         }
@@ -109,6 +110,7 @@ export type Database = {
           id?: string
           joined_at?: string
           role?: Database["public"]["Enums"]["app_role"]
+          status?: string
           user_id: string
           workspace_id: string
         }
@@ -116,6 +118,7 @@ export type Database = {
           id?: string
           joined_at?: string
           role?: Database["public"]["Enums"]["app_role"]
+          status?: string
           user_id?: string
           workspace_id?: string
         }

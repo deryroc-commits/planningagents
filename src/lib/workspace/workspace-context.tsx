@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/auth-context";
 
 export type WorkspaceRole = "owner" | "editor" | "viewer";
+export type MembershipStatus = "active" | "pending";
 
 export interface Workspace {
   id: string;
@@ -21,12 +22,14 @@ export interface Workspace {
 
 export interface WorkspaceMembership extends Workspace {
   role: WorkspaceRole;
+  status: MembershipStatus;
 }
 
 export interface Member {
   id: string;
   user_id: string;
   role: WorkspaceRole;
+  status: MembershipStatus;
   joined_at: string;
   display_name: string | null;
   email: string | null;
@@ -35,6 +38,7 @@ export interface Member {
 interface WorkspaceContextValue {
   loading: boolean;
   memberships: WorkspaceMembership[];
+  pendingMemberships: WorkspaceMembership[];
   activeWorkspace: WorkspaceMembership | null;
   activeWorkspaceId: string | null;
   setActiveWorkspaceId: (id: string) => void;
@@ -42,6 +46,7 @@ interface WorkspaceContextValue {
   canEdit: boolean;
   isOwner: boolean;
   members: Member[];
+  pendingMembers: Member[];
   refreshMemberships: () => Promise<void>;
   refreshMembers: () => Promise<void>;
   createWorkspace: (name: string) => Promise<WorkspaceMembership>;
@@ -50,6 +55,9 @@ interface WorkspaceContextValue {
   regenerateInviteCode: () => Promise<string>;
   updateMemberRole: (userId: string, role: WorkspaceRole) => Promise<void>;
   removeMember: (userId: string) => Promise<void>;
+  approveMember: (userId: string) => Promise<void>;
+  rejectMember: (userId: string) => Promise<void>;
+  cancelPending: (workspaceId: string) => Promise<void>;
   leaveWorkspace: () => Promise<void>;
 }
 
@@ -59,7 +67,7 @@ const ACTIVE_KEY = "planning-active-workspace";
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [memberships, setMemberships] = useState<WorkspaceMembership[]>([]);
+  const [allMemberships, setAllMemberships] = useState<WorkspaceMembership[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,12 +83,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const refreshMemberships = useCallback(async () => {
     if (!user) {
-      setMemberships([]);
+      setAllMemberships([]);
       return;
     }
     const { data, error } = await supabase
       .from("workspace_members")
-      .select("role, workspaces(id, name, invite_code, owner_id)")
+      .select("role, status, workspaces(id, name, invite_code, owner_id)")
       .eq("user_id", user.id);
 
     if (error) {
@@ -92,14 +100,26 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       .filter((row) => row.workspaces)
       .map((row) => {
         const ws = row.workspaces as unknown as Workspace;
-        return { ...ws, role: row.role as WorkspaceRole };
+        return {
+          ...ws,
+          role: row.role as WorkspaceRole,
+          status: ((row as { status?: string }).status as MembershipStatus) ?? "active",
+        };
       })
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    setMemberships(list);
+    setAllMemberships(list);
   }, [user]);
 
-  // Initial load of memberships.
+  const memberships = useMemo(
+    () => allMemberships.filter((m) => m.status === "active"),
+    [allMemberships],
+  );
+  const pendingMemberships = useMemo(
+    () => allMemberships.filter((m) => m.status === "pending"),
+    [allMemberships],
+  );
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -112,7 +132,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     };
   }, [refreshMemberships]);
 
-  // Keep a valid active workspace selected.
   useEffect(() => {
     if (loading) return;
     if (!memberships.length) {
@@ -144,7 +163,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
     const { data, error } = await supabase
       .from("workspace_members")
-      .select("id, user_id, role, joined_at")
+      .select("id, user_id, role, status, joined_at")
       .eq("workspace_id", activeWorkspaceId)
       .order("joined_at", { ascending: true });
 
@@ -154,11 +173,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
 
     const rows = data ?? [];
-    // workspace_members has no FK to profiles (it references auth.users), so
-    // fetch the matching profiles separately and merge them in.
-    // Email addresses are private: co-members only expose their display name,
-    // so we never read the `email` column here (RLS blocks it anyway). The
-    // current user's own email comes from their authenticated session.
     const ids = rows.map((r) => r.user_id);
     const profileMap = new Map<string, { display_name: string | null }>();
     if (ids.length) {
@@ -181,6 +195,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         id: row.id,
         user_id: row.user_id,
         role: row.role as WorkspaceRole,
+        status: ((row as { status?: string }).status as MembershipStatus) ?? "active",
         joined_at: row.joined_at,
         display_name: profile?.display_name ?? null,
         email: row.user_id === selfId ? selfEmail : null,
@@ -193,20 +208,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     void refreshMembers();
   }, [refreshMembers]);
 
-  // Realtime: refresh members when membership rows for the active workspace change.
   useEffect(() => {
-    if (!activeWorkspaceId) return;
+    if (!user) return;
     const channel = supabase
-      .channel(`workspace-members-${activeWorkspaceId}`)
+      .channel(`workspace-members-live-${user.id}`)
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "workspace_members",
-          filter: `workspace_id=eq.${activeWorkspaceId}`,
-        },
+        { event: "*", schema: "public", table: "workspace_members" },
         () => {
+          void refreshMemberships();
           void refreshMembers();
         },
       )
@@ -214,30 +224,29 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeWorkspaceId, refreshMembers]);
+  }, [user, refreshMemberships, refreshMembers]);
 
   const createWorkspace = useCallback(
-    async (name: string) => {
+    async (name: string): Promise<WorkspaceMembership> => {
       const { data, error } = await supabase.rpc("create_workspace", { _name: name });
       if (error) throw new Error(error.message);
       await refreshMemberships();
       const ws = data as unknown as Workspace;
       setActiveWorkspaceId(ws.id);
-      return { ...ws, role: "owner" as WorkspaceRole };
+      return { ...ws, role: "owner", status: "active" };
     },
     [refreshMemberships, setActiveWorkspaceId],
   );
 
   const joinWorkspace = useCallback(
-    async (code: string) => {
+    async (code: string): Promise<WorkspaceMembership> => {
       const { data, error } = await supabase.rpc("join_workspace", { _code: code });
       if (error) throw new Error(error.message);
       await refreshMemberships();
       const ws = data as unknown as Workspace;
-      setActiveWorkspaceId(ws.id);
-      return { ...ws, role: "editor" as WorkspaceRole };
+      return { ...ws, role: "editor", status: "pending" };
     },
-    [refreshMemberships, setActiveWorkspaceId],
+    [refreshMemberships],
   );
 
   const renameWorkspace = useCallback(
@@ -291,6 +300,49 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [activeWorkspaceId, refreshMembers],
   );
 
+  const approveMember = useCallback(
+    async (userId: string) => {
+      if (!activeWorkspaceId) return;
+      const { error } = await supabase
+        .from("workspace_members")
+        .update({ status: "active" })
+        .eq("workspace_id", activeWorkspaceId)
+        .eq("user_id", userId);
+      if (error) throw new Error(error.message);
+      await refreshMembers();
+    },
+    [activeWorkspaceId, refreshMembers],
+  );
+
+  const rejectMember = useCallback(
+    async (userId: string) => {
+      if (!activeWorkspaceId) return;
+      const { error } = await supabase
+        .from("workspace_members")
+        .delete()
+        .eq("workspace_id", activeWorkspaceId)
+        .eq("user_id", userId)
+        .eq("status", "pending");
+      if (error) throw new Error(error.message);
+      await refreshMembers();
+    },
+    [activeWorkspaceId, refreshMembers],
+  );
+
+  const cancelPending = useCallback(
+    async (workspaceId: string) => {
+      if (!user) return;
+      const { error } = await supabase
+        .from("workspace_members")
+        .delete()
+        .eq("workspace_id", workspaceId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+      await refreshMemberships();
+    },
+    [user, refreshMemberships],
+  );
+
   const leaveWorkspace = useCallback(async () => {
     if (!activeWorkspaceId || !user) return;
     const { error } = await supabase
@@ -303,19 +355,24 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     await refreshMemberships();
   }, [activeWorkspaceId, user, refreshMemberships]);
 
+  const activeMembers = useMemo(() => members.filter((m) => m.status === "active"), [members]);
+  const pendingMembers = useMemo(() => members.filter((m) => m.status === "pending"), [members]);
+
   const role = activeWorkspace?.role ?? null;
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({
       loading,
       memberships,
+      pendingMemberships,
       activeWorkspace,
       activeWorkspaceId,
       setActiveWorkspaceId,
       role,
       canEdit: role === "owner" || role === "editor",
       isOwner: role === "owner",
-      members,
+      members: activeMembers,
+      pendingMembers,
       refreshMemberships,
       refreshMembers,
       createWorkspace,
@@ -324,16 +381,21 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       regenerateInviteCode,
       updateMemberRole,
       removeMember,
+      approveMember,
+      rejectMember,
+      cancelPending,
       leaveWorkspace,
     }),
     [
       loading,
       memberships,
+      pendingMemberships,
       activeWorkspace,
       activeWorkspaceId,
       setActiveWorkspaceId,
       role,
-      members,
+      activeMembers,
+      pendingMembers,
       refreshMemberships,
       refreshMembers,
       createWorkspace,
@@ -342,6 +404,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       regenerateInviteCode,
       updateMemberRole,
       removeMember,
+      approveMember,
+      rejectMember,
+      cancelPending,
       leaveWorkspace,
     ],
   );

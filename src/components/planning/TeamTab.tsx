@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  Check,
+  Clock,
   Copy,
   Crown,
   Loader2,
@@ -11,6 +13,7 @@ import {
   Share2,
   Trash2,
   Users,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,11 +53,14 @@ export function TeamTab() {
     activeWorkspace,
     isOwner,
     members,
+    pendingMembers,
     joinWorkspace,
     renameWorkspace,
     regenerateInviteCode,
     updateMemberRole,
     removeMember,
+    approveMember,
+    rejectMember,
     leaveWorkspace,
   } = useWorkspace();
   const { user, signOut } = useAuth();
@@ -112,7 +118,9 @@ export function TeamTab() {
     try {
       await joinWorkspace(joinCode.trim());
       setJoinCode("");
-      toast.success("Équipe rejointe");
+      toast.success("Demande envoyée", {
+        description: "Le propriétaire doit approuver votre accès avant que vous voyiez le planning.",
+      });
     } catch (err) {
       toast.error("Code invalide", {
         description: err instanceof Error ? err.message : undefined,
@@ -231,6 +239,65 @@ export function TeamTab() {
           </Button>
         </div>
       </form>
+
+      {/* Pending requests — visible only to the owner */}
+      {isOwner && pendingMembers.length > 0 && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 shadow-sm dark:border-amber-500/40 dark:bg-amber-500/10">
+          <h3 className="flex items-center gap-2 text-base font-semibold text-amber-900 dark:text-amber-200">
+            <Clock className="size-4" /> Demandes d'accès ({pendingMembers.length})
+          </h3>
+          <p className="mt-1 text-sm text-amber-800/80 dark:text-amber-200/80">
+            Approuvez les personnes qui ont utilisé votre code d'invitation.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {pendingMembers.map((m) => (
+              <li
+                key={m.id}
+                className="flex items-center gap-3 rounded-xl bg-background/80 px-3 py-2.5"
+              >
+                <Avatar className="size-10">
+                  <AvatarFallback className="bg-amber-500/15 text-sm font-semibold text-amber-700 dark:text-amber-300">
+                    {initials(m.display_name, m.email)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">
+                    {m.display_name || m.email || "Nouveau membre"}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    Demande du{" "}
+                    {new Date(m.joined_at).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => {
+                    void approveMember(m.user_id).then(() => toast.success("Accès accordé"));
+                  }}
+                >
+                  <Check className="mr-1 size-4" /> Approuver
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-9 text-destructive hover:text-destructive"
+                  onClick={() => {
+                    void rejectMember(m.user_id).then(() => toast.success("Demande refusée"));
+                  }}
+                  title="Refuser"
+                >
+                  <X className="size-4" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Members */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
