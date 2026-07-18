@@ -53,11 +53,14 @@ export function TeamTab() {
     activeWorkspace,
     isOwner,
     members,
+    pendingMembers,
     joinWorkspace,
     renameWorkspace,
     regenerateInviteCode,
     updateMemberRole,
     removeMember,
+    approveMember,
+    rejectMember,
     leaveWorkspace,
   } = useWorkspace();
   const { user, signOut } = useAuth();
