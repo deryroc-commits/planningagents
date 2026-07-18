@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  Check,
+  Clock,
   Copy,
   Crown,
   Loader2,
@@ -11,6 +13,7 @@ import {
   Share2,
   Trash2,
   Users,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
