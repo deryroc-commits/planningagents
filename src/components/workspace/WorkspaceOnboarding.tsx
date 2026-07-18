@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, LogIn, Plus, Users, LogOut } from "lucide-react";
+import { Clock, Loader2, LogIn, LogOut, Plus, Users, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { useWorkspace } from "@/lib/workspace/workspace-context";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function WorkspaceOnboarding() {
-  const { createWorkspace, joinWorkspace } = useWorkspace();
+  const { createWorkspace, joinWorkspace, pendingMemberships, cancelPending } = useWorkspace();
   const { user, signOut } = useAuth();
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -35,7 +35,10 @@ export function WorkspaceOnboarding() {
     setBusy("join");
     try {
       await joinWorkspace(code.trim());
-      toast.success("Vous avez rejoint l'équipe");
+      setCode("");
+      toast.success("Demande envoyée", {
+        description: "Le propriétaire doit valider votre accès avant que vous puissiez voir le planning.",
+      });
     } catch (err) {
       toast.error("Code invalide", {
         description: err instanceof Error ? err.message : undefined,
@@ -56,6 +59,35 @@ export function WorkspaceOnboarding() {
           Créez une équipe ou rejoignez-en une avec un code d'invitation.
         </p>
       </div>
+
+      {pendingMemberships.length > 0 && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 shadow-sm dark:border-amber-500/40 dark:bg-amber-500/10">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-amber-900 dark:text-amber-200">
+            <Clock className="size-4" /> Demandes en attente
+          </h2>
+          <p className="mt-1 text-sm text-amber-800/80 dark:text-amber-200/80">
+            Le propriétaire doit approuver votre accès. Vous verrez le planning dès validation.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {pendingMemberships.map((m) => (
+              <li
+                key={m.id}
+                className="flex items-center justify-between gap-2 rounded-xl bg-background/80 px-3 py-2"
+              >
+                <span className="truncate font-medium">{m.name}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => void cancelPending(m.id)}
+                >
+                  <X className="mr-1 size-4" /> Annuler
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form onSubmit={onCreate} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <h2 className="flex items-center gap-2 text-base font-semibold">
@@ -83,7 +115,9 @@ export function WorkspaceOnboarding() {
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <LogIn className="size-4 text-primary" /> Rejoindre un workspace
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">Entrez un code à 6 chiffres.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Entrez un code à 6 chiffres. Le propriétaire devra approuver votre demande.
+        </p>
         <div className="mt-3 flex gap-2">
           <Input
             value={code}
@@ -94,7 +128,7 @@ export function WorkspaceOnboarding() {
           />
           <Button type="submit" disabled={busy !== null || code.length !== 6}>
             {busy === "join" && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Rejoindre
+            Demander l'accès
           </Button>
         </div>
       </form>
