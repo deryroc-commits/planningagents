@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/auth-context";
 
 export type WorkspaceRole = "owner" | "editor" | "viewer";
+export type MembershipStatus = "active" | "pending";
 
 export interface Workspace {
   id: string;
@@ -21,12 +22,14 @@ export interface Workspace {
 
 export interface WorkspaceMembership extends Workspace {
   role: WorkspaceRole;
+  status: MembershipStatus;
 }
 
 export interface Member {
   id: string;
   user_id: string;
   role: WorkspaceRole;
+  status: MembershipStatus;
   joined_at: string;
   display_name: string | null;
   email: string | null;
@@ -35,6 +38,7 @@ export interface Member {
 interface WorkspaceContextValue {
   loading: boolean;
   memberships: WorkspaceMembership[];
+  pendingMemberships: WorkspaceMembership[];
   activeWorkspace: WorkspaceMembership | null;
   activeWorkspaceId: string | null;
   setActiveWorkspaceId: (id: string) => void;
@@ -42,6 +46,7 @@ interface WorkspaceContextValue {
   canEdit: boolean;
   isOwner: boolean;
   members: Member[];
+  pendingMembers: Member[];
   refreshMemberships: () => Promise<void>;
   refreshMembers: () => Promise<void>;
   createWorkspace: (name: string) => Promise<WorkspaceMembership>;
@@ -50,6 +55,9 @@ interface WorkspaceContextValue {
   regenerateInviteCode: () => Promise<string>;
   updateMemberRole: (userId: string, role: WorkspaceRole) => Promise<void>;
   removeMember: (userId: string) => Promise<void>;
+  approveMember: (userId: string) => Promise<void>;
+  rejectMember: (userId: string) => Promise<void>;
+  cancelPending: (workspaceId: string) => Promise<void>;
   leaveWorkspace: () => Promise<void>;
 }
 
