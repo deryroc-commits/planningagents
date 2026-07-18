@@ -118,7 +118,9 @@ export function TeamTab() {
     try {
       await joinWorkspace(joinCode.trim());
       setJoinCode("");
-      toast.success("Équipe rejointe");
+      toast.success("Demande envoyée", {
+        description: "Le propriétaire doit approuver votre accès avant que vous voyiez le planning.",
+      });
     } catch (err) {
       toast.error("Code invalide", {
         description: err instanceof Error ? err.message : undefined,
