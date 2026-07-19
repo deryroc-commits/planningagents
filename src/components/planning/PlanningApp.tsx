@@ -89,6 +89,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const activeImportSignatureRef = useRef<string | null>(null);
+  const filePickerOpenRef = useRef(false);
+  const filePickerTimerRef = useRef<number | null>(null);
 
   const errors = countErrors(planning, codesMap(codes));
   const newVersion = useNewVersionAvailable();
@@ -105,6 +108,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   }, []);
 
   const onImport = async (file: File) => {
+    const signature = `${file.name}:${file.size}:${file.lastModified}`;
+    if (activeImportSignatureRef.current === signature) return;
+    activeImportSignatureRef.current = signature;
     setIsImporting(true);
     setImportMessage(`Fichier « ${file.name} » en cours de chargement…`);
     setStatus(`Fichier « ${file.name} » en cours de chargement…`);
@@ -128,7 +134,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
         setStatus(res.summary);
         setSelectedImportFile(null);
         if (fileRef.current) fileRef.current.value = "";
-        setImportOpen(false);
+        setTimeout(() => setImportOpen(false), 1200);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -137,15 +143,19 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       console.error("[import]", e);
     }
     setIsImporting(false);
+    activeImportSignatureRef.current = null;
     setTimeout(() => setStatus(null), 8000);
   };
 
   const handleImportFilePick = (file: File | undefined) => {
+    if (filePickerTimerRef.current) window.clearTimeout(filePickerTimerRef.current);
+    filePickerOpenRef.current = false;
     const f = file;
     if (f) {
       setSelectedImportFile(f);
-      setImportMessage(`Fichier sélectionné : ${f.name}. Appuyez sur « Charger le fichier » pour lancer l'import.`);
-      setStatus(`Fichier sélectionné : ${f.name}.`);
+      setImportMessage(`Fichier « ${f.name} » sélectionné. Chargement automatique en cours…`);
+      setStatus(`Fichier « ${f.name} » sélectionné. Chargement automatique en cours…`);
+      void onImport(f);
     } else {
       setSelectedImportFile(null);
       setStatus("Aucun fichier sélectionné.");
@@ -163,11 +173,14 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   };
 
   const resetImportDialog = (open: boolean) => {
+    if (!open && filePickerOpenRef.current) return;
     if (isImporting) return;
+    if (!open && selectedImportFile) return;
     setImportOpen(open);
     if (open) {
       setSelectedImportFile(null);
       setImportMessage("Sélectionnez un fichier Excel, puis lancez le chargement.");
+      activeImportSignatureRef.current = null;
       if (fileRef.current) fileRef.current.value = "";
     }
   };
@@ -302,7 +315,12 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       </header>
 
       <Dialog open={importOpen} onOpenChange={resetImportDialog}>
-        <DialogContent>
+        <DialogContent
+          onEscapeKeyDown={(e) => {
+            if (isImporting || selectedImportFile) e.preventDefault();
+          }}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Importer un fichier Excel</DialogTitle>
             <DialogDescription>
@@ -318,6 +336,12 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               disabled={isImporting}
               className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => {
+                filePickerOpenRef.current = true;
+                if (filePickerTimerRef.current) window.clearTimeout(filePickerTimerRef.current);
+                filePickerTimerRef.current = window.setTimeout(() => {
+                  filePickerOpenRef.current = false;
+                  filePickerTimerRef.current = null;
+                }, 4000);
                 setImportMessage("Sélecteur de fichier ouvert… choisissez votre fichier Excel.");
                 setStatus("Sélecteur de fichier ouvert…");
               }}
@@ -331,7 +355,11 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             )}
             {(isImporting || importMessage) && (
               <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
-                {isImporting ? "Fichier en cours de chargement… merci de patienter." : importMessage}
+                {isImporting
+                  ? selectedImportFile
+                    ? `Fichier « ${selectedImportFile.name} » en cours de chargement… merci de patienter.`
+                    : "Fichier en cours de chargement… merci de patienter."
+                  : importMessage}
               </div>
             )}
             <p className="text-xs text-muted-foreground">
@@ -345,7 +373,21 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             >
               <Upload className="mr-1.5 size-4" /> Charger le fichier
             </Button>
-            <Button variant="outline" disabled={isImporting} onClick={() => setImportOpen(false)}>
+            <Button
+              variant="outline"
+              disabled={isImporting}
+              onClick={() => {
+                setSelectedImportFile(null);
+                activeImportSignatureRef.current = null;
+                filePickerOpenRef.current = false;
+                if (filePickerTimerRef.current) {
+                  window.clearTimeout(filePickerTimerRef.current);
+                  filePickerTimerRef.current = null;
+                }
+                if (fileRef.current) fileRef.current.value = "";
+                setImportOpen(false);
+              }}
+            >
               Annuler
             </Button>
           </DialogFooter>
