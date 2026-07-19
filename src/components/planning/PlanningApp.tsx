@@ -85,6 +85,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const [tab, setTab] = useState(initialTab);
   const [status, setStatus] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const errors = countErrors(planning, codesMap(codes));
@@ -102,8 +103,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   }, []);
 
   const onImport = async (file: File) => {
-    setStatus(`Lecture de « ${file.name} »…`);
-    setImportOpen(false);
+    setIsImporting(true);
+    setStatus(`Fichier « ${file.name} » en cours de chargement…`);
     try {
       const res = await importFromExcel(file, year);
       const hasData =
@@ -126,6 +127,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       setStatus(`Échec de l'import : ${msg}`);
       console.error("[import]", e);
     }
+    setIsImporting(false);
+    setImportOpen(false);
     setTimeout(() => setStatus(null), 8000);
   };
 
@@ -283,15 +286,21 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               ref={fileRef}
               type="file"
               accept=".xlsx,.xlsm,.xlsb,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary-foreground"
+              disabled={isImporting}
+              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
               onChange={onImportInputChange}
             />
+            {isImporting && (
+              <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+                Fichier en cours de chargement… merci de patienter.
+              </div>
+            )}
             <p className="text-xs text-muted-foreground">
               Si votre téléphone demande une source, choisissez Fichiers, Drive ou Téléchargements.
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setImportOpen(false)}>
+            <Button variant="outline" disabled={isImporting} onClick={() => setImportOpen(false)}>
               Annuler
             </Button>
           </DialogFooter>
