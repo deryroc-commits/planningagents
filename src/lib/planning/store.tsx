@@ -980,6 +980,14 @@ export function PlanningProvider({
         changesByYear: s.changesByYear
           ? { ...prev.changesByYear, ...s.changesByYear }
           : prev.changesByYear,
+        overtimeByYear: s.overtimeByYear
+          ? { ...prev.overtimeByYear, ...s.overtimeByYear }
+          : prev.overtimeByYear,
+        overtimeThreshold:
+          typeof s.overtimeThreshold === "number"
+            ? s.overtimeThreshold
+            : prev.overtimeThreshold,
+        yearRange: s.yearRange ? normalizeYearRange(s.yearRange) : prev.yearRange,
       };
     });
   }, []);

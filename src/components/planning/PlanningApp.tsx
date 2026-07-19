@@ -91,9 +91,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const [importProgress, setImportProgress] = useState(0);
   const [importStage, setImportStage] = useState<string>("");
   const [importResult, setImportResult] = useState<"idle" | "success" | "error">("idle");
+  const [fileInputKey, setFileInputKey] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const activeImportSignatureRef = useRef<string | null>(null);
-  const filePickerOpenRef = useRef(false);
   const filePickerTimerRef = useRef<number | null>(null);
 
   const errors = countErrors(planning, codesMap(codes));
@@ -149,6 +149,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
         setStatus(res.summary);
         setSelectedImportFile(null);
         if (fileRef.current) fileRef.current.value = "";
+        setFileInputKey((k) => k + 1);
         setTimeout(() => setImportOpen(false), 1600);
       }
     } catch (e) {
@@ -159,6 +160,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       setStatus(`Échec de l'import : ${msg}`);
       console.error("[import]", e);
     }
+    if (fileRef.current) fileRef.current.value = "";
+    setFileInputKey((k) => k + 1);
     setIsImporting(false);
     activeImportSignatureRef.current = null;
     setTimeout(() => setStatus(null), 8000);
@@ -166,7 +169,6 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
   const handleImportFilePick = (file: File | undefined) => {
     if (filePickerTimerRef.current) window.clearTimeout(filePickerTimerRef.current);
-    filePickerOpenRef.current = false;
     const f = file;
     if (f) {
       setSelectedImportFile(f);
@@ -174,9 +176,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       setStatus(`Fichier « ${f.name} » sélectionné. Chargement automatique en cours…`);
       void onImport(f);
     } else {
-      setSelectedImportFile(null);
       setStatus("Aucun fichier sélectionné.");
-      setImportMessage("Aucun fichier sélectionné. Cliquez à nouveau pour choisir un fichier.");
+      setImportMessage("Aucun fichier reçu. Cliquez à nouveau sur Choisir un fichier.");
     }
   };
 
@@ -201,6 +202,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       setImportResult("idle");
       activeImportSignatureRef.current = null;
       if (fileRef.current) fileRef.current.value = "";
+      setFileInputKey((k) => k + 1);
     }
     // Ignore programmatic close requests.
   };
@@ -208,12 +210,12 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const closeImportDialog = () => {
     setSelectedImportFile(null);
     activeImportSignatureRef.current = null;
-    filePickerOpenRef.current = false;
     if (filePickerTimerRef.current) {
       window.clearTimeout(filePickerTimerRef.current);
       filePickerTimerRef.current = null;
     }
     if (fileRef.current) fileRef.current.value = "";
+    setFileInputKey((k) => k + 1);
     setImportOpen(false);
   };
 
@@ -346,21 +348,38 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
         )}
       </header>
 
-      <Dialog open={importOpen} onOpenChange={resetImportDialog}>
-        <DialogContent
-          onEscapeKeyDown={(e) => e.preventDefault()}
-          onInteractOutside={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onFocusOutside={(e) => e.preventDefault()}
+      {importOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/70 px-4 py-6"
+          role="presentation"
         >
-          <DialogHeader>
-            <DialogTitle>Importer un fichier Excel</DialogTitle>
-            <DialogDescription>
-              Sélectionnez le fichier du planning à charger dans l'année affichée.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="planning-import-title"
+            aria-describedby="planning-import-description"
+            className="relative w-full max-w-lg rounded-lg border border-border bg-background p-6 shadow-lg"
+          >
+            <button
+              type="button"
+              aria-label="Fermer l'import"
+              disabled={isImporting}
+              onClick={closeImportDialog}
+              className="absolute right-4 top-4 rounded-sm px-2 py-1 text-xl leading-none text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+            >
+              ×
+            </button>
+            <div className="flex flex-col space-y-1.5 text-center sm:text-left">
+              <h2 id="planning-import-title" className="text-lg font-semibold leading-none tracking-tight">
+                Importer un fichier Excel
+              </h2>
+              <p id="planning-import-description" className="text-sm text-muted-foreground">
+                Sélectionnez le fichier du planning à charger dans l'année affichée.
+              </p>
+            </div>
+          <div className="space-y-3 py-4">
             <input
+              key={fileInputKey}
               id="planning-import-file"
               ref={fileRef}
               type="file"
@@ -368,10 +387,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               disabled={isImporting}
               className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => {
-                filePickerOpenRef.current = true;
                 if (filePickerTimerRef.current) window.clearTimeout(filePickerTimerRef.current);
                 filePickerTimerRef.current = window.setTimeout(() => {
-                  filePickerOpenRef.current = false;
                   filePickerTimerRef.current = null;
                 }, 4000);
                 setImportMessage("Sélecteur de fichier ouvert… choisissez votre fichier Excel.");
@@ -444,7 +461,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               Si votre téléphone demande une source, choisissez Fichiers, Drive ou Téléchargements.
             </p>
           </div>
-          <DialogFooter>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               disabled={!selectedImportFile || isImporting}
               onClick={() => selectedImportFile && void onImport(selectedImportFile)}
@@ -454,9 +471,10 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             <Button variant="outline" disabled={isImporting} onClick={closeImportDialog}>
               Annuler
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+          </section>
+        </div>
+      )}
 
       <main className="mx-auto max-w-[1600px] px-4 py-5">
         <Tabs value={tab} onValueChange={setTab}>

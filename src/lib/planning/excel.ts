@@ -571,6 +571,76 @@ function inferCategory(
   return "absence";
 }
 
+function textKey(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function excelDate(value: unknown, XLSX: any): Date | null {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+  if (typeof value === "number" && value > 20_000 && value < 80_000) {
+    const parsed = XLSX.SSF?.parse_date_code?.(value);
+    if (parsed?.y && parsed?.m && parsed?.d) {
+      return new Date(parsed.y, parsed.m - 1, parsed.d);
+    }
+  }
+  if (typeof value === "string") {
+    const match = value.trim().match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/);
+    if (match) {
+      const day = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const yy = Number(match[3]);
+      const year = yy < 100 ? 2000 + yy : yy;
+      const d = new Date(year, month, day);
+      if (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) return d;
+    }
+  }
+  return null;
+}
+
+function codeListFromUsed(used: Iterable<string>): PlanningCode[] {
+  const known = new Set(DEFAULT_CODES.map((c) => c.code.toUpperCase()));
+  const out: PlanningCode[] = [];
+  for (const raw of used) {
+    const code = raw.trim();
+    if (!code || code === "0" || known.has(code.toUpperCase())) continue;
+    known.add(code.toUpperCase());
+    const category = inferCategory(code, 0, "");
+    const isShift = /^[A-Z]+\d+$/i.test(code);
+    out.push({
+      code,
+      label: code,
+      hours: category === "poste" || category === "travail" || isShift ? 7.5 : 0,
+      category: isShift ? "poste" : category,
+    });
+  }
+  return out;
+}
+
+function monthFromSheetName(name: string): number {
+  const n = textKey(name);
+  return MONTHS.findIndex((m) => n.includes(textKey(m)));
+}
+
+function firstDayIndexOfMonth(year: number, month: number): number {
+  let offset = 0;
+  for (let m = 0; m < month; m++) offset += new Date(year, m + 1, 0).getDate();
+  return offset;
+}
+
+function detectYear(rows: any[][], fallback: number): number {
+  for (const row of rows.slice(0, 8)) {
+    for (const value of row ?? []) {
+      const match = String(value ?? "").match(/\b(20\d{2}|19\d{2})\b/);
+      if (match) return Number(match[1]);
+    }
+  }
+  return fallback;
+}
+
 /**
  * Native parser for the real UCPA workbook layout:
  * - "Paramètres" sheet with a "Postes" column listing code / label / hours
@@ -600,8 +670,8 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
   // Locate the date row (the one holding the most Date values).
   let dateRowIdx = -1;
   let best = 0;
-  for (let r = 0; r < Math.min(rows.length, 20); r++) {
-    const cnt = (rows[r] ?? []).filter((v) => v instanceof Date).length;
+  for (let r = 0; r < Math.min(rows.length, 30); r++) {
+    const cnt = (rows[r] ?? []).filter((v) => excelDate(v, XLSX)).length;
     if (cnt > best) {
       best = cnt;
       dateRowIdx = r;
@@ -613,8 +683,9 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
   // Dominant year across the date columns.
   const yearCounts: Record<number, number> = {};
   for (const v of dateRow) {
-    if (v instanceof Date) {
-      const y = v.getFullYear();
+    const parsedDate = excelDate(v, XLSX);
+    if (parsedDate) {
+      const y = parsedDate.getFullYear();
       yearCounts[y] = (yearCounts[y] ?? 0) + 1;
     }
   }
@@ -626,8 +697,8 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
   const colDay: Record<number, number> = {};
   const yearStart = new Date(year, 0, 1).getTime();
   for (let c = 0; c < dateRow.length; c++) {
-    const v = dateRow[c];
-    if (v instanceof Date && v.getFullYear() === year) {
+    const v = excelDate(dateRow[c], XLSX);
+    if (v && v.getFullYear() === year) {
       const d = new Date(v.getFullYear(), v.getMonth(), v.getDate()).getTime();
       colDay[c] = Math.round((d - yearStart) / 86400000);
     }
@@ -712,31 +783,15 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
   }
   if (!codes.length) codes = DEFAULT_CODES;
 
-  // Auto-register every code actually used in the planning that isn't defined
-  // in "Paramètres". In the source Excel these appear as red/manual cells;
-  // here we turn them into recognized "postes" so nothing is flagged as error.
-  const known = new Set(codes.map((c) => c.code.toUpperCase()));
   const used = new Set<string>();
   for (const agId of Object.keys(yp)) {
     for (const day of Object.keys(yp[agId])) {
       used.add(yp[agId][day as unknown as number]);
     }
   }
-  for (const raw of used) {
-    const code = raw.trim();
-    if (!code || known.has(code.toUpperCase())) continue;
-    known.add(code.toUpperCase());
-    const category = inferCategory(code, 0, "");
-    // A UCPA work shift (A6, S4, C6…) or a travail/poste code counts 7.5 h.
-    const isShift = /^[A-Z]+\d+$/i.test(code);
-    const hours =
-      category === "poste" || category === "travail" || isShift ? 7.5 : 0;
-    codes.push({
-      code,
-      label: code,
-      hours,
-      category: isShift ? "poste" : category,
-    });
+  const existing = new Set(codes.map((c) => c.code.toUpperCase()));
+  for (const c of codeListFromUsed(used)) {
+    if (!existing.has(c.code.toUpperCase())) codes.push(c);
   }
 
   return {
@@ -747,6 +802,112 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
     },
     year,
     summary: `Fichier UCPA importé : ${codes.length} codes, ${agents.length} agents, planning ${year}.`,
+  };
+}
+
+/** Parse the app's styled yearly export: one worksheet per month. */
+function parseStyledMonthWorkbook(wb: any, XLSX: any, fallbackYear: number): ImportResult | null {
+  const sheets = wb.SheetNames.map((name: string) => ({ name, month: monthFromSheetName(name) }))
+    .filter((s: { name: string; month: number }) => s.month >= 0);
+  if (!sheets.length) return null;
+
+  let detectedYear = fallbackYear;
+  const agentsByName = new Map<string, Agent>();
+  const planning: YearPlanning = {};
+  const usedCodes = new Set<string>();
+  let parsedMonths = 0;
+
+  for (const { name, month } of sheets) {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], {
+      header: 1,
+      raw: true,
+      blankrows: true,
+    }) as any[][];
+    detectedYear = detectYear(rows, detectedYear);
+    const daysInMonth = new Date(detectedYear, month + 1, 0).getDate();
+    const dayRow = rows.findIndex((row) => {
+      const matches = (row ?? []).filter((v) => {
+        const n = Number(v);
+        return Number.isInteger(n) && n >= 1 && n <= daysInMonth;
+      }).length;
+      return matches >= Math.min(7, daysInMonth);
+    });
+    if (dayRow < 0) continue;
+
+    const dateCols: { col: number; day: number }[] = [];
+    for (let c = 1; c < (rows[dayRow] ?? []).length; c++) {
+      const day = Number(rows[dayRow][c]);
+      if (Number.isInteger(day) && day >= 1 && day <= daysInMonth) dateCols.push({ col: c, day });
+    }
+    if (!dateCols.length) continue;
+
+    const merges = (wb.Sheets[name]["!merges"] ?? []) as Array<{
+      s: { r: number; c: number };
+      e: { r: number; c: number };
+    }>;
+    const mergedBandRows = new Set(
+      merges
+        .filter((m) => m.s.r === m.e.r && m.s.c === 0 && m.e.c >= Math.min(3, dateCols.length))
+        .map((m) => m.s.r),
+    );
+
+    let currentTeam: string | undefined;
+    const monthOffset = firstDayIndexOfMonth(detectedYear, month);
+
+    for (let r = dayRow + 1; r < rows.length; r++) {
+      const row = rows[r] ?? [];
+      const label = String(row[0] ?? "").trim();
+      if (!label) continue;
+      const key = textKey(label);
+      if (key.includes("legende")) break;
+      if (key === "jour" || key === "agents") continue;
+
+      const hasMonthCells = dateCols.some(({ col }) => {
+        const v = row[col];
+        return v != null && String(v).trim() !== "" && String(v).trim() !== "0";
+      });
+      if (mergedBandRows.has(r) && !hasMonthCells) {
+        currentTeam = label;
+        continue;
+      }
+
+      const agentKey = textKey(label);
+      let agent = agentsByName.get(agentKey);
+      if (!agent) {
+        agent = {
+          id: `ag-${agentsByName.size + 1}-${Math.random().toString(36).slice(2, 6)}`,
+          name: label,
+          team: currentTeam,
+        };
+        agentsByName.set(agentKey, agent);
+        planning[agent.id] = {};
+      } else if (!agent.team && currentTeam) {
+        agent.team = currentTeam;
+      }
+
+      const rowPlanning = planning[agent.id] ?? {};
+      for (const { col, day } of dateCols) {
+        const raw = row[col];
+        const value = raw == null ? "" : String(raw).trim();
+        if (!value || value === "0") continue;
+        rowPlanning[monthOffset + day - 1] = value;
+        usedCodes.add(value);
+      }
+      planning[agent.id] = rowPlanning;
+    }
+    parsedMonths++;
+  }
+
+  const agents = [...agentsByName.values()];
+  if (!agents.length || parsedMonths === 0) return null;
+  return {
+    state: {
+      agents,
+      codes: codeListFromUsed(usedCodes),
+      planningByYear: { [detectedYear]: planning },
+    },
+    year: detectedYear,
+    summary: `Fichier Excel importé : ${agents.length} agents, ${parsedMonths} mois, planning ${detectedYear}.`,
   };
 }
 
@@ -772,6 +933,11 @@ export async function importFromExcel(
   if (native) {
     report(100, "Import terminé");
     return native;
+  }
+  const styled = parseStyledMonthWorkbook(wb, XLSX, year);
+  if (styled) {
+    report(100, "Import terminé");
+    return styled;
   }
   report(70, "Lecture des paramètres et agents…");
 
