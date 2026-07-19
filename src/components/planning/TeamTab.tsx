@@ -1,17 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  Ban,
   Check,
   Clock,
   Copy,
   Crown,
+  History,
   Loader2,
+  Lock,
   LogIn,
   LogOut,
+  Mail,
   Pencil,
+  Plus,
   RefreshCw,
   Share2,
+  ShieldOff,
   Trash2,
+  Unlock,
   Users,
   X,
 } from "lucide-react";
