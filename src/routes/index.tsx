@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   CalendarRange,
   Settings2,
@@ -8,8 +9,10 @@ import {
   BarChart3,
   CalendarClock,
   Clock,
+  Loader2,
 } from "lucide-react";
 import homeBg from "@/assets/home-bg.png.asset.json";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -91,11 +94,29 @@ const NAV = [
 ] as const;
 
 function HomePage() {
+  const { session, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [loading, session, navigate]);
+
+  if (loading || !session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div
       className="relative min-h-screen bg-cover bg-center"
       style={{ backgroundImage: `url(${homeBg.url})` }}
     >
+
       {/* Readability overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/65 via-white/45 to-white/20 backdrop-blur-[1px]" />
 
