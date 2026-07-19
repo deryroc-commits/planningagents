@@ -1,15 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  CalendarRange,
-  Settings2,
-  Users,
-  Printer,
-  ArrowRight,
-  BarChart3,
-  CalendarClock,
-  Clock,
-} from "lucide-react";
-import homeBg from "@/assets/home-bg.png.asset.json";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
+
+import { useAuth } from "@/lib/auth/auth-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
