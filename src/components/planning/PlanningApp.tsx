@@ -385,13 +385,59 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 <span className="font-medium">Fichier prêt :</span> {selectedImportFile.name}
               </div>
             )}
+            {(isImporting || importResult !== "idle") && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <span className="text-muted-foreground">
+                    {importStage || (isImporting ? "Chargement…" : "")}
+                  </span>
+                  <span
+                    className={
+                      importResult === "error"
+                        ? "text-destructive"
+                        : importResult === "success"
+                          ? "text-emerald-600"
+                          : "text-primary"
+                    }
+                  >
+                    {importProgress}%
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={
+                      "h-full transition-all duration-300 " +
+                      (importResult === "error"
+                        ? "bg-destructive"
+                        : importResult === "success"
+                          ? "bg-emerald-500"
+                          : "bg-primary")
+                    }
+                    style={{ width: `${importProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
             {(isImporting || importMessage) && (
-              <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+              <div
+                className={
+                  "rounded-md border px-3 py-2 text-sm font-medium " +
+                  (importResult === "error"
+                    ? "border-destructive/40 bg-destructive/10 text-destructive"
+                    : importResult === "success"
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+                      : "border-primary/30 bg-primary/10 text-primary")
+                }
+              >
                 {isImporting
                   ? selectedImportFile
-                    ? `Fichier « ${selectedImportFile.name} » en cours de chargement… merci de patienter.`
+                    ? `Fichier « ${selectedImportFile.name} » — ${importStage || "chargement…"}`
                     : "Fichier en cours de chargement… merci de patienter."
-                  : importMessage}
+                  : importResult === "success"
+                    ? `✓ ${importMessage}`
+                    : importResult === "error"
+                      ? `✗ ${importMessage}`
+                      : importMessage}
               </div>
             )}
             <p className="text-xs text-muted-foreground">
