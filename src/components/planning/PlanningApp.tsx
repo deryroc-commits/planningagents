@@ -222,23 +222,30 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 ))}
               </SelectContent>
             </Select>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".xlsx,.xlsm,.xlsb,.xls,.csv"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onImport(f);
-                e.target.value = "";
-              }}
-            />
-            <Button
-              size="sm"
-              className="nav-btn nav-indigo border-0"
-              onClick={() => fileRef.current?.click()}
-            >
-              <Upload /> Importer
+            <Button size="sm" className="nav-btn nav-indigo border-0" asChild>
+              <label htmlFor="planning-import-file" className="cursor-pointer">
+                <Upload /> Importer
+                <input
+                  id="planning-import-file"
+                  ref={fileRef}
+                  type="file"
+                  accept=".xlsx,.xlsm,.xlsb,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+                  className="sr-only"
+                  onClick={(e) => {
+                    e.currentTarget.value = "";
+                    setStatus("Sélectionnez le fichier Excel à importer…");
+                  }}
+                  onChange={(e) => {
+                    const f = e.currentTarget.files?.[0];
+                    if (f) {
+                      void onImport(f);
+                    } else {
+                      setStatus("Aucun fichier sélectionné.");
+                      setTimeout(() => setStatus(null), 3000);
+                    }
+                  }}
+                />
+              </label>
             </Button>
             <ExportButton />
             <ResetDialog
