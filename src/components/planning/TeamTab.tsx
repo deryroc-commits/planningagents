@@ -352,7 +352,7 @@ export function TeamTab() {
       </div>
 
       {/* Blocked members */}
-      {isOwner && blockedMembers.length > 0 && (
+      {isOwner && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <Lock className="size-4 text-destructive" /> Comptes bloqués ({blockedMembers.length})
@@ -360,45 +360,51 @@ export function TeamTab() {
           <p className="mt-1 text-sm text-muted-foreground">
             Ces comptes ne peuvent plus voir ni modifier le planning.
           </p>
-          <ul className="mt-3 space-y-2">
-            {blockedMembers.map((m) => (
-              <li
-                key={m.id}
-                className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-2.5"
-              >
-                <Avatar className="size-10">
-                  <AvatarFallback className="bg-destructive/15 text-sm font-semibold text-destructive">
-                    {initials(m.display_name, m.email)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">
-                    {m.display_name || m.email || "Membre"}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">Accès bloqué</p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void unblockMember(m.user_id).then(() => toast.success("Accès rétabli"))}
+          {blockedMembers.length === 0 ? (
+            <p className="mt-3 rounded-xl border border-dashed border-border/70 px-3 py-4 text-center text-sm text-muted-foreground">
+              Aucun compte bloqué.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {blockedMembers.map((m) => (
+                <li
+                  key={m.id}
+                  className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-2.5"
                 >
-                  <Unlock className="mr-1 size-4" /> Débloquer
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="size-9 text-destructive hover:text-destructive"
-                  title="Supprimer définitivement"
-                  onClick={() => {
-                    if (!confirm("Supprimer définitivement ce compte de l'équipe ?")) return;
-                    void removeMember(m.user_id).then(() => toast.success("Membre supprimé"));
-                  }}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
+                  <Avatar className="size-10">
+                    <AvatarFallback className="bg-destructive/15 text-sm font-semibold text-destructive">
+                      {initials(m.display_name, m.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">
+                      {m.display_name || m.email || "Membre"}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">Accès bloqué</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void unblockMember(m.user_id).then(() => toast.success("Accès rétabli"))}
+                  >
+                    <Unlock className="mr-1 size-4" /> Débloquer
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-9 text-destructive hover:text-destructive"
+                    title="Supprimer définitivement"
+                    onClick={() => {
+                      if (!confirm("Supprimer définitivement ce compte de l'équipe ?")) return;
+                      void removeMember(m.user_id).then(() => toast.success("Membre supprimé"));
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
