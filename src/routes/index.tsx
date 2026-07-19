@@ -1,9 +1,15 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { CalendarDays, LogOut, Loader2, ArrowRight } from "lucide-react";
-
-import { useAuth } from "@/lib/auth/auth-context";
-import { Button } from "@/components/ui/button";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  CalendarRange,
+  Settings2,
+  Users,
+  Printer,
+  ArrowRight,
+  BarChart3,
+  CalendarClock,
+  Clock,
+} from "lucide-react";
+import homeBg from "@/assets/home-bg.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,56 +31,110 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
+const NAV = [
+  {
+    label: "Planning Général",
+    description: "Grille annuelle, saisie contrôlée et calcul des heures.",
+    icon: CalendarRange,
+    tab: "planning",
+    color: "nav-emerald",
+  },
+  {
+    label: "Statistiques",
+    description: "Heures et postes analysés par agent, par mois et semaine.",
+    icon: BarChart3,
+    tab: "stats",
+    color: "nav-indigo",
+  },
+  {
+    label: "Roulement week-ends",
+    description: "Cycle de base (1 week-end sur N) généré sur l'année.",
+    icon: CalendarClock,
+    tab: "rotation",
+    color: "nav-amber",
+  },
+  {
+    label: "Paramètres",
+    description: "Codes, libellés, heures et catégories de couleur.",
+    icon: Settings2,
+    tab: "params",
+    color: "nav-rose",
+  },
+  {
+    label: "Base Agents",
+    description: "Gestion des agents et de leurs équipes.",
+    icon: Users,
+    tab: "agents",
+    color: "nav-emerald",
+  },
+  {
+    label: "Heures supp.",
+    description: "Gestion des heures supplémentaires par agent : alertes et export.",
+    icon: Clock,
+    tab: "overtime",
+    color: "nav-amber",
+  },
+  {
+    label: "Impression",
+    description: "Aperçu mensuel prêt à imprimer ou exporter en PDF.",
+    icon: Printer,
+    tab: "print",
+    color: "nav-indigo",
+  },
+  {
+    label: "Équipe & partage",
+    description: "Membres de l'équipe, rôles et code d'invitation à partager.",
+    icon: Users,
+    tab: "team",
+    color: "nav-rose",
+  },
+] as const;
+
 function HomePage() {
-  const { session, loading, user, signOut } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !session) {
-      navigate({ to: "/auth", replace: true });
-    }
-  }, [session, loading, navigate]);
-
-  if (loading || !session) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="size-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/20 px-4">
-      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl sm:p-10">
-        <div className="flex flex-col items-center text-center">
-          <div className="flex size-14 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <CalendarDays className="size-7" />
-          </div>
-          <h1 className="mt-4 text-2xl font-bold">Planning des agents — UCPA</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Bienvenue{user?.email ? `, ${user.email}` : ""}.
+    <div
+      className="relative min-h-screen bg-cover bg-center"
+      style={{ backgroundImage: `url(${homeBg.url})` }}
+    >
+      {/* Readability overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/65 via-white/45 to-white/20 backdrop-blur-[1px]" />
+
+      <div className="relative mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-5 py-12">
+        <div className="mb-8 text-center">
+          <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+            Cuisine Centrale — UCPA
+          </p>
+          <h1 className="mt-2 text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+            Planning des agents
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
+            Planification annuelle type Excel : choisissez une section pour
+            commencer.
           </p>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3">
-          <Button asChild size="lg" className="w-full">
-            <Link to="/app" search={{ tab: "planning" }}>
-              Ouvrir le planning <ArrowRight className="ml-2 size-4" />
+        <div className="space-y-4">
+          {NAV.map((item) => (
+            <Link
+              key={item.tab}
+              to="/app"
+              search={{ tab: item.tab }}
+              className={`nav-btn ${item.color} group flex items-center gap-4 rounded-2xl px-5 py-4`}
+            >
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white/25">
+                <item.icon className="size-6" />
+              </span>
+              <span className="flex-1">
+                <span className="block text-lg font-bold leading-tight">
+                  {item.label}
+                </span>
+                <span className="block text-sm opacity-90">
+                  {item.description}
+                </span>
+              </span>
+              <ArrowRight className="size-5 shrink-0 opacity-70 transition-transform group-hover:translate-x-1" />
             </Link>
-          </Button>
-          <Button asChild variant="outline" size="lg" className="w-full">
-            <Link to="/app" search={{ tab: "team" }}>
-              Équipe & partage
-            </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="lg"
-            className="w-full text-destructive hover:text-destructive"
-            onClick={() => void signOut()}
-          >
-            <LogOut className="mr-2 size-4" /> Se déconnecter
-          </Button>
+          ))}
         </div>
       </div>
     </div>
