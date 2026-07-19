@@ -169,7 +169,6 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
   const handleImportFilePick = (file: File | undefined) => {
     if (filePickerTimerRef.current) window.clearTimeout(filePickerTimerRef.current);
-    filePickerOpenRef.current = false;
     const f = file;
     if (f) {
       setSelectedImportFile(f);
