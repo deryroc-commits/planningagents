@@ -431,7 +431,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         actor_id: user.id,
         target_user_id: extra.target_user_id ?? null,
         target_email: extra.target_email ?? null,
-        details: extra.details ?? null,
+        details: (extra.details ?? null) as never,
         action,
       });
       void refreshAccessLog();
