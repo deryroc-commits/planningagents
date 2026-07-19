@@ -315,16 +315,20 @@ function isPristineDemoInstall(parsed: Partial<PlanningState>): boolean {
   return !hasPlanning && !hasChanges && !hasOvertime;
 }
 
-function loadState(key: string): PlanningState {
+function emptyPlanningState(): PlanningState {
   const base = normalizePlanningState(null);
-  if (typeof window === "undefined") return base;
+  return { ...base, agents: [], planningByYear: {} };
+}
+
+function loadState(key: string): PlanningState {
+  if (typeof window === "undefined") return emptyPlanningState();
   try {
     const raw = window.localStorage.getItem(key);
-    if (!raw) return base;
+    if (!raw) return emptyPlanningState();
     const parsed = JSON.parse(raw) as Partial<PlanningState>;
     return normalizePlanningState(parsed);
   } catch {
-    return base;
+    return emptyPlanningState();
   }
 }
 
