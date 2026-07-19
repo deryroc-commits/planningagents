@@ -754,14 +754,26 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
 export async function importFromExcel(
   file: File,
   year: number,
+  onProgress?: (pct: number, label?: string) => void,
 ): Promise<ImportResult> {
+  const report = (p: number, l?: string) => {
+    try { onProgress?.(Math.max(0, Math.min(100, Math.round(p))), l); } catch { /* noop */ }
+  };
+  report(2, "Préparation…");
   const XLSX = await import("xlsx");
+  report(10, "Lecture du fichier…");
   const buf = await file.arrayBuffer();
+  report(35, "Analyse du classeur…");
   const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  report(55, "Extraction des feuilles…");
 
   // First try the real UCPA workbook layout.
   const native = parseUcpaWorkbook(wb, XLSX);
-  if (native) return native;
+  if (native) {
+    report(100, "Import terminé");
+    return native;
+  }
+  report(70, "Lecture des paramètres et agents…");
 
   const findSheet = (...names: string[]) =>
     wb.SheetNames.find((n) =>
