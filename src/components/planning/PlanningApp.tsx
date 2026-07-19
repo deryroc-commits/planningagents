@@ -115,10 +115,16 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     if (activeImportSignatureRef.current === signature) return;
     activeImportSignatureRef.current = signature;
     setIsImporting(true);
+    setImportResult("idle");
+    setImportProgress(0);
+    setImportStage("Démarrage…");
     setImportMessage(`Fichier « ${file.name} » en cours de chargement…`);
     setStatus(`Fichier « ${file.name} » en cours de chargement…`);
     try {
-      const res = await importFromExcel(file, year);
+      const res = await importFromExcel(file, year, (pct, label) => {
+        setImportProgress(pct);
+        if (label) setImportStage(label);
+      });
       const hasData =
         !!res.state &&
         ((Array.isArray(res.state.agents) && res.state.agents.length > 0) ||
@@ -128,19 +134,27 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
         const message =
           res.summary ||
             "Fichier lu, mais aucune donnée reconnue (feuilles attendues : Planning, Paramètres, Base agents).";
+        setImportResult("error");
+        setImportProgress(100);
+        setImportStage("Échec");
         setImportMessage(message);
         setStatus(message);
       } else {
         replaceState(res.state);
         if (res.year && res.year !== year) setYear(res.year);
+        setImportResult("success");
+        setImportProgress(100);
+        setImportStage("Terminé");
         setImportMessage(res.summary);
         setStatus(res.summary);
         setSelectedImportFile(null);
         if (fileRef.current) fileRef.current.value = "";
-        setTimeout(() => setImportOpen(false), 1200);
+        setTimeout(() => setImportOpen(false), 1600);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      setImportResult("error");
+      setImportStage("Échec");
       setImportMessage(`Échec de l'import : ${msg}`);
       setStatus(`Échec de l'import : ${msg}`);
       console.error("[import]", e);
