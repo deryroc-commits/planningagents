@@ -1076,7 +1076,7 @@ export async function importFromExcel(
     state: partial,
     summary: parts.length
       ? `Importé : ${parts.join(", ")}.`
-      : "Aucune feuille reconnue (Paramètres / Base agents / Planning).",
+      : "Format non reconnu : aucune feuille exploitable (attendu : export annuel UCPA, export mensuel stylé, ou feuilles « Planning » / « Paramètres » / « Base agents »).",
   };
 }
 
