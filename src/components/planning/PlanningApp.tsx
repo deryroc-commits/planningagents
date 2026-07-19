@@ -88,6 +88,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const [isImporting, setIsImporting] = useState(false);
   const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [importProgress, setImportProgress] = useState(0);
+  const [importStage, setImportStage] = useState<string>("");
+  const [importResult, setImportResult] = useState<"idle" | "success" | "error">("idle");
   const fileRef = useRef<HTMLInputElement>(null);
   const activeImportSignatureRef = useRef<string | null>(null);
   const filePickerOpenRef = useRef(false);
@@ -112,10 +115,16 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     if (activeImportSignatureRef.current === signature) return;
     activeImportSignatureRef.current = signature;
     setIsImporting(true);
+    setImportResult("idle");
+    setImportProgress(0);
+    setImportStage("Démarrage…");
     setImportMessage(`Fichier « ${file.name} » en cours de chargement…`);
     setStatus(`Fichier « ${file.name} » en cours de chargement…`);
     try {
-      const res = await importFromExcel(file, year);
+      const res = await importFromExcel(file, year, (pct, label) => {
+        setImportProgress(pct);
+        if (label) setImportStage(label);
+      });
       const hasData =
         !!res.state &&
         ((Array.isArray(res.state.agents) && res.state.agents.length > 0) ||
@@ -125,19 +134,27 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
         const message =
           res.summary ||
             "Fichier lu, mais aucune donnée reconnue (feuilles attendues : Planning, Paramètres, Base agents).";
+        setImportResult("error");
+        setImportProgress(100);
+        setImportStage("Échec");
         setImportMessage(message);
         setStatus(message);
       } else {
         replaceState(res.state);
         if (res.year && res.year !== year) setYear(res.year);
+        setImportResult("success");
+        setImportProgress(100);
+        setImportStage("Terminé");
         setImportMessage(res.summary);
         setStatus(res.summary);
         setSelectedImportFile(null);
         if (fileRef.current) fileRef.current.value = "";
-        setTimeout(() => setImportOpen(false), 1200);
+        setTimeout(() => setImportOpen(false), 1600);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      setImportResult("error");
+      setImportStage("Échec");
       setImportMessage(`Échec de l'import : ${msg}`);
       setStatus(`Échec de l'import : ${msg}`);
       console.error("[import]", e);
@@ -179,6 +196,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       setImportOpen(true);
       setSelectedImportFile(null);
       setImportMessage("Sélectionnez un fichier Excel, puis lancez le chargement.");
+      setImportProgress(0);
+      setImportStage("");
+      setImportResult("idle");
       activeImportSignatureRef.current = null;
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -365,13 +385,59 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 <span className="font-medium">Fichier prêt :</span> {selectedImportFile.name}
               </div>
             )}
+            {(isImporting || importResult !== "idle") && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <span className="text-muted-foreground">
+                    {importStage || (isImporting ? "Chargement…" : "")}
+                  </span>
+                  <span
+                    className={
+                      importResult === "error"
+                        ? "text-destructive"
+                        : importResult === "success"
+                          ? "text-emerald-600"
+                          : "text-primary"
+                    }
+                  >
+                    {importProgress}%
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={
+                      "h-full transition-all duration-300 " +
+                      (importResult === "error"
+                        ? "bg-destructive"
+                        : importResult === "success"
+                          ? "bg-emerald-500"
+                          : "bg-primary")
+                    }
+                    style={{ width: `${importProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
             {(isImporting || importMessage) && (
-              <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+              <div
+                className={
+                  "rounded-md border px-3 py-2 text-sm font-medium " +
+                  (importResult === "error"
+                    ? "border-destructive/40 bg-destructive/10 text-destructive"
+                    : importResult === "success"
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+                      : "border-primary/30 bg-primary/10 text-primary")
+                }
+              >
                 {isImporting
                   ? selectedImportFile
-                    ? `Fichier « ${selectedImportFile.name} » en cours de chargement… merci de patienter.`
+                    ? `Fichier « ${selectedImportFile.name} » — ${importStage || "chargement…"}`
                     : "Fichier en cours de chargement… merci de patienter."
-                  : importMessage}
+                  : importResult === "success"
+                    ? `✓ ${importMessage}`
+                    : importResult === "error"
+                      ? `✗ ${importMessage}`
+                      : importMessage}
               </div>
             )}
             <p className="text-xs text-muted-foreground">
