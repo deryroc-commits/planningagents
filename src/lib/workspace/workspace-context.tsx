@@ -383,8 +383,135 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     await refreshMemberships();
   }, [activeWorkspaceId, user, refreshMemberships]);
 
+  const refreshBlocklist = useCallback(async () => {
+    if (!activeWorkspaceId) {
+      setBlocklist([]);
+      return;
+    }
+    const { data, error } = await supabase
+      .from("workspace_email_blocklist")
+      .select("id, email, reason, created_at")
+      .eq("workspace_id", activeWorkspaceId)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.warn("Impossible de charger la liste noire", error.message);
+      return;
+    }
+    setBlocklist((data ?? []) as BlocklistEntry[]);
+  }, [activeWorkspaceId]);
+
+  const refreshAccessLog = useCallback(async () => {
+    if (!activeWorkspaceId) {
+      setAccessLog([]);
+      return;
+    }
+    const { data, error } = await supabase
+      .from("workspace_access_log")
+      .select("id, action, target_email, target_user_id, actor_id, details, created_at")
+      .eq("workspace_id", activeWorkspaceId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) {
+      console.warn("Impossible de charger le journal", error.message);
+      return;
+    }
+    setAccessLog((data ?? []) as AccessLogEntry[]);
+  }, [activeWorkspaceId]);
+
+  useEffect(() => {
+    void refreshBlocklist();
+    void refreshAccessLog();
+  }, [refreshBlocklist, refreshAccessLog]);
+
+  const logAction = useCallback(
+    async (action: string, extra: Partial<AccessLogEntry> = {}) => {
+      if (!activeWorkspaceId || !user) return;
+      await supabase.from("workspace_access_log").insert({
+        workspace_id: activeWorkspaceId,
+        actor_id: user.id,
+        target_user_id: extra.target_user_id ?? null,
+        target_email: extra.target_email ?? null,
+        details: extra.details ?? null,
+        action,
+      });
+      void refreshAccessLog();
+    },
+    [activeWorkspaceId, user, refreshAccessLog],
+  );
+
+  const blockMember = useCallback(
+    async (userId: string) => {
+      if (!activeWorkspaceId) return;
+      const target = members.find((m) => m.user_id === userId);
+      const { error } = await supabase
+        .from("workspace_members")
+        .update({ status: "blocked" })
+        .eq("workspace_id", activeWorkspaceId)
+        .eq("user_id", userId);
+      if (error) throw new Error(error.message);
+      await refreshMembers();
+      await logAction("member_blocked", {
+        target_user_id: userId,
+        target_email: target?.email ?? null,
+      });
+    },
+    [activeWorkspaceId, members, refreshMembers, logAction],
+  );
+
+  const unblockMember = useCallback(
+    async (userId: string) => {
+      if (!activeWorkspaceId) return;
+      const target = members.find((m) => m.user_id === userId);
+      const { error } = await supabase
+        .from("workspace_members")
+        .update({ status: "active" })
+        .eq("workspace_id", activeWorkspaceId)
+        .eq("user_id", userId);
+      if (error) throw new Error(error.message);
+      await refreshMembers();
+      await logAction("member_unblocked", {
+        target_user_id: userId,
+        target_email: target?.email ?? null,
+      });
+    },
+    [activeWorkspaceId, members, refreshMembers, logAction],
+  );
+
+  const addBlockedEmail = useCallback(
+    async (email: string, reason?: string) => {
+      if (!activeWorkspaceId) return;
+      const clean = email.trim().toLowerCase();
+      if (!clean) throw new Error("Email vide");
+      const { error } = await supabase.from("workspace_email_blocklist").insert({
+        workspace_id: activeWorkspaceId,
+        email: clean,
+        reason: reason ?? null,
+        created_by: user?.id ?? null,
+      });
+      if (error) throw new Error(error.message);
+      await refreshBlocklist();
+      await logAction("email_banned", { target_email: clean });
+    },
+    [activeWorkspaceId, user, refreshBlocklist, logAction],
+  );
+
+  const removeBlockedEmail = useCallback(
+    async (id: string) => {
+      const entry = blocklist.find((b) => b.id === id);
+      const { error } = await supabase
+        .from("workspace_email_blocklist")
+        .delete()
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+      await refreshBlocklist();
+      if (entry) await logAction("email_unbanned", { target_email: entry.email });
+    },
+    [blocklist, refreshBlocklist, logAction],
+  );
+
   const activeMembers = useMemo(() => members.filter((m) => m.status === "active"), [members]);
   const pendingMembers = useMemo(() => members.filter((m) => m.status === "pending"), [members]);
+  const blockedMembers = useMemo(() => members.filter((m) => m.status === "blocked"), [members]);
 
   const role = activeWorkspace?.role ?? null;
 
