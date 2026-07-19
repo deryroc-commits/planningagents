@@ -35,6 +35,23 @@ export interface Member {
   email: string | null;
 }
 
+export interface BlocklistEntry {
+  id: string;
+  email: string;
+  reason: string | null;
+  created_at: string;
+}
+
+export interface AccessLogEntry {
+  id: string;
+  action: string;
+  target_email: string | null;
+  target_user_id: string | null;
+  actor_id: string | null;
+  details: Record<string, unknown> | null;
+  created_at: string;
+}
+
 interface WorkspaceContextValue {
   loading: boolean;
   memberships: WorkspaceMembership[];
@@ -47,8 +64,13 @@ interface WorkspaceContextValue {
   isOwner: boolean;
   members: Member[];
   pendingMembers: Member[];
+  blockedMembers: Member[];
+  blocklist: BlocklistEntry[];
+  accessLog: AccessLogEntry[];
   refreshMemberships: () => Promise<void>;
   refreshMembers: () => Promise<void>;
+  refreshBlocklist: () => Promise<void>;
+  refreshAccessLog: () => Promise<void>;
   createWorkspace: (name: string) => Promise<WorkspaceMembership>;
   joinWorkspace: (code: string) => Promise<WorkspaceMembership>;
   renameWorkspace: (name: string) => Promise<void>;
@@ -57,6 +79,10 @@ interface WorkspaceContextValue {
   removeMember: (userId: string) => Promise<void>;
   approveMember: (userId: string) => Promise<void>;
   rejectMember: (userId: string) => Promise<void>;
+  blockMember: (userId: string) => Promise<void>;
+  unblockMember: (userId: string) => Promise<void>;
+  addBlockedEmail: (email: string, reason?: string) => Promise<void>;
+  removeBlockedEmail: (id: string) => Promise<void>;
   cancelPending: (workspaceId: string) => Promise<void>;
   leaveWorkspace: () => Promise<void>;
 }
