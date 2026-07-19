@@ -95,6 +95,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [allMemberships, setAllMemberships] = useState<WorkspaceMembership[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [blocklist, setBlocklist] = useState<BlocklistEntry[]>([]);
+  const [accessLog, setAccessLog] = useState<AccessLogEntry[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
