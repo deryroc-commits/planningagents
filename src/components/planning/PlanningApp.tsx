@@ -385,21 +385,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             >
               <Upload className="mr-1.5 size-4" /> Charger le fichier
             </Button>
-            <Button
-              variant="outline"
-              disabled={isImporting}
-              onClick={() => {
-                setSelectedImportFile(null);
-                activeImportSignatureRef.current = null;
-                filePickerOpenRef.current = false;
-                if (filePickerTimerRef.current) {
-                  window.clearTimeout(filePickerTimerRef.current);
-                  filePickerTimerRef.current = null;
-                }
-                if (fileRef.current) fileRef.current.value = "";
-                setImportOpen(false);
-              }}
-            >
+            <Button variant="outline" disabled={isImporting} onClick={closeImportDialog}>
               Annuler
             </Button>
           </DialogFooter>
