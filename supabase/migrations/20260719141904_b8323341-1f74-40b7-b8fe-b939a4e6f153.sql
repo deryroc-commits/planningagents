@@ -1,0 +1,1 @@
+DELETE FROM auth.users WHERE email IN ('erickduvall@free.fr','eduval@ch-mayenne.fr','excelbyericduval@gmail.com');
