@@ -84,6 +84,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const [janWeeks, setJanWeeks] = useState(3);
   const [tab, setTab] = useState(initialTab);
   const [status, setStatus] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const errors = countErrors(planning, codesMap(codes));
@@ -102,6 +103,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
   const onImport = async (file: File) => {
     setStatus(`Lecture de « ${file.name} »…`);
+    setImportOpen(false);
     try {
       const res = await importFromExcel(file, year);
       const hasData =
@@ -125,6 +127,17 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       console.error("[import]", e);
     }
     setTimeout(() => setStatus(null), 8000);
+  };
+
+  const onImportInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.currentTarget.files?.[0];
+    e.currentTarget.value = "";
+    if (f) {
+      void onImport(f);
+    } else {
+      setStatus("Aucun fichier sélectionné.");
+      setTimeout(() => setStatus(null), 3000);
+    }
   };
 
   return (
@@ -222,30 +235,15 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 ))}
               </SelectContent>
             </Select>
-            <Button size="sm" className="nav-btn nav-indigo border-0" asChild>
-              <label htmlFor="planning-import-file" className="cursor-pointer">
-                <Upload /> Importer
-                <input
-                  id="planning-import-file"
-                  ref={fileRef}
-                  type="file"
-                  accept=".xlsx,.xlsm,.xlsb,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
-                  className="sr-only"
-                  onClick={(e) => {
-                    e.currentTarget.value = "";
-                    setStatus("Sélectionnez le fichier Excel à importer…");
-                  }}
-                  onChange={(e) => {
-                    const f = e.currentTarget.files?.[0];
-                    if (f) {
-                      void onImport(f);
-                    } else {
-                      setStatus("Aucun fichier sélectionné.");
-                      setTimeout(() => setStatus(null), 3000);
-                    }
-                  }}
-                />
-              </label>
+            <Button
+              size="sm"
+              className="nav-btn nav-indigo border-0"
+              onClick={() => {
+                setStatus("Sélectionnez le fichier Excel à importer…");
+                setImportOpen(true);
+              }}
+            >
+              <Upload /> Importer
             </Button>
             <ExportButton />
             <ResetDialog
@@ -270,6 +268,35 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           </div>
         )}
       </header>
+
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Importer un fichier Excel</DialogTitle>
+            <DialogDescription>
+              Sélectionnez le fichier du planning à charger dans l'année affichée.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <input
+              id="planning-import-file"
+              ref={fileRef}
+              type="file"
+              accept=".xlsx,.xlsm,.xlsb,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary-foreground"
+              onChange={onImportInputChange}
+            />
+            <p className="text-xs text-muted-foreground">
+              Si votre téléphone demande une source, choisissez Fichiers, Drive ou Téléchargements.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImportOpen(false)}>
+              Annuler
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <main className="mx-auto max-w-[1600px] px-4 py-5">
         <Tabs value={tab} onValueChange={setTab}>
