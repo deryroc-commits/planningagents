@@ -50,7 +50,7 @@ function AuthPage() {
 
   useEffect(() => {
     if (!loading && session) {
-      navigate({ to: "/" });
+      navigate({ to: "/app", replace: true });
     }
   }, [loading, session, navigate]);
 
