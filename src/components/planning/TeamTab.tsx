@@ -264,61 +264,67 @@ export function TeamTab() {
       </form>
 
       {/* Pending requests — visible only to the owner */}
-      {isOwner && pendingMembers.length > 0 && (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 shadow-sm dark:border-amber-500/40 dark:bg-amber-500/10">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-amber-900 dark:text-amber-200">
-            <Clock className="size-4" /> Demandes d'accès ({pendingMembers.length})
+      {isOwner && (
+        <div className={`rounded-2xl border p-5 shadow-sm ${pendingMembers.length > 0 ? "border-amber-300 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-500/10" : "border-border bg-card"}`}>
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <Clock className="size-4 text-amber-600" /> Demandes d'accès ({pendingMembers.length})
           </h3>
-          <p className="mt-1 text-sm text-amber-800/80 dark:text-amber-200/80">
-            Approuvez les personnes qui ont utilisé votre code d'invitation.
+          <p className="mt-1 text-sm text-muted-foreground">
+            Les personnes qui utilisent votre code d'invitation apparaissent ici en attente d'approbation.
           </p>
-          <ul className="mt-3 space-y-2">
-            {pendingMembers.map((m) => (
-              <li
-                key={m.id}
-                className="flex items-center gap-3 rounded-xl bg-background/80 px-3 py-2.5"
-              >
-                <Avatar className="size-10">
-                  <AvatarFallback className="bg-amber-500/15 text-sm font-semibold text-amber-700 dark:text-amber-300">
-                    {initials(m.display_name, m.email)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">
-                    {m.display_name || m.email || "Nouveau membre"}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    Demande du{" "}
-                    {new Date(m.joined_at).toLocaleDateString("fr-FR", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                  onClick={() => {
-                    void approveMember(m.user_id).then(() => toast.success("Accès accordé"));
-                  }}
+          {pendingMembers.length === 0 ? (
+            <p className="mt-3 rounded-xl border border-dashed border-border/70 px-3 py-4 text-center text-sm text-muted-foreground">
+              Aucune demande en attente.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {pendingMembers.map((m) => (
+                <li
+                  key={m.id}
+                  className="flex items-center gap-3 rounded-xl bg-background/80 px-3 py-2.5"
                 >
-                  <Check className="mr-1 size-4" /> Approuver
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="size-9 text-destructive hover:text-destructive"
-                  onClick={() => {
-                    void rejectMember(m.user_id).then(() => toast.success("Demande refusée"));
-                  }}
-                  title="Refuser"
-                >
-                  <X className="size-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
+                  <Avatar className="size-10">
+                    <AvatarFallback className="bg-amber-500/15 text-sm font-semibold text-amber-700 dark:text-amber-300">
+                      {initials(m.display_name, m.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">
+                      {m.display_name || m.email || "Nouveau membre"}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      Demande du{" "}
+                      {new Date(m.joined_at).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                    onClick={() => {
+                      void approveMember(m.user_id).then(() => toast.success("Accès accordé"));
+                    }}
+                  >
+                    <Check className="mr-1 size-4" /> Approuver
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-9 text-destructive hover:text-destructive"
+                    onClick={() => {
+                      void rejectMember(m.user_id).then(() => toast.success("Demande refusée"));
+                    }}
+                    title="Refuser"
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -346,7 +352,7 @@ export function TeamTab() {
       </div>
 
       {/* Blocked members */}
-      {isOwner && blockedMembers.length > 0 && (
+      {isOwner && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <Lock className="size-4 text-destructive" /> Comptes bloqués ({blockedMembers.length})
@@ -354,45 +360,51 @@ export function TeamTab() {
           <p className="mt-1 text-sm text-muted-foreground">
             Ces comptes ne peuvent plus voir ni modifier le planning.
           </p>
-          <ul className="mt-3 space-y-2">
-            {blockedMembers.map((m) => (
-              <li
-                key={m.id}
-                className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-2.5"
-              >
-                <Avatar className="size-10">
-                  <AvatarFallback className="bg-destructive/15 text-sm font-semibold text-destructive">
-                    {initials(m.display_name, m.email)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">
-                    {m.display_name || m.email || "Membre"}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">Accès bloqué</p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void unblockMember(m.user_id).then(() => toast.success("Accès rétabli"))}
+          {blockedMembers.length === 0 ? (
+            <p className="mt-3 rounded-xl border border-dashed border-border/70 px-3 py-4 text-center text-sm text-muted-foreground">
+              Aucun compte bloqué.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {blockedMembers.map((m) => (
+                <li
+                  key={m.id}
+                  className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-2.5"
                 >
-                  <Unlock className="mr-1 size-4" /> Débloquer
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="size-9 text-destructive hover:text-destructive"
-                  title="Supprimer définitivement"
-                  onClick={() => {
-                    if (!confirm("Supprimer définitivement ce compte de l'équipe ?")) return;
-                    void removeMember(m.user_id).then(() => toast.success("Membre supprimé"));
-                  }}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
+                  <Avatar className="size-10">
+                    <AvatarFallback className="bg-destructive/15 text-sm font-semibold text-destructive">
+                      {initials(m.display_name, m.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">
+                      {m.display_name || m.email || "Membre"}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">Accès bloqué</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void unblockMember(m.user_id).then(() => toast.success("Accès rétabli"))}
+                  >
+                    <Unlock className="mr-1 size-4" /> Débloquer
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-9 text-destructive hover:text-destructive"
+                    title="Supprimer définitivement"
+                    onClick={() => {
+                      if (!confirm("Supprimer définitivement ce compte de l'équipe ?")) return;
+                      void removeMember(m.user_id).then(() => toast.success("Membre supprimé"));
+                    }}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -468,34 +480,40 @@ export function TeamTab() {
       )}
 
       {/* Access log */}
-      {isOwner && accessLog.length > 0 && (
+      {isOwner && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <History className="size-4 text-primary" /> Journal d'accès
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            50 dernières actions d'administration.
+            50 dernières actions d'administration (blocages, bannissements…).
           </p>
-          <ul className="mt-3 space-y-1.5 text-sm">
-            {accessLog.map((e) => (
-              <li key={e.id} className="flex items-start gap-2 rounded-lg border border-border/60 px-3 py-2">
-                <span className="mt-0.5 shrink-0 text-xs text-muted-foreground">
-                  {new Date(e.created_at).toLocaleString("fr-FR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="font-medium">{ACTION_LABEL[e.action] ?? e.action}</span>
-                  {e.target_email && (
-                    <span className="ml-1 text-muted-foreground">— {e.target_email}</span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {accessLog.length === 0 ? (
+            <p className="mt-3 rounded-xl border border-dashed border-border/70 px-3 py-4 text-center text-sm text-muted-foreground">
+              Aucune action enregistrée pour le moment.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-1.5 text-sm">
+              {accessLog.map((e) => (
+                <li key={e.id} className="flex items-start gap-2 rounded-lg border border-border/60 px-3 py-2">
+                  <span className="mt-0.5 shrink-0 text-xs text-muted-foreground">
+                    {new Date(e.created_at).toLocaleString("fr-FR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="font-medium">{ACTION_LABEL[e.action] ?? e.action}</span>
+                    {e.target_email && (
+                      <span className="ml-1 text-muted-foreground">— {e.target_email}</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
