@@ -875,6 +875,7 @@ export async function importFromExcel(
     }
   }
 
+  report(100, "Import terminé");
   return {
     state: partial,
     summary: parts.length
