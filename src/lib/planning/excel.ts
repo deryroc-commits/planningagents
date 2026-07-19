@@ -838,6 +838,7 @@ export async function importFromExcel(
   if (codes) partial.codes = codes;
   if (agents) partial.agents = agents;
 
+  report(85, "Lecture du planning…");
   // Planning sheet round-trip (matches export format)
   const planName = findSheet("planning");
   if (planName) {
