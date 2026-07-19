@@ -83,6 +83,8 @@ export function TeamTab() {
     addBlockedEmail,
     removeBlockedEmail,
     leaveWorkspace,
+    pendingMemberships,
+    cancelPending,
   } = useWorkspace();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
