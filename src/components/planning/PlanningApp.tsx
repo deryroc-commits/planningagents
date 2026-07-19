@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
@@ -129,7 +129,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     setTimeout(() => setStatus(null), 8000);
   };
 
-  const onImportInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onImportInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.currentTarget.files?.[0];
     e.currentTarget.value = "";
     if (f) {
