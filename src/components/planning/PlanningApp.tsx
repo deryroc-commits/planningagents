@@ -101,16 +101,30 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   }, []);
 
   const onImport = async (file: File) => {
+    setStatus(`Lecture de « ${file.name} »…`);
     try {
       const res = await importFromExcel(file, year);
-      replaceState(res.state);
-      if (res.year && res.year !== year) setYear(res.year);
-      setStatus(res.summary);
+      const hasData =
+        !!res.state &&
+        ((Array.isArray(res.state.agents) && res.state.agents.length > 0) ||
+          !!res.state.planningByYear ||
+          (Array.isArray(res.state.codes) && res.state.codes.length > 0));
+      if (!hasData) {
+        setStatus(
+          res.summary ||
+            "Fichier lu, mais aucune donnée reconnue (feuilles attendues : Planning, Paramètres, Base agents).",
+        );
+      } else {
+        replaceState(res.state);
+        if (res.year && res.year !== year) setYear(res.year);
+        setStatus(res.summary);
+      }
     } catch (e) {
-      setStatus("Échec de l'import du fichier.");
-      console.error(e);
+      const msg = e instanceof Error ? e.message : String(e);
+      setStatus(`Échec de l'import : ${msg}`);
+      console.error("[import]", e);
     }
-    setTimeout(() => setStatus(null), 6000);
+    setTimeout(() => setStatus(null), 8000);
   };
 
   return (
