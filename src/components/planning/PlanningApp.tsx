@@ -196,6 +196,9 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       setImportOpen(true);
       setSelectedImportFile(null);
       setImportMessage("Sélectionnez un fichier Excel, puis lancez le chargement.");
+      setImportProgress(0);
+      setImportStage("");
+      setImportResult("idle");
       activeImportSignatureRef.current = null;
       if (fileRef.current) fileRef.current.value = "";
     }
