@@ -55,6 +55,13 @@ function initials(name: string | null, email: string | null): string {
   return base.slice(0, 2).toUpperCase();
 }
 
+const ACTION_LABEL: Record<string, string> = {
+  member_blocked: "Membre bloqué",
+  member_unblocked: "Membre débloqué",
+  email_banned: "Email banni",
+  email_unbanned: "Email retiré de la liste noire",
+};
+
 export function TeamTab() {
   const {
     activeWorkspace,
