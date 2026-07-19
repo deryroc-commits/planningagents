@@ -599,9 +599,9 @@ function MemberRow({
           <Crown className="size-3.5" /> Propriétaire
         </Badge>
       ) : canManage ? (
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Select value={member.role} onValueChange={(v) => onRoleChange(v as WorkspaceRole)}>
-            <SelectTrigger className="h-8 w-24 text-xs">
+            <SelectTrigger className="h-9 w-[104px] text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -610,22 +610,22 @@ function MemberRow({
             </SelectContent>
           </Select>
           <Button
-            size="icon"
-            variant="ghost"
-            className="size-8 text-amber-700 hover:text-amber-700 dark:text-amber-400"
+            size="sm"
+            variant="outline"
+            className="h-9 border-amber-500/40 text-amber-700 hover:bg-amber-500/10 hover:text-amber-700 dark:text-amber-400"
             onClick={onBlock}
             title="Bloquer l'accès"
           >
-            <Lock className="size-4" />
+            <Lock className="mr-1 size-4" /> Bloquer
           </Button>
           <Button
-            size="icon"
-            variant="ghost"
-            className="size-8 text-destructive hover:text-destructive"
+            size="sm"
+            variant="outline"
+            className="h-9 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={onRemove}
-            title="Retirer définitivement"
+            title="Supprimer définitivement"
           >
-            <Trash2 className="size-4" />
+            <Trash2 className="mr-1 size-4" /> Supprimer
           </Button>
         </div>
       ) : (
