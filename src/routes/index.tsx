@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   CalendarRange,
   Settings2,
@@ -8,8 +9,10 @@ import {
   BarChart3,
   CalendarClock,
   Clock,
+  Loader2,
 } from "lucide-react";
 import homeBg from "@/assets/home-bg.png.asset.json";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
