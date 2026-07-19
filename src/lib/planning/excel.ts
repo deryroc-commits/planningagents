@@ -921,11 +921,41 @@ export async function importFromExcel(
     try { onProgress?.(Math.max(0, Math.min(100, Math.round(p))), l); } catch { /* noop */ }
   };
   report(2, "Préparation…");
+
+  const fname = (file.name || "").toLowerCase();
+  const ext = fname.includes(".") ? fname.slice(fname.lastIndexOf(".")) : "";
+  const supported = [".xlsx", ".xlsm", ".xlsb", ".xls", ".csv"];
+  if (ext && !supported.includes(ext)) {
+    throw new Error(
+      `Format « ${ext} » non pris en charge. Formats acceptés : .xlsx, .xlsm, .xlsb, .xls, .csv.`,
+    );
+  }
+
   const XLSX = await import("xlsx");
   report(10, "Lecture du fichier…");
   const buf = await file.arrayBuffer();
+  if (!buf || buf.byteLength === 0) {
+    throw new Error("Fichier vide ou illisible.");
+  }
   report(35, "Analyse du classeur…");
-  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  let wb: Awaited<ReturnType<typeof XLSX.read>>;
+  try {
+    wb = XLSX.read(buf, { type: "array", cellDates: true });
+  } catch (err) {
+    const raw = err instanceof Error ? err.message : String(err);
+    if (/password|encrypt/i.test(raw)) {
+      throw new Error("Fichier protégé par mot de passe : retirez la protection avant l'import.");
+    }
+    if (/bad|corrupt|zip|unsupported|unrecognized/i.test(raw)) {
+      throw new Error(
+        "Fichier illisible ou format non supporté (essayez de le ré-enregistrer en .xlsx depuis Excel).",
+      );
+    }
+    throw new Error(`Impossible de lire le classeur : ${raw}`);
+  }
+  if (!wb.SheetNames?.length) {
+    throw new Error("Classeur vide : aucune feuille détectée.");
+  }
   report(55, "Extraction des feuilles…");
 
   // First try the real UCPA workbook layout.
@@ -1046,7 +1076,7 @@ export async function importFromExcel(
     state: partial,
     summary: parts.length
       ? `Importé : ${parts.join(", ")}.`
-      : "Aucune feuille reconnue (Paramètres / Base agents / Planning).",
+      : "Format non reconnu : aucune feuille exploitable (attendu : export annuel UCPA, export mensuel stylé, ou feuilles « Planning » / « Paramètres » / « Base agents »).",
   };
 }
 
