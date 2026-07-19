@@ -541,12 +541,14 @@ function MemberRow({
   canManage,
   onRoleChange,
   onRemove,
+  onBlock,
 }: {
   member: Member;
   isSelf: boolean;
   canManage: boolean;
   onRoleChange: (role: WorkspaceRole) => void;
   onRemove: () => void;
+  onBlock: () => void;
 }) {
   const joined = new Date(member.joined_at).toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -581,7 +583,7 @@ function MemberRow({
       ) : canManage ? (
         <div className="flex items-center gap-1.5">
           <Select value={member.role} onValueChange={(v) => onRoleChange(v as WorkspaceRole)}>
-            <SelectTrigger className="h-8 w-28 text-xs">
+            <SelectTrigger className="h-8 w-24 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -592,9 +594,18 @@ function MemberRow({
           <Button
             size="icon"
             variant="ghost"
+            className="size-8 text-amber-700 hover:text-amber-700 dark:text-amber-400"
+            onClick={onBlock}
+            title="Bloquer l'accès"
+          >
+            <Lock className="size-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
             className="size-8 text-destructive hover:text-destructive"
             onClick={onRemove}
-            title="Retirer"
+            title="Retirer définitivement"
           >
             <Trash2 className="size-4" />
           </Button>
