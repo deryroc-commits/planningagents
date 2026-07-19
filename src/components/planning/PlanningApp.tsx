@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
@@ -140,8 +140,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     setTimeout(() => setStatus(null), 8000);
   };
 
-  const onImportInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const f = e.currentTarget.files?.[0];
+  const handleImportFilePick = (file: File | undefined) => {
+    const f = file;
     if (f) {
       setSelectedImportFile(f);
       setImportMessage(`Fichier sélectionné : ${f.name}. Appuyez sur « Charger le fichier » pour lancer l'import.`);
@@ -152,6 +152,14 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       setImportMessage("Aucun fichier sélectionné.");
       setTimeout(() => setStatus(null), 3000);
     }
+  };
+
+  const onImportInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    handleImportFilePick(e.currentTarget.files?.[0]);
+  };
+
+  const onImportInput = (e: FormEvent<HTMLInputElement>) => {
+    handleImportFilePick(e.currentTarget.files?.[0]);
   };
 
   const resetImportDialog = (open: boolean) => {
@@ -313,6 +321,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 setImportMessage("Sélecteur de fichier ouvert… choisissez votre fichier Excel.");
                 setStatus("Sélecteur de fichier ouvert…");
               }}
+              onInput={onImportInput}
               onChange={onImportInputChange}
             />
             {selectedImportFile && (
