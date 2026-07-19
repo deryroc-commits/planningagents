@@ -90,6 +90,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const activeImportSignatureRef = useRef<string | null>(null);
+  const filePickerOpenRef = useRef(false);
+  const filePickerTimerRef = useRef<number | null>(null);
 
   const errors = countErrors(planning, codesMap(codes));
   const newVersion = useNewVersionAvailable();
@@ -146,6 +148,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   };
 
   const handleImportFilePick = (file: File | undefined) => {
+    if (filePickerTimerRef.current) window.clearTimeout(filePickerTimerRef.current);
+    filePickerOpenRef.current = false;
     const f = file;
     if (f) {
       setSelectedImportFile(f);
@@ -169,6 +173,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   };
 
   const resetImportDialog = (open: boolean) => {
+    if (!open && filePickerOpenRef.current) return;
     if (isImporting) return;
     if (!open && selectedImportFile) return;
     setImportOpen(open);
@@ -331,6 +336,12 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               disabled={isImporting}
               className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => {
+                filePickerOpenRef.current = true;
+                if (filePickerTimerRef.current) window.clearTimeout(filePickerTimerRef.current);
+                filePickerTimerRef.current = window.setTimeout(() => {
+                  filePickerOpenRef.current = false;
+                  filePickerTimerRef.current = null;
+                }, 4000);
                 setImportMessage("Sélecteur de fichier ouvert… choisissez votre fichier Excel.");
                 setStatus("Sélecteur de fichier ouvert…");
               }}
@@ -368,6 +379,11 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               onClick={() => {
                 setSelectedImportFile(null);
                 activeImportSignatureRef.current = null;
+                filePickerOpenRef.current = false;
+                if (filePickerTimerRef.current) {
+                  window.clearTimeout(filePickerTimerRef.current);
+                  filePickerTimerRef.current = null;
+                }
                 if (fileRef.current) fileRef.current.value = "";
                 setImportOpen(false);
               }}
