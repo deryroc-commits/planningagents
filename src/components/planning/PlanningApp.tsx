@@ -328,10 +328,10 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
       <Dialog open={importOpen} onOpenChange={resetImportDialog}>
         <DialogContent
-          onEscapeKeyDown={(e) => {
-            if (isImporting || selectedImportFile) e.preventDefault();
-          }}
+          onEscapeKeyDown={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onFocusOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
             <DialogTitle>Importer un fichier Excel</DialogTitle>
