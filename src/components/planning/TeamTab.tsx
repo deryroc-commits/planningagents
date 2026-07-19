@@ -480,34 +480,40 @@ export function TeamTab() {
       )}
 
       {/* Access log */}
-      {isOwner && accessLog.length > 0 && (
+      {isOwner && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <History className="size-4 text-primary" /> Journal d'accès
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            50 dernières actions d'administration.
+            50 dernières actions d'administration (blocages, bannissements…).
           </p>
-          <ul className="mt-3 space-y-1.5 text-sm">
-            {accessLog.map((e) => (
-              <li key={e.id} className="flex items-start gap-2 rounded-lg border border-border/60 px-3 py-2">
-                <span className="mt-0.5 shrink-0 text-xs text-muted-foreground">
-                  {new Date(e.created_at).toLocaleString("fr-FR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="font-medium">{ACTION_LABEL[e.action] ?? e.action}</span>
-                  {e.target_email && (
-                    <span className="ml-1 text-muted-foreground">— {e.target_email}</span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {accessLog.length === 0 ? (
+            <p className="mt-3 rounded-xl border border-dashed border-border/70 px-3 py-4 text-center text-sm text-muted-foreground">
+              Aucune action enregistrée pour le moment.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-1.5 text-sm">
+              {accessLog.map((e) => (
+                <li key={e.id} className="flex items-start gap-2 rounded-lg border border-border/60 px-3 py-2">
+                  <span className="mt-0.5 shrink-0 text-xs text-muted-foreground">
+                    {new Date(e.created_at).toLocaleString("fr-FR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="font-medium">{ACTION_LABEL[e.action] ?? e.action}</span>
+                    {e.target_email && (
+                      <span className="ml-1 text-muted-foreground">— {e.target_email}</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
