@@ -202,7 +202,57 @@ export function TeamTab() {
               )}
             </>
           )}
+      </div>
+
+      {/* My invitation status */}
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <h3 className="flex items-center gap-2 text-base font-semibold">
+          <Mail className="size-4 text-primary" /> Mon statut d'accès
+        </h3>
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-3">
+            <div className="min-w-0">
+              <div className="truncate font-medium">{activeWorkspace.name}</div>
+              <div className="text-xs text-muted-foreground">
+                Rôle : {ROLE_LABEL[activeWorkspace.role]}
+              </div>
+            </div>
+            <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300">
+              <Check className="mr-1 size-3" /> Actif
+            </Badge>
+          </div>
+          {pendingMemberships.map((m) => (
+            <div
+              key={m.id}
+              className="flex items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-500/40 dark:bg-amber-500/10"
+            >
+              <div className="min-w-0">
+                <div className="truncate font-medium">{m.name}</div>
+                <div className="text-xs text-amber-800/80 dark:text-amber-200/80">
+                  En attente d'approbation par le propriétaire
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-amber-500/15 text-amber-800 hover:bg-amber-500/20 dark:text-amber-200">
+                  <Clock className="mr-1 size-3" /> En attente
+                </Badge>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => void cancelPending(m.id)}
+                >
+                  <X className="mr-1 size-4" /> Annuler
+                </Button>
+              </div>
+            </div>
+          ))}
+          <p className="text-xs text-muted-foreground">
+            Si une demande a disparu de cette liste sans être approuvée, elle a été refusée par le propriétaire. Redemandez un accès avec un nouveau code d'invitation.
+          </p>
         </div>
+      </div>
+
       </div>
 
       {/* Invite code */}
