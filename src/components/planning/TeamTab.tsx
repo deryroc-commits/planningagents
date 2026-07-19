@@ -61,6 +61,9 @@ export function TeamTab() {
     isOwner,
     members,
     pendingMembers,
+    blockedMembers,
+    blocklist,
+    accessLog,
     joinWorkspace,
     renameWorkspace,
     regenerateInviteCode,
@@ -68,6 +71,10 @@ export function TeamTab() {
     removeMember,
     approveMember,
     rejectMember,
+    blockMember,
+    unblockMember,
+    addBlockedEmail,
+    removeBlockedEmail,
     leaveWorkspace,
   } = useWorkspace();
   const { user, signOut } = useAuth();
@@ -78,6 +85,8 @@ export function TeamTab() {
   const [regenerating, setRegenerating] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
+  const [banEmail, setBanEmail] = useState("");
+  const [banning, setBanning] = useState(false);
 
   if (!activeWorkspace) return null;
   const code = activeWorkspace.invite_code;
