@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/auth-context";
 
 export type WorkspaceRole = "owner" | "editor" | "viewer";
-export type MembershipStatus = "active" | "pending";
+export type MembershipStatus = "active" | "pending" | "blocked";
 
 export interface Workspace {
   id: string;
