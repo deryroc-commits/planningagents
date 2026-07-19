@@ -159,8 +159,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     } else {
       setSelectedImportFile(null);
       setStatus("Aucun fichier sélectionné.");
-      setImportMessage("Aucun fichier sélectionné.");
-      setTimeout(() => setStatus(null), 3000);
+      setImportMessage("Aucun fichier sélectionné. Cliquez à nouveau pour choisir un fichier.");
     }
   };
 
@@ -172,17 +171,30 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     handleImportFilePick(e.currentTarget.files?.[0]);
   };
 
+  // Never auto-close the import dialog (focus loss, pointer outside, ESC,
+  // mobile file picker returning focus). Only explicit user actions —
+  // the Annuler button or a successful import — may close it.
   const resetImportDialog = (open: boolean) => {
-    if (!open && filePickerOpenRef.current) return;
-    if (isImporting) return;
-    if (!open && selectedImportFile) return;
-    setImportOpen(open);
     if (open) {
+      setImportOpen(true);
       setSelectedImportFile(null);
       setImportMessage("Sélectionnez un fichier Excel, puis lancez le chargement.");
       activeImportSignatureRef.current = null;
       if (fileRef.current) fileRef.current.value = "";
     }
+    // Ignore programmatic close requests.
+  };
+
+  const closeImportDialog = () => {
+    setSelectedImportFile(null);
+    activeImportSignatureRef.current = null;
+    filePickerOpenRef.current = false;
+    if (filePickerTimerRef.current) {
+      window.clearTimeout(filePickerTimerRef.current);
+      filePickerTimerRef.current = null;
+    }
+    if (fileRef.current) fileRef.current.value = "";
+    setImportOpen(false);
   };
 
   return (
