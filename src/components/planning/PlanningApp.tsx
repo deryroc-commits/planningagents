@@ -313,7 +313,6 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
                 setImportMessage("Sélecteur de fichier ouvert… choisissez votre fichier Excel.");
                 setStatus("Sélecteur de fichier ouvert…");
               }}
-              onInput={onImportInputChange}
               onChange={onImportInputChange}
             />
             {selectedImportFile && (
