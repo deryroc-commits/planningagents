@@ -256,8 +256,14 @@ function normalizeRotationByYear(
 }
 
 function normalizePlanningState(input: Partial<PlanningState> | null | undefined): PlanningState {
+  const isNull = input == null;
   const parsed = input ?? {};
-  const agents = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
+  const agentsSource = isPristineDemoInstall(parsed) ? DEFAULT_AGENTS : parsed.agents;
+  const agents = isNull
+    ? DEFAULT_AGENTS
+    : Array.isArray(agentsSource)
+      ? agentsSource
+      : [];
   const codes =
     (parsed.catalogVersion ?? 0) < DEFAULT_CATALOG_VERSION
       ? mergeDefaultCodes(parsed.codes)
@@ -268,7 +274,7 @@ function normalizePlanningState(input: Partial<PlanningState> | null | undefined
   return {
     catalogVersion: DEFAULT_CATALOG_VERSION,
     codes,
-    agents: agents?.length ? agents : DEFAULT_AGENTS,
+    agents,
     agentSort: normalizeAgentSort(parsed.agentSort),
     teamOrder: Array.isArray(parsed.teamOrder)
       ? parsed.teamOrder.filter((t): t is string => typeof t === "string")
@@ -315,16 +321,20 @@ function isPristineDemoInstall(parsed: Partial<PlanningState>): boolean {
   return !hasPlanning && !hasChanges && !hasOvertime;
 }
 
-function loadState(key: string): PlanningState {
+function emptyPlanningState(): PlanningState {
   const base = normalizePlanningState(null);
-  if (typeof window === "undefined") return base;
+  return { ...base, agents: [], planningByYear: {} };
+}
+
+function loadState(key: string): PlanningState {
+  if (typeof window === "undefined") return emptyPlanningState();
   try {
     const raw = window.localStorage.getItem(key);
-    if (!raw) return base;
+    if (!raw) return emptyPlanningState();
     const parsed = JSON.parse(raw) as Partial<PlanningState>;
     return normalizePlanningState(parsed);
   } catch {
-    return base;
+    return emptyPlanningState();
   }
 }
 
