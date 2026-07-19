@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
@@ -86,6 +86,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   const [status, setStatus] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const errors = countErrors(planning, codesMap(codes));
@@ -104,6 +106,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
   const onImport = async (file: File) => {
     setIsImporting(true);
+    setImportMessage(`Fichier « ${file.name} » en cours de chargement…`);
     setStatus(`Fichier « ${file.name} » en cours de chargement…`);
     try {
       const res = await importFromExcel(file, year);
@@ -113,33 +116,59 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           !!res.state.planningByYear ||
           (Array.isArray(res.state.codes) && res.state.codes.length > 0));
       if (!hasData) {
-        setStatus(
+        const message =
           res.summary ||
-            "Fichier lu, mais aucune donnée reconnue (feuilles attendues : Planning, Paramètres, Base agents).",
-        );
+            "Fichier lu, mais aucune donnée reconnue (feuilles attendues : Planning, Paramètres, Base agents).";
+        setImportMessage(message);
+        setStatus(message);
       } else {
         replaceState(res.state);
         if (res.year && res.year !== year) setYear(res.year);
+        setImportMessage(res.summary);
         setStatus(res.summary);
+        setSelectedImportFile(null);
+        if (fileRef.current) fileRef.current.value = "";
+        setImportOpen(false);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      setImportMessage(`Échec de l'import : ${msg}`);
       setStatus(`Échec de l'import : ${msg}`);
       console.error("[import]", e);
     }
     setIsImporting(false);
-    setImportOpen(false);
     setTimeout(() => setStatus(null), 8000);
   };
 
-  const onImportInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const f = e.currentTarget.files?.[0];
-    e.currentTarget.value = "";
+  const handleImportFilePick = (file: File | undefined) => {
+    const f = file;
     if (f) {
-      void onImport(f);
+      setSelectedImportFile(f);
+      setImportMessage(`Fichier sélectionné : ${f.name}. Appuyez sur « Charger le fichier » pour lancer l'import.`);
+      setStatus(`Fichier sélectionné : ${f.name}.`);
     } else {
+      setSelectedImportFile(null);
       setStatus("Aucun fichier sélectionné.");
+      setImportMessage("Aucun fichier sélectionné.");
       setTimeout(() => setStatus(null), 3000);
+    }
+  };
+
+  const onImportInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    handleImportFilePick(e.currentTarget.files?.[0]);
+  };
+
+  const onImportInput = (e: FormEvent<HTMLInputElement>) => {
+    handleImportFilePick(e.currentTarget.files?.[0]);
+  };
+
+  const resetImportDialog = (open: boolean) => {
+    if (isImporting) return;
+    setImportOpen(open);
+    if (open) {
+      setSelectedImportFile(null);
+      setImportMessage("Sélectionnez un fichier Excel, puis lancez le chargement.");
+      if (fileRef.current) fileRef.current.value = "";
     }
   };
 
@@ -243,7 +272,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               className="nav-btn nav-indigo border-0"
               onClick={() => {
                 setStatus("Sélectionnez le fichier Excel à importer…");
-                setImportOpen(true);
+                resetImportDialog(true);
               }}
             >
               <Upload /> Importer
@@ -272,7 +301,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
         )}
       </header>
 
-      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+      <Dialog open={importOpen} onOpenChange={resetImportDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Importer un fichier Excel</DialogTitle>
@@ -288,11 +317,21 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               accept=".xlsx,.xlsm,.xlsb,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
               disabled={isImporting}
               className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => {
+                setImportMessage("Sélecteur de fichier ouvert… choisissez votre fichier Excel.");
+                setStatus("Sélecteur de fichier ouvert…");
+              }}
+              onInput={onImportInput}
               onChange={onImportInputChange}
             />
-            {isImporting && (
+            {selectedImportFile && (
+              <div className="rounded-md border border-border bg-accent/40 px-3 py-2 text-sm">
+                <span className="font-medium">Fichier prêt :</span> {selectedImportFile.name}
+              </div>
+            )}
+            {(isImporting || importMessage) && (
               <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
-                Fichier en cours de chargement… merci de patienter.
+                {isImporting ? "Fichier en cours de chargement… merci de patienter." : importMessage}
               </div>
             )}
             <p className="text-xs text-muted-foreground">
@@ -300,6 +339,12 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             </p>
           </div>
           <DialogFooter>
+            <Button
+              disabled={!selectedImportFile || isImporting}
+              onClick={() => selectedImportFile && void onImport(selectedImportFile)}
+            >
+              <Upload className="mr-1.5 size-4" /> Charger le fichier
+            </Button>
             <Button variant="outline" disabled={isImporting} onClick={() => setImportOpen(false)}>
               Annuler
             </Button>
