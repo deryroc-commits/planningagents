@@ -202,6 +202,7 @@ export function TeamTab() {
               )}
             </>
           )}
+        </div>
       </div>
 
       {/* My invitation status */}
@@ -253,7 +254,7 @@ export function TeamTab() {
         </div>
       </div>
 
-      </div>
+      {/* Invite code */}
 
       {/* Invite code */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
