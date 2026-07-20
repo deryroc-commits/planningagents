@@ -80,6 +80,8 @@ function paginateGroups(groups: Group[], perPage: number): Group[][] {
 
 export function PrintView({ month, setMonth }: PrintViewProps) {
   const { year, setYear, agents, codes, planning, colors, yearRange } = usePlanning();
+  const { activeWorkspace } = useWorkspace();
+  const printTitle = activeWorkspace?.print_title ?? "PLANNING AGENTS UCPA";
   const [xlsxOpen, setXlsxOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [pdfSaving, setPdfSaving] = useState(false);
