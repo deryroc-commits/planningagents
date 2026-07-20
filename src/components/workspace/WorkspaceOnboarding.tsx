@@ -12,9 +12,9 @@ export function WorkspaceOnboarding() {
   const { createWorkspace, joinWorkspace, pendingMemberships, cancelPending } = useWorkspace();
   const { user, signOut } = useAuth();
   const [name, setName] = useState("");
-  const [mainTitle, setMainTitle] = useState(DEFAULT_TITLES.main_title);
-  const [subtitle, setSubtitle] = useState(DEFAULT_TITLES.subtitle);
-  const [printTitle, setPrintTitle] = useState(DEFAULT_TITLES.print_title);
+  const [mainTitle, setMainTitle] = useState<string>(DEFAULT_TITLES.main_title);
+  const [subtitle, setSubtitle] = useState<string>(DEFAULT_TITLES.subtitle);
+  const [printTitle, setPrintTitle] = useState<string>(DEFAULT_TITLES.print_title);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<"create" | "join" | null>(null);
 
