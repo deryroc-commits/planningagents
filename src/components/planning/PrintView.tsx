@@ -444,7 +444,7 @@ function PlanningSheet({
         </div>
         <div className="flex flex-1 items-center justify-center rounded bg-destructive px-4 py-1.5">
           <h1 className="text-xl font-bold tracking-wide text-destructive-foreground">
-            PLANNING AGENTS UCPA
+            {printTitle}
           </h1>
         </div>
         <div className="flex min-w-[150px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
