@@ -30,9 +30,14 @@ export interface VisibleAgentsOptions {
   includeInactive?: boolean;
 }
 
-/** True when the agent has a non-empty display name. */
+/** True when the agent has a meaningful display name (not empty, not "0"). */
 export function hasAgentName(a: Pick<Agent, "name">): boolean {
-  return !!a.name && a.name.trim().length > 0;
+  if (!a.name) return false;
+  const trimmed = a.name.trim();
+  if (trimmed.length === 0) return false;
+  // Exclude placeholder rows where the name is just "0" (or similar numeric zero).
+  if (/^0+$/.test(trimmed)) return false;
+  return true;
 }
 
 /** True when the agent is active in the given scope. */
