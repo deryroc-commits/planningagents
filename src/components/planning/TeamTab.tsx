@@ -202,6 +202,7 @@ export function TeamTab() {
               )}
             </>
           )}
+        </div>
       </div>
 
       {/* My invitation status */}
@@ -251,8 +252,6 @@ export function TeamTab() {
             Si une demande a disparu de cette liste sans être approuvée, elle a été refusée par le propriétaire. Redemandez un accès avec un nouveau code d'invitation.
           </p>
         </div>
-      </div>
-
       </div>
 
       {/* Invite code */}
