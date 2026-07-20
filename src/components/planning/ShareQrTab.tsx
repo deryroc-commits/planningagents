@@ -84,7 +84,7 @@ function slug(s: string): string {
 }
 
 export function ShareQrTab() {
-  const { agents, year: currentYear, yearRange } = usePlanning();
+  const { agents: allAgents, year: currentYear, yearRange } = usePlanning();
   const { activeWorkspaceId, canEdit } = useWorkspace();
   const YEARS = useSelectableYears(yearRange);
   const [links, setLinks] = useState<LinkMap>({});
@@ -97,6 +97,17 @@ export function ShareQrTab() {
     new Date().getMonth(),
   ]);
   const [preview, setPreview] = useState<{ name: string; dataUrl: string; url: string; expiresAt: string | null } | null>(null);
+  const agents = useMemo(() => {
+    if (scope === "month") {
+      return allAgents.filter((a) => isAgentActiveInMonth(a, year, month));
+    }
+    if (scope === "multi") {
+      return allAgents.filter((a) =>
+        selectedMonths.some((m) => isAgentActiveInMonth(a, year, m)),
+      );
+    }
+    return allAgents.filter((a) => isAgentActiveInYear(a, year));
+  }, [allAgents, scope, year, month, selectedMonths]);
   const busyRef = useRef(false);
 
   const load = useCallback(async () => {
