@@ -182,6 +182,15 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               ))}
             </SelectContent>
           </Select>
+          <label className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 accent-primary"
+              checked={includeInactive}
+              onChange={(e) => setIncludeInactive(e.target.checked)}
+            />
+            Inclure inactifs
+          </label>
           <Button variant="outline" onClick={() => setXlsxOpen(true)}>
             <FileSpreadsheet /> Aperçu Excel (XLSX)
           </Button>
