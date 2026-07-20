@@ -26,7 +26,11 @@ import {
 const MONTH_SHORT = MONTHS.map((m) => m.slice(0, 3));
 
 export function StatsTab() {
-  const { year, agents, codes, planning } = usePlanning();
+  const { year, agents: allAgents, codes, planning } = usePlanning();
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInYear(a, year)),
+    [allAgents, year],
+  );
   const map = useMemo(() => codesMap(codes), [codes]);
   const weeks = useMemo(() => weekBucketsForYear(year), [year]);
 
