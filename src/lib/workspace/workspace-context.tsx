@@ -132,7 +132,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
     const { data, error } = await supabase
       .from("workspace_members")
-      .select("role, status, workspaces(id, name, invite_code, owner_id)")
+      .select("role, status, workspaces(id, name, invite_code, owner_id, main_title, subtitle, print_title)")
       .eq("user_id", user.id);
 
     if (error) {
