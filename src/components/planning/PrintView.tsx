@@ -347,7 +347,7 @@ function PlanningSheet({
   colCount,
 }: SheetProps) {
   return (
-    <>
+    <div className="flex h-full min-h-full flex-1 flex-col">
       {/* Title banner */}
       <div className="mb-3 flex items-stretch gap-2">
         <div className="flex min-w-[180px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
@@ -371,7 +371,8 @@ function PlanningSheet({
         </div>
       </div>
 
-      <table className="w-full border-collapse text-[11px]">
+      <table className="w-full flex-1 border-collapse text-[11px]" style={{ height: "100%" }}>
+
         <thead>
           <tr>
             <th className="w-[180px] min-w-[180px] border border-border bg-muted px-2 py-1 text-left">
