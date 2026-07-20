@@ -39,7 +39,7 @@ interface PrintViewProps {
 }
 
 /** Maximum number of agent rows per printed page. Extra agents flow to a new page. */
-const AGENTS_PER_PAGE = 25;
+const AGENTS_PER_PAGE = 26;
 
 type Group = { team: string; agents: Agent[] };
 
