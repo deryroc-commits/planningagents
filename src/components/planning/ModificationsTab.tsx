@@ -20,7 +20,7 @@ import {
   MONTHS,
 } from "@/lib/planning/calc";
 import type { Agent, PlanningChange } from "@/lib/planning/types";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
