@@ -172,6 +172,7 @@ function buildStyledMonthSheet(
   state: PlanningState,
   year: number,
   month: number,
+  printTitle: string = "PLANNING AGENTS UCPA",
 ): any {
   const map = codesMap(state.codes);
   const holidays = holidaysForYear(year);
