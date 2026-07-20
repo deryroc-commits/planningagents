@@ -15,7 +15,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInYear } from "@/lib/planning/types";
 import type { Agent, RotationPeriod } from "@/lib/planning/types";
 import {
   MONTHS,
