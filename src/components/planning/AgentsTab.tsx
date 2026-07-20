@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowDown, ArrowUp, CalendarCheck, CalendarX, GripVertical, LogIn, LogOut, Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
+import { hasAgentName } from "@/lib/planning/visible-agents";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
 import type { Agent, AgentSortMode } from "@/lib/planning/types";
@@ -129,7 +130,7 @@ export function AgentsTab() {
         <div>
           <h2 className="text-lg font-semibold">Base agents</h2>
           <p className="text-sm text-muted-foreground">
-            Liste des agents affichés dans le planning ({agents.length}).
+            Liste des agents affichés dans le planning ({agents.filter(hasAgentName).length}).
           </p>
         </div>
         <div className="min-w-[220px]">
@@ -322,7 +323,7 @@ export function AgentsTab() {
             </tr>
           </thead>
           <tbody>
-            {agents.map((a, idx) => {
+            {agents.filter(hasAgentName).map((a, idx) => {
               const arr = arrivalLabel(a);
               const dep = departureLabel(a);
               return (

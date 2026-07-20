@@ -472,7 +472,12 @@ export function PlanningGrid({ month }: PlanningGridProps) {
             </td>
           </tr>
 
-          {posteCodes.length > 0 && (
+          {(() => {
+            const visiblePosteCodes = posteCodes.filter(
+              (c) => posteCounts[c.code].some((n) => n > 0),
+            );
+            if (visiblePosteCodes.length === 0) return null;
+            return (
             <>
               <tr className="no-print">
                 <td
@@ -482,7 +487,7 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                   Nombre de postes par jour
                 </td>
               </tr>
-              {posteCodes.map((c) => {
+              {visiblePosteCodes.map((c) => {
                 const counts = posteCounts[c.code];
                 const monthTotal = counts.reduce((s, n) => s + n, 0);
                 return (
@@ -544,8 +549,10 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                 </td>
               </tr>
             </>
-          )}
+            );
+          })()}
         </tfoot>
+
 
       </table>
 
