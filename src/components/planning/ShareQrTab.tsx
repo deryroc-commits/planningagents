@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace } from "@/lib/workspace/workspace-context";
 import { MONTHS } from "@/lib/planning/calc";
-import { isAgentActiveInMonth, isAgentActiveInYear } from "@/lib/planning/types";
+import { getVisibleAgents } from "@/lib/planning/visible-agents";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -99,14 +99,16 @@ export function ShareQrTab() {
   const [preview, setPreview] = useState<{ name: string; dataUrl: string; url: string; expiresAt: string | null } | null>(null);
   const agents = useMemo(() => {
     if (scope === "month") {
-      return allAgents.filter((a) => isAgentActiveInMonth(a, year, month));
+      return getVisibleAgents(allAgents, {
+        scope: { kind: "month", year, month },
+      });
     }
     if (scope === "multi") {
-      return allAgents.filter((a) =>
-        selectedMonths.some((m) => isAgentActiveInMonth(a, year, m)),
-      );
+      return getVisibleAgents(allAgents, {
+        scope: { kind: "months", year, months: selectedMonths },
+      });
     }
-    return allAgents.filter((a) => isAgentActiveInYear(a, year));
+    return getVisibleAgents(allAgents, { scope: { kind: "year", year } });
   }, [allAgents, scope, year, month, selectedMonths]);
   const busyRef = useRef(false);
 
