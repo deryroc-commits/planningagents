@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   CalendarRange,
   Settings2,
@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import homeBg from "@/assets/home-bg.png.asset.json";
 import { useAuth } from "@/lib/auth/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_TITLES } from "@/lib/workspace/workspace-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -96,12 +98,47 @@ const NAV = [
 function HomePage() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
+  const [titles, setTitles] = useState<{ main_title: string; subtitle: string }>({
+    main_title: DEFAULT_TITLES.main_title,
+    subtitle: DEFAULT_TITLES.subtitle,
+  });
 
   useEffect(() => {
     if (!loading && !session) {
       navigate({ to: "/auth", replace: true });
     }
   }, [loading, session, navigate]);
+
+  useEffect(() => {
+    if (!session) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("workspace_members")
+        .select("workspaces(id, main_title, subtitle)")
+        .eq("user_id", session.user.id)
+        .eq("status", "active");
+      if (cancelled || !data?.length) return;
+      let activeId: string | null = null;
+      try {
+        activeId = window.localStorage.getItem("planning-active-workspace");
+      } catch {
+        /* ignore */
+      }
+      const rows = data
+        .map((r) => r.workspaces as unknown as { id: string; main_title: string | null; subtitle: string | null } | null)
+        .filter((w): w is { id: string; main_title: string | null; subtitle: string | null } => !!w);
+      const chosen = rows.find((w) => w.id === activeId) ?? rows[0];
+      if (!chosen) return;
+      setTitles({
+        main_title: chosen.main_title || DEFAULT_TITLES.main_title,
+        subtitle: chosen.subtitle || DEFAULT_TITLES.subtitle,
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
 
   if (loading || !session) {
     return (
@@ -123,16 +160,17 @@ function HomePage() {
       <div className="relative mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-5 py-12">
         <div className="mb-8 text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-            Cuisine Centrale — UCPA
+            {titles.subtitle}
           </p>
           <h1 className="mt-2 text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-            Planning des agents
+            {titles.main_title}
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
             Planification annuelle type Excel : choisissez une section pour
             commencer.
           </p>
         </div>
+
 
         <div className="space-y-4">
           {NAV.map((item) => (
