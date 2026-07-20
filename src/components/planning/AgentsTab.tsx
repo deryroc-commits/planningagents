@@ -42,6 +42,12 @@ export function AgentsTab() {
   const [editing, setEditing] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const [draftTeam, setDraftTeam] = useState("");
+  const [draftArrEnabled, setDraftArrEnabled] = useState(false);
+  const [draftArrMonth, setDraftArrMonth] = useState(0);
+  const [draftArrYear, setDraftArrYear] = useState(new Date().getFullYear());
+  const [draftDepEnabled, setDraftDepEnabled] = useState(false);
+  const [draftDepMonth, setDraftDepMonth] = useState(0);
+  const [draftDepYear, setDraftDepYear] = useState(new Date().getFullYear());
 
   // Drag & drop reordering.
   const [dragTeam, setDragTeam] = useState<string | null>(null);
@@ -68,10 +74,16 @@ export function AgentsTab() {
   const [dArrYear, setDArrYear] = useState(now.getFullYear());
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const startEdit = (id: string, name: string, team?: string) => {
+  const startEdit = (id: string, a: Agent) => {
     setEditing(id);
-    setDraftName(name);
-    setDraftTeam(team ?? "");
+    setDraftName(a.name);
+    setDraftTeam(a.team ?? "");
+    setDraftArrEnabled(a.startYear != null && a.startMonth != null);
+    setDraftArrMonth(a.startMonth ?? now.getMonth());
+    setDraftArrYear(a.startYear ?? now.getFullYear());
+    setDraftDepEnabled(a.endYear != null && a.endMonth != null);
+    setDraftDepMonth(a.endMonth ?? now.getMonth());
+    setDraftDepYear(a.endYear ?? now.getFullYear());
   };
   const saveEdit = () => {
     if (!editing) return;
@@ -79,6 +91,10 @@ export function AgentsTab() {
       updateAgent(editing, {
         name: draftName.trim(),
         team: draftTeam.trim() || undefined,
+        startYear: draftArrEnabled ? draftArrYear : undefined,
+        startMonth: draftArrEnabled ? draftArrMonth : undefined,
+        endYear: draftDepEnabled ? draftDepYear : undefined,
+        endMonth: draftDepEnabled ? draftDepMonth : undefined,
       });
     setEditing(null);
   };
@@ -372,11 +388,67 @@ export function AgentsTab() {
                           className="h-8"
                         />
                       </td>
-                      <td className="px-3 py-2 text-muted-foreground">
-                        {arr ?? "—"}
+                      <td className="px-3 py-2">
+                        <div className="flex flex-col gap-1">
+                          <label className="flex items-center gap-1.5 text-xs font-medium">
+                            <Checkbox
+                              checked={draftArrEnabled}
+                              onCheckedChange={(v) => setDraftArrEnabled(v === true)}
+                            />
+                            Définir
+                          </label>
+                          {draftArrEnabled && (
+                            <div className="flex gap-1">
+                              <Select value={String(draftArrMonth)} onValueChange={(v) => setDraftArrMonth(Number(v))}>
+                                <SelectTrigger className="h-8 w-28"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {MONTHS.map((m, i) => (
+                                    <SelectItem key={m} value={String(i)}>{m}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Select value={String(draftArrYear)} onValueChange={(v) => setDraftArrYear(Number(v))}>
+                                <SelectTrigger className="h-8 w-20"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {years.map((y) => (
+                                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                        </div>
                       </td>
-                      <td className="px-3 py-2 text-muted-foreground">
-                        {dep ?? "—"}
+                      <td className="px-3 py-2">
+                        <div className="flex flex-col gap-1">
+                          <label className="flex items-center gap-1.5 text-xs font-medium">
+                            <Checkbox
+                              checked={draftDepEnabled}
+                              onCheckedChange={(v) => setDraftDepEnabled(v === true)}
+                            />
+                            Définir
+                          </label>
+                          {draftDepEnabled && (
+                            <div className="flex gap-1">
+                              <Select value={String(draftDepMonth)} onValueChange={(v) => setDraftDepMonth(Number(v))}>
+                                <SelectTrigger className="h-8 w-28"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {MONTHS.map((m, i) => (
+                                    <SelectItem key={m} value={String(i)}>{m}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Select value={String(draftDepYear)} onValueChange={(v) => setDraftDepYear(Number(v))}>
+                                <SelectTrigger className="h-8 w-20"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {years.map((y) => (
+                                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex justify-end gap-1">
@@ -464,7 +536,7 @@ export function AgentsTab() {
                             className="size-10 sm:size-8"
                             title="Modifier"
                             aria-label={`Modifier ${a.name}`}
-                            onClick={() => startEdit(a.id, a.name, a.team)}
+                            onClick={() => startEdit(a.id, a)}
                           >
                             <Pencil />
                           </Button>
