@@ -98,7 +98,7 @@ const NAV = [
 function HomePage() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
-  const [titles, setTitles] = useState({
+  const [titles, setTitles] = useState<{ main_title: string; subtitle: string }>({
     main_title: DEFAULT_TITLES.main_title,
     subtitle: DEFAULT_TITLES.subtitle,
   });
