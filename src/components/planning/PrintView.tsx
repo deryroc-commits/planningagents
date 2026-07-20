@@ -405,6 +405,7 @@ interface SheetProps {
   month: number;
   year: number;
   printDate: string;
+  printTitle: string;
   groups: { team: string; agents: Agent[] }[];
   indices: number[];
   planning: ReturnType<typeof usePlanning>["planning"];
@@ -420,6 +421,7 @@ function PlanningSheet({
   month,
   year,
   printDate,
+  printTitle,
   groups,
   indices,
   planning,
