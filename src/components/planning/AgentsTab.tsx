@@ -480,7 +480,7 @@ export function AgentsTab() {
                             className="size-10 sm:size-8"
                             title="Modifier"
                             aria-label={`Modifier ${a.name}`}
-                            onClick={() => startEdit(a.id, a.name, a.team)}
+                            onClick={() => startEdit(a.id, a)}
                           >
                             <Pencil />
                           </Button>
