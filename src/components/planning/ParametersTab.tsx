@@ -80,6 +80,8 @@ export function ParametersTab() {
     <div className="space-y-4">
       <BackupBar scope="params" />
 
+      <TitlesCard />
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Codes & paramètres</h2>
