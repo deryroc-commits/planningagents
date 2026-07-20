@@ -130,7 +130,7 @@ export function AgentsTab() {
         <div>
           <h2 className="text-lg font-semibold">Base agents</h2>
           <p className="text-sm text-muted-foreground">
-            Liste des agents affichés dans le planning ({agents.length}).
+            Liste des agents affichés dans le planning ({agents.filter(hasAgentName).length}).
           </p>
         </div>
         <div className="min-w-[220px]">
