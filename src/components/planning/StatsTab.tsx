@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { BarChart3 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
-import { isAgentActiveInYear } from "@/lib/planning/types";
+import { getVisibleAgents } from "@/lib/planning/visible-agents";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -27,9 +29,14 @@ const MONTH_SHORT = MONTHS.map((m) => m.slice(0, 3));
 
 export function StatsTab() {
   const { year, agents: allAgents, codes, planning } = usePlanning();
+  const [includeInactive, setIncludeInactive] = useState(false);
   const agents = useMemo(
-    () => allAgents.filter((a) => isAgentActiveInYear(a, year)),
-    [allAgents, year],
+    () =>
+      getVisibleAgents(allAgents, {
+        scope: { kind: "year", year },
+        includeInactive,
+      }),
+    [allAgents, year, includeInactive],
   );
   const map = useMemo(() => codesMap(codes), [codes]);
   const weeks = useMemo(() => weekBucketsForYear(year), [year]);
@@ -47,14 +54,23 @@ export function StatsTab() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <BarChart3 className="size-5 text-primary" /> Statistiques {year}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Analyse des heures et des postes par agent, calculée à partir du
-          planning saisi.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <BarChart3 className="size-5 text-primary" /> Statistiques {year}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Analyse des heures et des postes par agent, calculée à partir du
+            planning saisi.
+          </p>
+        </div>
+        <Label className="flex items-center gap-2 text-sm font-normal">
+          <Checkbox
+            checked={includeInactive}
+            onCheckedChange={(v) => setIncludeInactive(v === true)}
+          />
+          Inclure les agents inactifs
+        </Label>
       </div>
 
       {/* Bloc A — Heures travaillées */}

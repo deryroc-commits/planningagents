@@ -15,7 +15,8 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
-import { CATEGORY_META, codeInlineStyle, isAgentActiveInYear } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { getVisibleAgents } from "@/lib/planning/visible-agents";
 import type { Agent, RotationPeriod } from "@/lib/planning/types";
 import {
   MONTHS,
@@ -49,9 +50,14 @@ export function RotationTab() {
     applyRotation,
     yearRange,
   } = usePlanning();
+  const [includeInactive, setIncludeInactive] = useState(false);
   const agents = useMemo(
-    () => allAgents.filter((a) => isAgentActiveInYear(a, year)),
-    [allAgents, year],
+    () =>
+      getVisibleAgents(allAgents, {
+        scope: { kind: "year", year },
+        includeInactive,
+      }),
+    [allAgents, year, includeInactive],
   );
   const map = useMemo(() => codesMap(codes), [codes]);
   const yearOptions = useSelectableYears(yearRange);
@@ -213,17 +219,28 @@ export function RotationTab() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <CalendarClock className="size-5 text-primary" /> Roulement des
-          week-ends
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Construisez le roulement de base : chaque agent a ses{" "}
-          {cycle} semaines-types. Laissez la semaine (L→V) vide ou choisissez un
-          poste, et placez le poste de week-end (S/D) sur la semaine de garde.
-          Le cycle se répète ensuite sur toute l'année {year}.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <CalendarClock className="size-5 text-primary" /> Roulement des
+            week-ends
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Construisez le roulement de base : chaque agent a ses{" "}
+            {cycle} semaines-types. Laissez la semaine (L→V) vide ou choisissez un
+            poste, et placez le poste de week-end (S/D) sur la semaine de garde.
+            Le cycle se répète ensuite sur toute l'année {year}.
+          </p>
+        </div>
+        <label className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm">
+          <input
+            type="checkbox"
+            className="size-4 accent-primary"
+            checked={includeInactive}
+            onChange={(e) => setIncludeInactive(e.target.checked)}
+          />
+          Inclure les agents inactifs
+        </label>
       </div>
 
       {/* Backups dedicated to the rotation */}

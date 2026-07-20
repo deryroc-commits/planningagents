@@ -20,7 +20,8 @@ import {
   MONTHS,
 } from "@/lib/planning/calc";
 import type { Agent, PlanningChange } from "@/lib/planning/types";
-import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { getVisibleAgents } from "@/lib/planning/visible-agents";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -47,9 +48,14 @@ const DATE_FMT = new Intl.DateTimeFormat("fr-FR", {
 export function ModificationsTab() {
   const { year, agents: allAgents, codes, changes, fillRange, clearChanges } = usePlanning();
   const [month, setMonth] = useState(new Date().getMonth());
+  const [includeInactive, setIncludeInactive] = useState(false);
   const agents = useMemo(
-    () => allAgents.filter((a) => isAgentActiveInMonth(a, year, month)),
-    [allAgents, year, month],
+    () =>
+      getVisibleAgents(allAgents, {
+        scope: { kind: "month", year, month },
+        includeInactive,
+      }),
+    [allAgents, year, month, includeInactive],
   );
   const [agentId, setAgentId] = useState<string>("");
   const [codeValue, setCodeValue] = useState<string>("");
@@ -104,9 +110,20 @@ export function ModificationsTab() {
     <div className="space-y-6">
       {/* Bulk editor */}
       <section className="no-print rounded-xl border border-border bg-card p-4 shadow-sm">
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-          <CalendarCheck className="size-5" /> Édition multiple
-        </h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <CalendarCheck className="size-5" /> Édition multiple
+          </h2>
+          <label className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 accent-primary"
+              checked={includeInactive}
+              onChange={(e) => setIncludeInactive(e.target.checked)}
+            />
+            Inclure les agents inactifs
+          </label>
+        </div>
         <div className="flex flex-wrap items-end gap-4">
           {/* Agent */}
           <div className="flex flex-col gap-1">

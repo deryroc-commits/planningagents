@@ -14,7 +14,8 @@ import {
   isInvalid,
   isWeekend,
 } from "@/lib/planning/calc";
-import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { getVisibleAgents } from "@/lib/planning/visible-agents";
 import { CodePicker } from "./CodePicker";
 
 interface PlanningGridProps {
@@ -66,8 +67,10 @@ export function PlanningGrid({ month }: PlanningGridProps) {
 
   // Only agents active for the displayed month are shown; agents who have left
   // (departure date) stay in earlier months but disappear from this month on.
+  // Nameless agents are always excluded (would render as empty rows).
   const agents = useMemo(
-    () => allAgents.filter((a) => isAgentActiveInMonth(a, year, month)),
+    () =>
+      getVisibleAgents(allAgents, { scope: { kind: "month", year, month } }),
     [allAgents, year, month],
   );
 
