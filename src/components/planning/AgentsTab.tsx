@@ -74,10 +74,16 @@ export function AgentsTab() {
   const [dArrYear, setDArrYear] = useState(now.getFullYear());
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const startEdit = (id: string, name: string, team?: string) => {
+  const startEdit = (id: string, a: Agent) => {
     setEditing(id);
-    setDraftName(name);
-    setDraftTeam(team ?? "");
+    setDraftName(a.name);
+    setDraftTeam(a.team ?? "");
+    setDraftArrEnabled(a.startYear != null && a.startMonth != null);
+    setDraftArrMonth(a.startMonth ?? now.getMonth());
+    setDraftArrYear(a.startYear ?? now.getFullYear());
+    setDraftDepEnabled(a.endYear != null && a.endMonth != null);
+    setDraftDepMonth(a.endMonth ?? now.getMonth());
+    setDraftDepYear(a.endYear ?? now.getFullYear());
   };
   const saveEdit = () => {
     if (!editing) return;
@@ -85,6 +91,10 @@ export function AgentsTab() {
       updateAgent(editing, {
         name: draftName.trim(),
         team: draftTeam.trim() || undefined,
+        startYear: draftArrEnabled ? draftArrYear : undefined,
+        startMonth: draftArrEnabled ? draftArrMonth : undefined,
+        endYear: draftDepEnabled ? draftDepYear : undefined,
+        endMonth: draftDepEnabled ? draftDepMonth : undefined,
       });
     setEditing(null);
   };
