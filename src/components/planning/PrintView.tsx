@@ -239,11 +239,12 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
           <div ref={contentRef} className="planning-pdf-content">
             <div
               ref={sheetRef}
-              className="planning-pdf-sheet bg-card"
+              className="planning-pdf-sheet flex flex-col bg-card"
               style={{
                 transform: `translate(${previewOffset.x}px, ${previewOffset.y}px) scale(${previewScale})`,
                 width: "1120px",
                 minWidth: "1120px",
+                minHeight: `${Math.round(1120 * (200 / 287))}px`,
                 ["--print-x" as string]: `${printOffset.x}px`,
                 ["--print-y" as string]: `${printOffset.y}px`,
                 ["--print-scale" as string]: printScale,
@@ -261,6 +262,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                 colCount={colCount}
               />
             </div>
+
           </div>
         </div>
       </div>
@@ -345,7 +347,7 @@ function PlanningSheet({
   colCount,
 }: SheetProps) {
   return (
-    <>
+    <div className="flex h-full min-h-full flex-1 flex-col">
       {/* Title banner */}
       <div className="mb-3 flex items-stretch gap-2">
         <div className="flex min-w-[180px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
@@ -369,7 +371,8 @@ function PlanningSheet({
         </div>
       </div>
 
-      <table className="w-full border-collapse text-[11px]">
+      <table className="w-full flex-1 border-collapse text-[11px]" style={{ height: "100%" }}>
+
         <thead>
           <tr>
             <th className="w-[180px] min-w-[180px] border border-border bg-muted px-2 py-1 text-left">
@@ -437,7 +440,8 @@ function PlanningSheet({
         </tbody>
       </table>
       <Legend />
-    </>
+    </div>
+
   );
 }
 
