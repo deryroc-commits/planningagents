@@ -388,11 +388,67 @@ export function AgentsTab() {
                           className="h-8"
                         />
                       </td>
-                      <td className="px-3 py-2 text-muted-foreground">
-                        {arr ?? "—"}
+                      <td className="px-3 py-2">
+                        <div className="flex flex-col gap-1">
+                          <label className="flex items-center gap-1.5 text-xs font-medium">
+                            <Checkbox
+                              checked={draftArrEnabled}
+                              onCheckedChange={(v) => setDraftArrEnabled(v === true)}
+                            />
+                            Définir
+                          </label>
+                          {draftArrEnabled && (
+                            <div className="flex gap-1">
+                              <Select value={String(draftArrMonth)} onValueChange={(v) => setDraftArrMonth(Number(v))}>
+                                <SelectTrigger className="h-8 w-28"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {MONTHS.map((m, i) => (
+                                    <SelectItem key={m} value={String(i)}>{m}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Select value={String(draftArrYear)} onValueChange={(v) => setDraftArrYear(Number(v))}>
+                                <SelectTrigger className="h-8 w-20"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {years.map((y) => (
+                                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                        </div>
                       </td>
-                      <td className="px-3 py-2 text-muted-foreground">
-                        {dep ?? "—"}
+                      <td className="px-3 py-2">
+                        <div className="flex flex-col gap-1">
+                          <label className="flex items-center gap-1.5 text-xs font-medium">
+                            <Checkbox
+                              checked={draftDepEnabled}
+                              onCheckedChange={(v) => setDraftDepEnabled(v === true)}
+                            />
+                            Définir
+                          </label>
+                          {draftDepEnabled && (
+                            <div className="flex gap-1">
+                              <Select value={String(draftDepMonth)} onValueChange={(v) => setDraftDepMonth(Number(v))}>
+                                <SelectTrigger className="h-8 w-28"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {MONTHS.map((m, i) => (
+                                    <SelectItem key={m} value={String(i)}>{m}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Select value={String(draftDepYear)} onValueChange={(v) => setDraftDepYear(Number(v))}>
+                                <SelectTrigger className="h-8 w-20"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {years.map((y) => (
+                                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex justify-end gap-1">
