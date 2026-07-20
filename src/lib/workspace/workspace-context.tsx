@@ -18,6 +18,21 @@ export interface Workspace {
   name: string;
   invite_code: string;
   owner_id: string;
+  main_title: string;
+  subtitle: string;
+  print_title: string;
+}
+
+export const DEFAULT_TITLES = {
+  main_title: "Planning des agents",
+  subtitle: "Cuisine Centrale — UCPA",
+  print_title: "PLANNING AGENTS UCPA",
+} as const;
+
+export interface WorkspaceTitles {
+  main_title?: string;
+  subtitle?: string;
+  print_title?: string;
 }
 
 export interface WorkspaceMembership extends Workspace {
