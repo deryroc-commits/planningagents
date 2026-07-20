@@ -217,7 +217,7 @@ function buildStyledMonthSheet(
   );
   for (let k = 1; k < leftSpan; k++) titleRow.push(cell("", { bg: bannerBg }));
   titleRow.push(
-    cell("PLANNING AGENTS UCPA", {
+    cell(printTitle, {
       bg: XLS_TITLE.bg,
       fg: XLS_TITLE.fg,
       bold: true,
