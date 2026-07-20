@@ -143,9 +143,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const list: WorkspaceMembership[] = (data ?? [])
       .filter((row) => row.workspaces)
       .map((row) => {
-        const ws = row.workspaces as unknown as Workspace;
+        const ws = row.workspaces as unknown as Partial<Workspace> & {
+          id: string;
+          name: string;
+          invite_code: string;
+          owner_id: string;
+        };
         return {
-          ...ws,
+          id: ws.id,
+          name: ws.name,
+          invite_code: ws.invite_code,
+          owner_id: ws.owner_id,
+          main_title: ws.main_title ?? DEFAULT_TITLES.main_title,
+          subtitle: ws.subtitle ?? DEFAULT_TITLES.subtitle,
+          print_title: ws.print_title ?? DEFAULT_TITLES.print_title,
           role: row.role as WorkspaceRole,
           status: ((row as { status?: string }).status as MembershipStatus) ?? "active",
         };
