@@ -86,9 +86,10 @@ interface WorkspaceContextValue {
   refreshMembers: () => Promise<void>;
   refreshBlocklist: () => Promise<void>;
   refreshAccessLog: () => Promise<void>;
-  createWorkspace: (name: string) => Promise<WorkspaceMembership>;
+  createWorkspace: (name: string, titles?: WorkspaceTitles) => Promise<WorkspaceMembership>;
   joinWorkspace: (code: string) => Promise<WorkspaceMembership>;
   renameWorkspace: (name: string) => Promise<void>;
+  updateWorkspaceTitles: (titles: WorkspaceTitles) => Promise<void>;
   regenerateInviteCode: () => Promise<string>;
   updateMemberRole: (userId: string, role: WorkspaceRole) => Promise<void>;
   removeMember: (userId: string) => Promise<void>;
