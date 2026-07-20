@@ -255,8 +255,6 @@ export function TeamTab() {
       </div>
 
       {/* Invite code */}
-
-      {/* Invite code */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <h3 className="text-base font-semibold">Code d'invitation</h3>
         <p className="mt-1 text-sm text-muted-foreground">
