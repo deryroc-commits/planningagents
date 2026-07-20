@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { BarChart3 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
+import { isAgentActiveInYear } from "@/lib/planning/types";
 import {
   Select,
   SelectContent,
