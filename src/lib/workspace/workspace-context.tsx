@@ -644,6 +644,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       createWorkspace,
       joinWorkspace,
       renameWorkspace,
+      updateWorkspaceTitles,
       regenerateInviteCode,
       updateMemberRole,
       removeMember,
