@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.lovable.planningagents.twa",
+        "sha256_cert_fingerprints": ["D4:E5:5C:4A:0C:08:39:C5:4A:5B:65:A1:FF:F2:16:87:3E:8E:A5:F8:64:53:31:82:0E:F7:A5:01:B5:54:AB:DD"]
+      }
+    }]
