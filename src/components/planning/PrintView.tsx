@@ -38,6 +38,45 @@ interface PrintViewProps {
   setMonth: (m: number) => void;
 }
 
+/** Maximum number of agent rows per printed page. Extra agents flow to a new page. */
+const AGENTS_PER_PAGE = 18;
+
+type Group = { team: string; agents: Agent[] };
+
+/**
+ * Split the full team-grouped agent list into pages of at most
+ * AGENTS_PER_PAGE rows. Team banners are re-emitted at the top of a new page
+ * whenever a team is split across pages, so context is never lost.
+ */
+function paginateGroups(groups: Group[], perPage: number): Group[][] {
+  const pages: Group[][] = [];
+  let current: Group[] = [];
+  let count = 0;
+  for (const g of groups) {
+    let remaining = g.agents;
+    while (remaining.length > 0) {
+      const capacity = perPage - count;
+      if (capacity <= 0) {
+        pages.push(current);
+        current = [];
+        count = 0;
+        continue;
+      }
+      const take = remaining.slice(0, capacity);
+      current.push({ team: g.team, agents: take });
+      count += take.length;
+      remaining = remaining.slice(capacity);
+      if (count >= perPage) {
+        pages.push(current);
+        current = [];
+        count = 0;
+      }
+    }
+  }
+  if (current.length > 0) pages.push(current);
+  return pages.length > 0 ? pages : [[]];
+}
+
 export function PrintView({ month, setMonth }: PrintViewProps) {
   const { year, setYear, agents, codes, planning, colors, yearRange } = usePlanning();
   const [xlsxOpen, setXlsxOpen] = useState(false);
@@ -45,12 +84,6 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const [pdfSaving, setPdfSaving] = useState(false);
   const [pdfFormat, setPdfFormat] = useState<PdfFormat>("a4");
   const pageRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const [previewScale, setPreviewScale] = useState(1);
-  const [previewOffset, setPreviewOffset] = useState({ x: 0, y: 0 });
-  const [printScale, setPrintScale] = useState(1);
-  const [printOffset, setPrintOffset] = useState({ x: 0, y: 0 });
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
   const indices = useMemo(
@@ -64,9 +97,10 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   );
 
   // Group agents by team, preserving order — inserts a section band per team.
-  // Agents who have left (departure date) are excluded from this month onward.
+  // Agents who have left (departure date) or not yet active are excluded so
+  // empty rows never appear.
   const groups = useMemo(() => {
-    const out: { team: string; agents: Agent[] }[] = [];
+    const out: Group[] = [];
     for (const a of agents) {
       if (!isAgentActiveInMonth(a, year, month)) continue;
       const team = a.team?.trim() || "Sans équipe";
@@ -77,66 +111,8 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
     return out;
   }, [agents, year, month]);
 
+  const pages = useMemo(() => paginateGroups(groups, AGENTS_PER_PAGE), [groups]);
   const colCount = indices.length + 1;
-
-  const updatePreviewScale = useCallback(() => {
-    const content = contentRef.current;
-    const sheet = sheetRef.current;
-    if (!content || !sheet) return;
-
-    const contentRect = content.getBoundingClientRect();
-    const sheetWidth = sheet.offsetWidth;
-    const sheetHeight = sheet.offsetHeight;
-
-    if (!contentRect.width || !contentRect.height || !sheetWidth || !sheetHeight) return;
-
-    const nextScale = Math.min(
-      contentRect.width / sheetWidth,
-      contentRect.height / sheetHeight,
-    );
-    const clamped = Math.max(0.2, nextScale);
-
-    // Center the scaled sheet inside the A4 content box so the table stays
-    // aligned (horizontally + vertically) regardless of the number of days.
-    const scaledWidth = sheetWidth * clamped;
-    const scaledHeight = sheetHeight * clamped;
-    setPreviewOffset({
-      x: Math.max(0, (contentRect.width - scaledWidth) / 2),
-      y: Math.max(0, (contentRect.height - scaledHeight) / 2),
-    });
-    setPreviewScale(clamped);
-
-    // Compute a print-specific scale so the browser's native Print (Ctrl+P)
-    // fits the sheet to the A4 content box regardless of on-screen viewport.
-    // A4 landscape content box = 297mm x 210mm minus 5mm inset each side.
-    const MM = 96 / 25.4; // CSS px per mm
-    const printW = 287 * MM;
-    const printH = 200 * MM;
-    const pScale = Math.min(printW / sheetWidth, printH / sheetHeight);
-    setPrintScale(pScale);
-    setPrintOffset({
-      x: Math.max(0, (printW - sheetWidth * pScale) / 2),
-      y: Math.max(0, (printH - sheetHeight * pScale) / 2),
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    updatePreviewScale();
-
-    const content = contentRef.current;
-    const sheet = sheetRef.current;
-    if (!content || !sheet) return;
-
-    const observer = new ResizeObserver(updatePreviewScale);
-    observer.observe(content);
-    observer.observe(sheet);
-    window.addEventListener("resize", updatePreviewScale);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updatePreviewScale);
-    };
-  }, [updatePreviewScale, month, year, groups, indices.length]);
 
   return (
     <div className="space-y-4">
@@ -145,6 +121,9 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
           <h2 className="text-lg font-semibold">Aperçu avant impression</h2>
           <p className="text-sm text-muted-foreground">
             Vue mensuelle formatée, prête à imprimer ou exporter en PDF.
+            {pages.length > 1 && (
+              <> {pages.length} pages générées automatiquement.</>
+            )}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -214,7 +193,6 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               if (!pageRef.current) return;
               setPdfSaving(true);
               try {
-                updatePreviewScale();
                 await exportElementToPdf(
                   pageRef.current,
                   `Planning Agents _ ${MONTHS[month]} ${year}.pdf`,
@@ -232,38 +210,24 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
       </div>
 
       <div className="print-area overflow-auto rounded-lg border border-border bg-card p-3">
-        <div
-          ref={pageRef}
-          className="planning-pdf-page mx-auto w-full max-w-[1188px] overflow-hidden rounded-sm bg-card shadow-sm"
-        >
-          <div ref={contentRef} className="planning-pdf-content">
-            <div
-              ref={sheetRef}
-              className="planning-pdf-sheet flex flex-col bg-card"
-              style={{
-                transform: `translate(${previewOffset.x}px, ${previewOffset.y}px) scale(${previewScale})`,
-                width: "1120px",
-                minWidth: "1120px",
-                minHeight: `${Math.round(1120 * (200 / 287))}px`,
-                ["--print-x" as string]: `${printOffset.x}px`,
-                ["--print-y" as string]: `${printOffset.y}px`,
-                ["--print-scale" as string]: printScale,
-              } as React.CSSProperties}
-            >
-              <PlanningSheet
-                month={month}
-                year={year}
-                printDate={printDate}
-                groups={groups}
-                indices={indices}
-                planning={planning}
-                map={map}
-                holidays={holidays}
-                colCount={colCount}
-              />
-            </div>
-
-          </div>
+        <div ref={pageRef} className="mx-auto flex w-full max-w-[1188px] flex-col gap-4">
+          {pages.map((pageGroups, pi) => (
+            <PrintPage
+              key={pi}
+              pageIndex={pi}
+              pageCount={pages.length}
+              month={month}
+              year={year}
+              printDate={printDate}
+              groups={pageGroups}
+              indices={indices}
+              planning={planning}
+              map={map}
+              holidays={holidays}
+              colCount={colCount}
+              showLegend={pi === pages.length - 1}
+            />
+          ))}
         </div>
       </div>
 
@@ -280,19 +244,24 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               couleurs, colonnes et lignes. Imprimé le {printDate}.
             </DialogDescription>
           </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border bg-card p-3">
-
-            <PlanningSheet
-              month={month}
-              year={year}
-              printDate={printDate}
-              groups={groups}
-              indices={indices}
-              planning={planning}
-              map={map}
-              holidays={holidays}
-              colCount={colCount}
-            />
+          <div className="min-h-0 flex-1 space-y-4 overflow-auto rounded-lg border border-border bg-card p-3">
+            {pages.map((pageGroups, pi) => (
+              <PlanningSheet
+                key={pi}
+                month={month}
+                year={year}
+                printDate={printDate}
+                groups={pageGroups}
+                indices={indices}
+                planning={planning}
+                map={map}
+                holidays={holidays}
+                colCount={colCount}
+                pageIndex={pi}
+                pageCount={pages.length}
+                showLegend={pi === pages.length - 1}
+              />
+            ))}
           </div>
           <DialogFooter className="shrink-0">
             <Button variant="outline" onClick={() => setXlsxOpen(false)}>
@@ -323,6 +292,96 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   );
 }
 
+interface PrintPageProps extends SheetProps {
+  pageIndex: number;
+  pageCount: number;
+  showLegend: boolean;
+}
+
+/**
+ * One A4-landscape page. Owns its own scaling refs so pages with fewer rows
+ * (typically the last one) enlarge their content to fill the available space
+ * instead of leaving empty white area at the bottom.
+ */
+function PrintPage(props: PrintPageProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
+  const [previewOffset, setPreviewOffset] = useState({ x: 0, y: 0 });
+  const [printScale, setPrintScale] = useState(1);
+  const [printOffset, setPrintOffset] = useState({ x: 0, y: 0 });
+
+  const updateScale = useCallback(() => {
+    const content = contentRef.current;
+    const sheet = sheetRef.current;
+    if (!content || !sheet) return;
+    const contentRect = content.getBoundingClientRect();
+    const sheetWidth = sheet.offsetWidth;
+    const sheetHeight = sheet.offsetHeight;
+    if (!contentRect.width || !contentRect.height || !sheetWidth || !sheetHeight) return;
+
+    const nextScale = Math.min(
+      contentRect.width / sheetWidth,
+      contentRect.height / sheetHeight,
+    );
+    const clamped = Math.max(0.2, nextScale);
+    const scaledWidth = sheetWidth * clamped;
+    const scaledHeight = sheetHeight * clamped;
+    setPreviewOffset({
+      x: Math.max(0, (contentRect.width - scaledWidth) / 2),
+      y: Math.max(0, (contentRect.height - scaledHeight) / 2),
+    });
+    setPreviewScale(clamped);
+
+    const MM = 96 / 25.4;
+    const printW = 287 * MM;
+    const printH = 200 * MM;
+    const pScale = Math.min(printW / sheetWidth, printH / sheetHeight);
+    setPrintScale(pScale);
+    setPrintOffset({
+      x: Math.max(0, (printW - sheetWidth * pScale) / 2),
+      y: Math.max(0, (printH - sheetHeight * pScale) / 2),
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    updateScale();
+    const content = contentRef.current;
+    const sheet = sheetRef.current;
+    if (!content || !sheet) return;
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(content);
+    observer.observe(sheet);
+    window.addEventListener("resize", updateScale);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateScale);
+    };
+  }, [updateScale, props.groups, props.indices.length]);
+
+  return (
+    <div className="planning-pdf-page mx-auto w-full max-w-[1188px] overflow-hidden rounded-sm bg-card shadow-sm">
+      <div ref={contentRef} className="planning-pdf-content">
+        <div
+          ref={sheetRef}
+          className="planning-pdf-sheet flex flex-col bg-card"
+          style={{
+            transform: `translate(${previewOffset.x}px, ${previewOffset.y}px) scale(${previewScale})`,
+            width: "1120px",
+            minWidth: "1120px",
+            minHeight: `${Math.round(1120 * (200 / 287))}px`,
+            ["--print-x" as string]: `${printOffset.x}px`,
+            ["--print-y" as string]: `${printOffset.y}px`,
+            ["--print-scale" as string]: printScale,
+          } as React.CSSProperties}
+        >
+          <PlanningSheet {...props} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface SheetProps {
   month: number;
   year: number;
@@ -333,6 +392,9 @@ interface SheetProps {
   map: ReturnType<typeof codesMap>;
   holidays: Record<number, string>;
   colCount: number;
+  pageIndex?: number;
+  pageCount?: number;
+  showLegend?: boolean;
 }
 
 function PlanningSheet({
@@ -345,6 +407,9 @@ function PlanningSheet({
   map,
   holidays,
   colCount,
+  pageIndex,
+  pageCount,
+  showLegend = true,
 }: SheetProps) {
   return (
     <div className="flex h-full min-h-full flex-1 flex-col">
@@ -368,6 +433,11 @@ function PlanningSheet({
             Imprimé le
           </div>
           <div className="text-sm font-bold">{printDate}</div>
+          {pageCount && pageCount > 1 && (
+            <div className="text-[10px] font-semibold text-muted-foreground">
+              Page {(pageIndex ?? 0) + 1} / {pageCount}
+            </div>
+          )}
         </div>
       </div>
 
@@ -424,9 +494,9 @@ function PlanningSheet({
           </tr>
         </thead>
         <tbody>
-          {groups.map((g) => (
+          {groups.map((g, gi) => (
             <GroupRows
-              key={g.team}
+              key={`${g.team}-${gi}`}
               team={g.team}
               agents={g.agents}
               indices={indices}
@@ -439,7 +509,7 @@ function PlanningSheet({
           ))}
         </tbody>
       </table>
-      <Legend />
+      {showLegend && <Legend />}
     </div>
 
   );
