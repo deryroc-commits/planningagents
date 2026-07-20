@@ -328,7 +328,8 @@
     print-color-adjust: exact !important;
   }
 
-  /* Center the whole planning on the sheet, edge to edge — one single page */
+  /* Center the planning on each sheet; flows across multiple A4 pages
+     automatically when the agent list exceeds one page. */
   .print-area {
     box-sizing: border-box;
     width: 100%;
@@ -339,11 +340,7 @@
     border: none !important;
     border-radius: 0 !important;
     padding: 0 !important;
-    overflow: hidden !important;
-    page-break-inside: avoid;
-    break-inside: avoid;
-    page-break-after: avoid;
-    break-after: avoid;
+    overflow: visible !important;
     display: block !important;
   }
   .planning-pdf-page {
@@ -354,8 +351,12 @@
     box-shadow: none !important;
     page-break-inside: avoid;
     break-inside: avoid;
-    page-break-after: avoid;
-    break-after: avoid;
+    page-break-after: always;
+    break-after: page;
+  }
+  .planning-pdf-page:last-of-type {
+    page-break-after: auto;
+    break-after: auto;
   }
   .planning-pdf-content {
     inset: 5mm;
