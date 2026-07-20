@@ -274,6 +274,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                 month={month}
                 year={year}
                 printDate={printDate}
+                printTitle={printTitle}
                 groups={pageGroups}
                 indices={indices}
                 planning={planning}
