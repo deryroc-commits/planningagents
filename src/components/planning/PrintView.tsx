@@ -12,7 +12,8 @@ import {
 } from "@/lib/planning/calc";
 import { MONTHS } from "@/lib/planning/calc";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
-import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { getVisibleAgents } from "@/lib/planning/visible-agents";
 import type { Agent } from "@/lib/planning/types";
 import { exportStyledMonthExcel } from "@/lib/planning/excel";
 import { exportElementToPdf, type PdfFormat } from "@/lib/planning/pdf";
@@ -83,6 +84,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const [saving, setSaving] = useState(false);
   const [pdfSaving, setPdfSaving] = useState(false);
   const [pdfFormat, setPdfFormat] = useState<PdfFormat>("a4");
+  const [includeInactive, setIncludeInactive] = useState(false);
   const pageRef = useRef<HTMLDivElement>(null);
   const map = useMemo(() => codesMap(codes), [codes]);
   const holidays = useMemo(() => holidaysForYear(year), [year]);
@@ -97,19 +99,27 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   );
 
   // Group agents by team, preserving order — inserts a section band per team.
-  // Agents who have left (departure date) or not yet active are excluded so
-  // empty rows never appear.
+  // Nameless agents and agents outside their arrival/departure window are
+  // excluded (unless the user opts in with the "inactive" toggle) so pagination
+  // and header repetition always match the visible rows.
+  const visibleAgents = useMemo(
+    () =>
+      getVisibleAgents(agents, {
+        scope: { kind: "month", year, month },
+        includeInactive,
+      }),
+    [agents, year, month, includeInactive],
+  );
   const groups = useMemo(() => {
     const out: Group[] = [];
-    for (const a of agents) {
-      if (!isAgentActiveInMonth(a, year, month)) continue;
+    for (const a of visibleAgents) {
       const team = a.team?.trim() || "Sans équipe";
       const last = out[out.length - 1];
       if (last && last.team === team) last.agents.push(a);
       else out.push({ team, agents: [a] });
     }
     return out;
-  }, [agents, year, month]);
+  }, [visibleAgents]);
 
   const pages = useMemo(() => paginateGroups(groups, AGENTS_PER_PAGE), [groups]);
   const colCount = indices.length + 1;
