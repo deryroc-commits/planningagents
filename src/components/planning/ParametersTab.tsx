@@ -411,3 +411,98 @@ function CodeEditorRow({
     </tr>
   );
 }
+
+function TitlesCard() {
+  const { activeWorkspace, updateWorkspaceTitles, isOwner } = useWorkspace();
+  const [mainTitle, setMainTitle] = useState(activeWorkspace?.main_title ?? DEFAULT_TITLES.main_title);
+  const [subtitle, setSubtitle] = useState(activeWorkspace?.subtitle ?? DEFAULT_TITLES.subtitle);
+  const [printTitle, setPrintTitle] = useState(activeWorkspace?.print_title ?? DEFAULT_TITLES.print_title);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setMainTitle(activeWorkspace?.main_title ?? DEFAULT_TITLES.main_title);
+    setSubtitle(activeWorkspace?.subtitle ?? DEFAULT_TITLES.subtitle);
+    setPrintTitle(activeWorkspace?.print_title ?? DEFAULT_TITLES.print_title);
+  }, [activeWorkspace?.id, activeWorkspace?.main_title, activeWorkspace?.subtitle, activeWorkspace?.print_title]);
+
+  const dirty =
+    mainTitle !== (activeWorkspace?.main_title ?? DEFAULT_TITLES.main_title) ||
+    subtitle !== (activeWorkspace?.subtitle ?? DEFAULT_TITLES.subtitle) ||
+    printTitle !== (activeWorkspace?.print_title ?? DEFAULT_TITLES.print_title);
+
+  const onSave = async () => {
+    setSaving(true);
+    try {
+      await updateWorkspaceTitles({
+        main_title: mainTitle,
+        subtitle,
+        print_title: printTitle,
+      });
+      toast.success("Titres enregistrés");
+    } catch (err) {
+      toast.error("Impossible d'enregistrer", {
+        description: err instanceof Error ? err.message : undefined,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onReset = () => {
+    setMainTitle(DEFAULT_TITLES.main_title);
+    setSubtitle(DEFAULT_TITLES.subtitle);
+    setPrintTitle(DEFAULT_TITLES.print_title);
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <h2 className="flex items-center gap-2 text-base font-semibold">
+        <Type className="size-4 text-primary" /> Titres du planning
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Personnalisez le titre principal, le sous-titre et le bandeau d'impression de cette équipe.
+        {!isOwner && " Seul le propriétaire peut modifier."}
+      </p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="ttl-main">Titre principal</Label>
+          <Input
+            id="ttl-main"
+            value={mainTitle}
+            onChange={(e) => setMainTitle(e.target.value)}
+            disabled={!isOwner}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="ttl-sub">Sous-titre</Label>
+          <Input
+            id="ttl-sub"
+            value={subtitle}
+            onChange={(e) => setSubtitle(e.target.value)}
+            disabled={!isOwner}
+          />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor="ttl-print">Titre d'impression (bandeau rouge)</Label>
+          <Input
+            id="ttl-print"
+            value={printTitle}
+            onChange={(e) => setPrintTitle(e.target.value)}
+            disabled={!isOwner}
+          />
+        </div>
+      </div>
+      {isOwner && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button onClick={onSave} disabled={!dirty || saving}>
+            <Save className="mr-1.5 size-4" />
+            {saving ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+          <Button variant="outline" onClick={onReset} disabled={saving}>
+            <RotateCcw className="mr-1.5 size-4" /> Valeurs par défaut
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
