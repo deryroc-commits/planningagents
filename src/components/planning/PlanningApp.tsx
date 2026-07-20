@@ -228,8 +228,8 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               <CalendarDays className="size-5" />
             </div>
             <div>
-              <h1 className="text-base font-bold leading-tight">Planning des agents</h1>
-              <p className="text-xs text-muted-foreground">Planification annuelle — UCPA</p>
+              <h1 className="text-base font-bold leading-tight">{activeWorkspace?.main_title ?? "Planning des agents"}</h1>
+              <p className="text-xs text-muted-foreground">{activeWorkspace?.subtitle ?? "Cuisine Centrale — UCPA"}</p>
             </div>
           </Link>
 
