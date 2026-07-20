@@ -10,7 +10,7 @@ import {
   isWeekend,
   transitionColumns,
 } from "@/lib/planning/calc";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInYear } from "@/lib/planning/types";
 import { CodePicker } from "./CodePicker";
 
 interface TransitionGridProps {
