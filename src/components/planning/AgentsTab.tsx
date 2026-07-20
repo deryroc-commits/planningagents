@@ -42,6 +42,12 @@ export function AgentsTab() {
   const [editing, setEditing] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const [draftTeam, setDraftTeam] = useState("");
+  const [draftArrEnabled, setDraftArrEnabled] = useState(false);
+  const [draftArrMonth, setDraftArrMonth] = useState(0);
+  const [draftArrYear, setDraftArrYear] = useState(new Date().getFullYear());
+  const [draftDepEnabled, setDraftDepEnabled] = useState(false);
+  const [draftDepMonth, setDraftDepMonth] = useState(0);
+  const [draftDepYear, setDraftDepYear] = useState(new Date().getFullYear());
 
   // Drag & drop reordering.
   const [dragTeam, setDragTeam] = useState<string | null>(null);
