@@ -59,6 +59,21 @@ export function isAgentActiveInMonth(
 }
 
 /**
+ * Whether an agent is active during at least one month of the given year.
+ * Used by year-scoped tabs (stats, overtime, rotation, modifications…) to
+ * hide agents that never appear in the selected year.
+ */
+export function isAgentActiveInYear(
+  agent: Pick<Agent, "startYear" | "startMonth" | "endYear" | "endMonth">,
+  year: number,
+): boolean {
+  for (let m = 0; m < 12; m++) {
+    if (isAgentActiveInMonth(agent, year, m)) return true;
+  }
+  return false;
+}
+
+/**
  * How agents are ordered everywhere their name appears (planning grids, stats,
  * modifications, overtime, print, exports…).
  * - `custom`     : manual order (as arranged in « Base agents »).
