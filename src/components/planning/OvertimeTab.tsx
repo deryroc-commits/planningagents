@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { fmtHours } from "@/lib/planning/calc";
-import type { Agent, OvertimeEntry } from "@/lib/planning/types";
+import { type Agent, type OvertimeEntry, isAgentActiveInYear } from "@/lib/planning/types";
 import {
   exportOvertimeExcel,
   type OvertimeExportMovement,
