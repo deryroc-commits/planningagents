@@ -549,8 +549,10 @@ export function PlanningGrid({ month }: PlanningGridProps) {
                 </td>
               </tr>
             </>
-          )}
+            );
+          })()}
         </tfoot>
+
 
       </table>
 
