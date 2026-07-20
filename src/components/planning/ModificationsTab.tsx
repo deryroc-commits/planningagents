@@ -20,7 +20,7 @@ import {
   MONTHS,
 } from "@/lib/planning/calc";
 import type { Agent, PlanningChange } from "@/lib/planning/types";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -45,8 +45,12 @@ const DATE_FMT = new Intl.DateTimeFormat("fr-FR", {
 });
 
 export function ModificationsTab() {
-  const { year, agents, codes, changes, fillRange, clearChanges } = usePlanning();
+  const { year, agents: allAgents, codes, changes, fillRange, clearChanges } = usePlanning();
   const [month, setMonth] = useState(new Date().getMonth());
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInMonth(a, year, month)),
+    [allAgents, year, month],
+  );
   const [agentId, setAgentId] = useState<string>("");
   const [codeValue, setCodeValue] = useState<string>("");
   const [selected, setSelected] = useState<Set<number>>(new Set());

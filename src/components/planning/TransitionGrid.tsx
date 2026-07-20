@@ -10,7 +10,7 @@ import {
   isWeekend,
   transitionColumns,
 } from "@/lib/planning/calc";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInYear } from "@/lib/planning/types";
 import { CodePicker } from "./CodePicker";
 
 interface TransitionGridProps {
@@ -28,8 +28,12 @@ interface ActiveCell {
 }
 
 export function TransitionGrid({ year, janWeeks }: TransitionGridProps) {
-  const { agents, codes, planningByYear, setCellForYear, changes } =
+  const { agents: allAgents, codes, planningByYear, setCellForYear, changes } =
     usePlanning();
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInYear(a, year) || isAgentActiveInYear(a, year + 1)),
+    [allAgents, year],
+  );
   const [active, setActive] = useState<ActiveCell | null>(null);
 
   const map = useMemo(() => codesMap(codes), [codes]);

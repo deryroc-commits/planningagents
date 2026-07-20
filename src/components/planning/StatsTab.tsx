@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { BarChart3 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
+import { isAgentActiveInYear } from "@/lib/planning/types";
 import {
   Select,
   SelectContent,
@@ -25,7 +26,11 @@ import {
 const MONTH_SHORT = MONTHS.map((m) => m.slice(0, 3));
 
 export function StatsTab() {
-  const { year, agents, codes, planning } = usePlanning();
+  const { year, agents: allAgents, codes, planning } = usePlanning();
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInYear(a, year)),
+    [allAgents, year],
+  );
   const map = useMemo(() => codesMap(codes), [codes]);
   const weeks = useMemo(() => weekBucketsForYear(year), [year]);
 

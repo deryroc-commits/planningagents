@@ -15,7 +15,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
-import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle, isAgentActiveInYear } from "@/lib/planning/types";
 import type { Agent, RotationPeriod } from "@/lib/planning/types";
 import {
   MONTHS,
@@ -40,7 +40,7 @@ const CYCLE_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12];
 export function RotationTab() {
   const {
     year,
-    agents,
+    agents: allAgents,
     codes,
     rotation,
     setRotation,
@@ -49,6 +49,10 @@ export function RotationTab() {
     applyRotation,
     yearRange,
   } = usePlanning();
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInYear(a, year)),
+    [allAgents, year],
+  );
   const map = useMemo(() => codesMap(codes), [codes]);
   const yearOptions = useSelectableYears(yearRange);
   const [mode, setMode] = useState<"replace" | "fill">("fill");

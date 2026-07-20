@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { fmtHours } from "@/lib/planning/calc";
-import type { Agent, OvertimeEntry } from "@/lib/planning/types";
+import { type Agent, type OvertimeEntry, isAgentActiveInYear } from "@/lib/planning/types";
 import {
   exportOvertimeExcel,
   type OvertimeExportMovement,
@@ -68,7 +68,7 @@ interface AgentBalance {
 export function OvertimeTab() {
   const {
     year,
-    agents,
+    agents: allAgents,
     overtime,
     overtimeThreshold,
     addOvertime,
@@ -77,6 +77,10 @@ export function OvertimeTab() {
     clearOvertimeYear,
     setOvertimeThreshold,
   } = usePlanning();
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInYear(a, year)),
+    [allAgents, year],
+  );
 
   // Add-movement form state
   const [agentId, setAgentId] = useState<string>("");
