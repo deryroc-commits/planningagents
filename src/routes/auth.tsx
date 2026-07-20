@@ -117,7 +117,7 @@ function AuthPage() {
           <div className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <CalendarDays className="size-6" />
           </div>
-          <h1 className="mt-3 text-xl font-bold">Planning des agents — UCPA</h1>
+          <h1 className="mt-3 text-xl font-bold">Planning des agents</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Connectez-vous pour accéder à votre équipe.
           </p>
