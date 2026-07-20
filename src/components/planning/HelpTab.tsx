@@ -10,17 +10,20 @@ import {
   Clock,
   Printer,
   QrCode,
-  Upload,
   Download,
-  RefreshCw,
   Trash2,
-  AlertTriangle,
-  Home,
-  Save,
   HelpCircle,
   Keyboard,
   Smartphone,
   ArrowRight,
+  Copy,
+  MousePointer2,
+  WifiOff,
+  ShieldCheck,
+  Type,
+  CalendarRange,
+  Save,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,24 +43,57 @@ const SECTIONS: Section[] = [
     title: "Démarrage rapide",
     icon: HelpCircle,
     intro:
-      "L'application permet de planifier l'année des agents de la cuisine centrale, de suivre les heures et d'imprimer les plannings.",
+      "L'application permet de planifier l'année des agents, de suivre les heures et d'imprimer les plannings. Chaque équipe (workspace) est indépendante.",
     steps: [
       {
-        title: "Se connecter",
-        text: "Utilisez votre email pour accéder à l'application. Votre équipe (workspace) est sélectionnée automatiquement.",
+        title: "Se connecter ou créer un compte",
+        text: "À l'ouverture, la page de connexion s'affiche automatiquement. Créez un compte ou connectez-vous via Google.",
+      },
+      {
+        title: "Rejoindre une équipe ou en créer une",
+        text: "Avec un code d'invitation à 6 chiffres fourni par un administrateur, vous rejoignez une équipe existante (accès validé manuellement). Sans code, vous créez votre propre planning vierge dont vous devenez administrateur.",
+      },
+      {
+        title: "Personnaliser les titres",
+        text: "À la création d'une équipe, choisissez le titre principal, le sous-titre et le titre d'impression. Ils sont modifiables ensuite dans Paramètres.",
       },
       {
         title: "Choisir l'année",
-        text: "En haut à droite, sélectionnez l'année à planifier. Toutes les données sont enregistrées par année.",
-      },
-      {
-        title: "Naviguer entre les onglets",
-        text: "Chaque onglet correspond à une fonction : Planning, Statistiques, Roulement, Paramètres, Base agents, Modifications, Heures sup., Impression, Équipe et QR codes.",
+        text: "En haut à droite, sélectionnez l'année à planifier. Toutes les données (planning, roulement, paramètres) sont enregistrées par année et conservées d'une année à l'autre.",
       },
     ],
     tips: [
       "Les données sont sauvegardées automatiquement dans le cloud pour toute votre équipe.",
-      "Le bouton « Actualiser » recharge l'application si une nouvelle version est disponible.",
+      "Le mode hors-ligne permet de continuer à travailler sans connexion : les modifications se synchronisent au retour du réseau.",
+    ],
+  },
+  {
+    id: "acces",
+    title: "Accès & sécurité (code d'invitation)",
+    icon: ShieldCheck,
+    intro:
+      "L'accès à un planning existant est protégé : sans code d'invitation valide, un nouveau compte ne peut pas voir les plannings d'autres équipes.",
+    steps: [
+      {
+        title: "Obtenir un code",
+        text: "Un administrateur de l'équipe génère un code à 6 chiffres depuis l'onglet Équipe & partage et vous le transmet.",
+      },
+      {
+        title: "Utiliser le code",
+        text: "Lors de la création de votre compte, saisissez le code. Votre demande passe en statut « en attente » jusqu'à validation par un administrateur.",
+      },
+      {
+        title: "Suivre son statut",
+        text: "L'onglet Équipe affiche une bannière « Mon statut d'accès » : en attente, actif ou refusé (avec la raison le cas échéant).",
+      },
+      {
+        title: "Créer un planning indépendant",
+        text: "Sans code, votre compte crée un nouveau planning entièrement vierge (aucun agent, aucune donnée d'une autre équipe). Vous en devenez automatiquement l'administrateur.",
+      },
+    ],
+    tips: [
+      "Chaque planning est totalement isolé : aucune donnée n'est partagée entre équipes.",
+      "Un administrateur peut approuver, refuser ou révoquer un accès à tout moment depuis l'onglet Équipe.",
     ],
   },
   {
@@ -69,11 +105,11 @@ const SECTIONS: Section[] = [
     steps: [
       {
         title: "Sélectionner un mois",
-        text: "Utilisez le menu déroulant ou les flèches gauche/droite pour changer de mois. L'option « Transition » permet de voir décembre + les premières semaines de janvier de l'année suivante.",
+        text: "Utilisez le menu déroulant ou les flèches gauche/droite. L'option « Transition » affiche décembre + les premières semaines de janvier de l'année suivante.",
       },
       {
         title: "Saisir un code",
-        text: "Cliquez sur une cellule pour ouvrir la palette des codes autorisés. Choisissez le code correspondant : il s'affiche avec la couleur associée.",
+        text: "Cliquez sur une cellule pour ouvrir la palette des codes autorisés. Choisissez le code : il s'affiche avec la couleur associée.",
       },
       {
         title: "Défiler horizontalement (mobile)",
@@ -81,12 +117,37 @@ const SECTIONS: Section[] = [
       },
       {
         title: "Repérer les erreurs",
-        text: "Les valeurs non reconnues apparaissent en rouge. Le compteur d'erreurs en haut à droite indique combien de corrections sont nécessaires.",
+        text: "Les valeurs non reconnues apparaissent en rouge. Le compteur en haut à droite indique combien de corrections sont nécessaires.",
       },
     ],
     tips: [
+      "Les lignes d'agents vides ou nommés « 0 » sont automatiquement masquées partout (planning, stats, impression).",
       "Les week-ends et jours fériés sont pré-coloriés pour vous repérer rapidement.",
-      "La légende sous le sélecteur de mois rappelle la signification des couleurs.",
+    ],
+  },
+  {
+    id: "copier-coller",
+    title: "Sélection, copier-coller & recopie",
+    icon: Copy,
+    intro:
+      "Le planning fonctionne comme un tableur : sélection de plages, copier-coller et poignée de recopie (fill handle) sont disponibles.",
+    steps: [
+      {
+        title: "Sélectionner une plage",
+        text: "Cliquez sur une cellule puis glissez avec la souris (ou le doigt) pour étendre la sélection à un rectangle de cellules.",
+      },
+      {
+        title: "Copier / coller",
+        text: "Utilisez Ctrl+C (Cmd+C) pour copier la plage puis Ctrl+V (Cmd+V) pour coller à partir de la cellule sélectionnée. Le motif copié se répète si la zone de destination est plus grande.",
+      },
+      {
+        title: "Poignée de recopie (glisser-déposer)",
+        text: "Un petit carré bleu en bas à droite de la cellule active permet de tirer verticalement ou horizontalement pour recopier la valeur, comme dans Excel.",
+      },
+    ],
+    tips: [
+      "La sélection fonctionne aussi au clavier : maintenez Shift et cliquez sur une autre cellule pour étendre la plage.",
+      "Le copier-coller respecte les codes autorisés : une valeur invalide s'affiche en rouge.",
     ],
   },
   {
@@ -112,15 +173,23 @@ const SECTIONS: Section[] = [
     title: "Roulement week-ends",
     icon: CalendarClock,
     intro:
-      "Génère automatiquement un cycle « 1 week-end travaillé sur N » pour chaque agent sur toute l'année.",
+      "Génère automatiquement un cycle « 1 week-end travaillé sur N » pour chaque agent, avec un roulement propre à chaque année.",
     steps: [
       {
-        title: "Définir la base",
-        text: "Renseignez le premier week-end travaillé de chaque agent : le cycle est ensuite projeté sur l'année complète.",
+        title: "Choisir l'année cible",
+        text: "Le sélecteur d'année en haut de l'onglet permet de définir un roulement différent chaque année sans écraser l'historique.",
       },
       {
-        title: "Reporter dans le planning",
-        text: "Le roulement sert de trame ; vous pouvez toujours l'ajuster manuellement dans l'onglet Planning.",
+        title: "Définir la base",
+        text: "Renseignez le premier week-end travaillé de chaque agent : le cycle est projeté sur l'année complète.",
+      },
+      {
+        title: "Limiter dans le temps",
+        text: "Une date de début et de fin optionnelles permettent d'appliquer un roulement seulement sur une période (ex : de septembre à décembre) tout en gardant l'historique précédent.",
+      },
+      {
+        title: "Sauvegarder",
+        text: "L'onglet Roulement dispose de sa propre barre de sauvegardes nommées, indépendante des sauvegardes de Planning et Paramètres.",
       },
     ],
   },
@@ -129,20 +198,45 @@ const SECTIONS: Section[] = [
     title: "Paramètres",
     icon: Settings2,
     intro:
-      "Personnalisez la liste des codes (libellés, heures, catégories) et les couleurs associées.",
+      "Personnalisez la liste des codes (libellés, heures, catégories), leurs couleurs et les titres du planning.",
     steps: [
       {
         title: "Ajouter / modifier un code",
-        text: "Créez un code (ex : « M »), donnez-lui un libellé (« Matin »), un nombre d'heures, et une catégorie (travail, repos, congé, absence…).",
+        text: "Créez un code (ex : « M »), donnez-lui un libellé (« Matin »), un nombre d'heures et une catégorie (travail, repos, congé, absence…).",
       },
       {
         title: "Choisir une couleur",
         text: "Chaque catégorie dispose d'une palette. La couleur est reprise dans le planning, les statistiques et les exports.",
       },
+      {
+        title: "Titres du planning",
+        text: "La carte « Titres du planning » (propriétaire uniquement) permet de modifier le titre principal, le sous-titre et le titre d'impression à tout moment.",
+      },
     ],
     tips: [
       "Seuls les codes définis ici sont autorisés dans le planning.",
-      "Modifier un code met à jour rétroactivement toutes les cellules qui l'utilisent.",
+      "Lors de l'import d'un fichier Excel, vos codes personnalisés sont conservés et fusionnés avec ceux du fichier.",
+    ],
+  },
+  {
+    id: "titres",
+    title: "Titres personnalisés",
+    icon: Type,
+    intro:
+      "Chaque équipe peut personnaliser trois titres qui apparaissent dans l'application, à l'impression et dans l'export Excel.",
+    steps: [
+      {
+        title: "À la création",
+        text: "Lors de la création d'une nouvelle équipe, un formulaire propose de saisir le titre principal, le sous-titre et le titre d'impression.",
+      },
+      {
+        title: "Modifier plus tard",
+        text: "L'onglet Paramètres → « Titres du planning » permet au propriétaire de modifier ces trois valeurs à tout moment.",
+      },
+      {
+        title: "Où apparaissent-ils ?",
+        text: "Titre principal + sous-titre : page d'accueil et en-tête de l'application. Titre d'impression : bandeau des impressions et export Excel.",
+      },
     ],
   },
   {
@@ -150,24 +244,52 @@ const SECTIONS: Section[] = [
     title: "Base Agents",
     icon: Users,
     intro:
-      "Gestion de la liste des agents : ajout, modification, ordre d'affichage, dates d'arrivée et de départ.",
+      "Gestion des agents : ajout, modification, ordre d'affichage, dates d'arrivée et de départ, tri global.",
     steps: [
       {
         title: "Ajouter un agent",
-        text: "Cliquez sur « Ajouter un agent ». Renseignez son nom, son équipe, sa date d'arrivée et éventuellement de départ.",
+        text: "Cliquez sur « Ajouter un agent » et renseignez son nom, son équipe, sa date d'arrivée et éventuellement de départ.",
       },
       {
-        title: "Modifier / supprimer",
-        text: "Sur chaque ligne, les boutons crayon (modifier) et poubelle (supprimer) sont conçus pour être utilisables au doigt sur mobile.",
+        title: "Modifier les dates directement",
+        text: "Sur chaque ligne, cochez « Date d'arrivée » ou « Date de départ » pour afficher les sélecteurs mois/année et les modifier sans rouvrir de dialogue.",
       },
       {
-        title: "Réorganiser",
-        text: "Utilisez les flèches ↑ ↓ ou glissez la poignée pour changer l'ordre. Cet ordre est repris partout dans l'application.",
+        title: "Tri global",
+        text: "Un sélecteur en haut de l'onglet propose 4 modes : Personnalisé (drag & drop), Alphabétique, Par équipe, Équipe + alphabétique. Ce tri s'applique partout dans l'application.",
+      },
+      {
+        title: "Réorganiser (mode personnalisé)",
+        text: "Utilisez les flèches ↑ ↓ ou glissez la poignée pour changer l'ordre. Cet ordre est repris dans tous les onglets.",
       },
     ],
     tips: [
-      "La colonne « Nom » reste toujours visible lors du défilement horizontal.",
-      "Un agent avec une date de départ ne reçoit plus de jours planifiés après cette date.",
+      "Toutes les lignes et colonnes suivent l'agent : les correspondances (planning, stats, roulement, heures sup.) restent alignées quel que soit le tri.",
+      "Un agent avec une date de départ n'apparaît plus dans les mois postérieurs, mais l'historique est conservé.",
+    ],
+  },
+  {
+    id: "lifecycle",
+    title: "Arrivées / départs d'agents",
+    icon: CalendarRange,
+    intro:
+      "Les modifications de la base agents peuvent être appliquées à partir d'un mois précis, jusqu'à un mois donné, ou définitivement, sans écraser les mois passés.",
+    steps: [
+      {
+        title: "Ajouter avec date d'arrivée",
+        text: "Choisissez le mois/année d'arrivée : l'agent n'apparaît que dans le planning à partir de cette date.",
+      },
+      {
+        title: "Départ à une date donnée",
+        text: "Renseignez la date de fin (ex : fin novembre) : les mois précédents restent inchangés, l'agent disparaît des mois suivants.",
+      },
+      {
+        title: "Modification définitive",
+        text: "Sans date de fin, la modification s'applique de la date d'arrivée jusqu'à aujourd'hui et pour l'avenir.",
+      },
+    ],
+    tips: [
+      "L'historique complet du planning est préservé même si un agent quitte l'équipe.",
     ],
   },
   {
@@ -205,7 +327,7 @@ const SECTIONS: Section[] = [
     title: "Impression",
     icon: Printer,
     intro:
-      "Aperçu du planning mois par mois, prêt à imprimer ou à enregistrer en PDF.",
+      "Aperçu du planning mois par mois, ajusté automatiquement au format A4, prêt à imprimer ou à enregistrer en PDF.",
     steps: [
       {
         title: "Choisir le mois",
@@ -213,7 +335,32 @@ const SECTIONS: Section[] = [
       },
       {
         title: "Imprimer",
-        text: "Utilisez Ctrl+P (ou Cmd+P sur Mac). Choisissez « Enregistrer au format PDF » pour un fichier partageable.",
+        text: "Utilisez Ctrl+P (Cmd+P sur Mac). Le planning s'adapte à la page même sur petit écran (plus de mini-vignette).",
+      },
+      {
+        title: "Titre affiché",
+        text: "Le bandeau reprend le « Titre d'impression » défini dans Paramètres.",
+      },
+    ],
+  },
+  {
+    id: "sauvegardes",
+    title: "Sauvegardes nommées",
+    icon: Save,
+    intro:
+      "Trois barres de sauvegarde indépendantes : Planning, Paramètres et Roulement. Chacune vous permet d'enregistrer des versions nommées et de les restaurer.",
+    steps: [
+      {
+        title: "Créer une sauvegarde",
+        text: "Dans la barre de sauvegarde de l'onglet concerné, cliquez sur « Sauvegarder », donnez un nom (ex : « Avant congés été 2026 »).",
+      },
+      {
+        title: "Restaurer",
+        text: "Sélectionnez une sauvegarde dans la liste et cliquez sur « Restaurer » : uniquement les données de cet onglet sont remplacées.",
+      },
+      {
+        title: "Indépendance",
+        text: "Une restauration de Planning n'affecte pas les Paramètres ni le Roulement, et inversement.",
       },
     ],
   },
@@ -222,15 +369,19 @@ const SECTIONS: Section[] = [
     title: "Équipe & partage",
     icon: Users,
     intro:
-      "Gérez les membres qui ont accès à votre planning et leurs rôles.",
+      "Gérez les membres, leurs rôles, et validez les demandes d'accès.",
     steps: [
       {
         title: "Inviter un membre",
-        text: "Partagez le code d'invitation affiché dans l'onglet Équipe. La personne l'utilise après création de son compte.",
+        text: "Générez un code à 6 chiffres et transmettez-le. Le nouvel utilisateur l'utilise à l'inscription.",
       },
       {
-        title: "Gérer les rôles",
-        text: "Un administrateur peut modifier les paramètres ; un membre standard peut saisir le planning.",
+        title: "Valider les demandes",
+        text: "Les demandes en attente apparaissent dans une liste : approuvez, refusez (avec motif) ou révoquez un accès existant.",
+      },
+      {
+        title: "Rôles",
+        text: "Propriétaire (contrôle total), Administrateur (gestion + édition), Éditeur (édition), Lecteur (consultation).",
       },
     ],
   },
@@ -239,7 +390,7 @@ const SECTIONS: Section[] = [
     title: "QR codes",
     icon: QrCode,
     intro:
-      "Générez des QR codes de partage pour permettre à un agent de consulter son planning depuis son téléphone.",
+      "Générez des QR codes pour permettre à un agent de consulter son planning depuis son téléphone.",
     steps: [
       {
         title: "Générer",
@@ -254,28 +405,54 @@ const SECTIONS: Section[] = [
   {
     id: "import-export",
     title: "Import / Export Excel",
-    icon: Download,
+    icon: FileSpreadsheet,
     intro:
-      "Échangez vos données avec Excel pour archiver ou partager avec l'extérieur.",
+      "Échangez vos données avec Excel pour archiver, migrer ou charger un ancien planning.",
     steps: [
       {
         title: "Exporter",
-        text: "Cliquez sur « Exporter » (en haut à droite) pour télécharger l'année complète au format .xlsx avec les couleurs.",
+        text: "Cliquez sur « Exporter » pour télécharger l'année complète au format .xlsx avec les couleurs et le titre d'impression.",
       },
       {
-        title: "Importer",
-        text: "Cliquez sur « Importer » et sélectionnez un fichier Excel. L'application détecte l'année et remplace les données.",
+        title: "Importer (dialogue dédié)",
+        text: "Cliquez sur « Importer » pour ouvrir la fenêtre dédiée : sélectionnez le fichier, une barre de progression avec pourcentage s'affiche, puis un état clair (réussite ou échec).",
+      },
+      {
+        title: "Fusion intelligente",
+        text: "L'import reconcilie les agents par nom (l'historique est conservé) et fusionne vos codes personnalisés avec ceux du fichier : vos libellés, heures et couleurs restent intacts.",
       },
     ],
     tips: [
-      "L'import écrase les données existantes de l'année importée : exportez d'abord une sauvegarde.",
+      "L'import écrase les cellules de l'année importée : faites d'abord un export ou une sauvegarde nommée par sécurité.",
+      "Sur Android (APK), le dialogue d'import est stabilisé pour éviter les problèmes de focus.",
+    ],
+  },
+  {
+    id: "offline",
+    title: "Mode hors-ligne",
+    icon: WifiOff,
+    intro:
+      "L'application fonctionne même sans connexion : consultation et modifications sont possibles, la synchronisation reprend automatiquement.",
+    steps: [
+      {
+        title: "Installation PWA",
+        text: "Depuis le navigateur, ajoutez l'application à l'écran d'accueil. Sur Android, une APK est disponible.",
+      },
+      {
+        title: "Indicateur de sync",
+        text: "Un badge affiche l'état : en ligne, hors-ligne, ou synchronisation en cours. Les modifications hors-ligne sont mises en file d'attente.",
+      },
+      {
+        title: "Retour en ligne",
+        text: "Dès qu'Internet revient, les changements locaux sont envoyés au cloud automatiquement.",
+      },
     ],
   },
   {
     id: "reset",
     title: "Réinitialiser",
     icon: Trash2,
-    intro: "Effacer une année ou remettre l'application entière à zéro.",
+    intro: "Effacer une année ou remettre l'application à zéro (sans toucher aux autres équipes).",
     steps: [
       {
         title: "Effacer une année",
@@ -283,10 +460,13 @@ const SECTIONS: Section[] = [
       },
       {
         title: "Tout réinitialiser",
-        text: "Remet TOUT aux valeurs par défaut : plannings, agents, codes, couleurs, roulement, paramètres. Action irréversible.",
+        text: "Remet TOUT aux valeurs par défaut pour votre équipe : plannings, agents, codes, couleurs, roulement, paramètres. Action irréversible.",
       },
     ],
-    tips: ["Faites toujours un export Excel avant une réinitialisation."],
+    tips: [
+      "Faites toujours un export Excel ou une sauvegarde nommée avant une réinitialisation.",
+      "La réinitialisation n'affecte QUE votre équipe : les autres plannings restent intacts.",
+    ],
   },
   {
     id: "mobile",
@@ -300,6 +480,10 @@ const SECTIONS: Section[] = [
         text: "Faites glisser horizontalement avec un doigt. La première colonne (agent) reste visible.",
       },
       {
+        title: "Sélection tactile",
+        text: "Appui long puis glissement pour sélectionner une plage de cellules dans le planning.",
+      },
+      {
         title: "Ouvrir le menu",
         text: "Le menu utilisateur (en haut à droite) donne accès à Équipe & partage et à la déconnexion.",
       },
@@ -309,19 +493,27 @@ const SECTIONS: Section[] = [
     id: "raccourcis",
     title: "Astuces & raccourcis",
     icon: Keyboard,
-    intro: "Quelques gestes utiles au quotidien.",
+    intro: "Gestes et raccourcis utiles au quotidien.",
     steps: [
       {
+        title: "Copier / coller",
+        text: "Ctrl+C / Ctrl+V (Cmd sur Mac) sur une plage sélectionnée dans le planning.",
+      },
+      {
+        title: "Sélection étendue",
+        text: "Shift + clic pour étendre une sélection jusqu'à une autre cellule.",
+      },
+      {
         title: "Impression PDF",
-        text: "Ctrl+P (Windows/Linux) ou Cmd+P (Mac) depuis l'onglet Impression.",
+        text: "Ctrl+P (Cmd+P sur Mac) depuis l'onglet Impression, puis « Enregistrer au format PDF ».",
       },
       {
         title: "Navigation mois",
         text: "Utilisez les flèches ← → à côté du sélecteur de mois pour avancer rapidement.",
       },
       {
-        title: "Retour à l'accueil",
-        text: "Le bouton « Accueil » ramène à la page d'entrée où sont listées toutes les sections.",
+        title: "Poignée de recopie",
+        text: "Tirer le carré bleu en bas à droite d'une cellule pour recopier sa valeur.",
       },
     ],
   },
@@ -356,7 +548,7 @@ export function HelpTab() {
           <div className="flex-1">
             <h2 className="text-lg font-bold">Centre d'aide</h2>
             <p className="text-sm text-muted-foreground">
-              Retrouvez ici toutes les explications pour utiliser l'application au quotidien. Utilisez la recherche pour trouver un sujet précis.
+              Toutes les explications pour utiliser l'application au quotidien. Utilisez la recherche pour trouver un sujet précis.
             </p>
           </div>
         </div>
@@ -366,7 +558,7 @@ export function HelpTab() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher… (ex : import, week-end, agent, imprimer)"
+            placeholder="Rechercher… (ex : import, copier, code, sauvegarde, hors-ligne)"
             className="pl-9"
           />
           {query && (
