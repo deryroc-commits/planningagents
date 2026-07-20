@@ -68,7 +68,7 @@ interface AgentBalance {
 export function OvertimeTab() {
   const {
     year,
-    agents,
+    agents: allAgents,
     overtime,
     overtimeThreshold,
     addOvertime,
@@ -77,6 +77,10 @@ export function OvertimeTab() {
     clearOvertimeYear,
     setOvertimeThreshold,
   } = usePlanning();
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInYear(a, year)),
+    [allAgents, year],
+  );
 
   // Add-movement form state
   const [agentId, setAgentId] = useState<string>("");
