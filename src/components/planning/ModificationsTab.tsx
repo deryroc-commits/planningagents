@@ -45,8 +45,12 @@ const DATE_FMT = new Intl.DateTimeFormat("fr-FR", {
 });
 
 export function ModificationsTab() {
-  const { year, agents, codes, changes, fillRange, clearChanges } = usePlanning();
+  const { year, agents: allAgents, codes, changes, fillRange, clearChanges } = usePlanning();
   const [month, setMonth] = useState(new Date().getMonth());
+  const agents = useMemo(
+    () => allAgents.filter((a) => isAgentActiveInMonth(a, year, month)),
+    [allAgents, year, month],
+  );
   const [agentId, setAgentId] = useState<string>("");
   const [codeValue, setCodeValue] = useState<string>("");
   const [selected, setSelected] = useState<Set<number>>(new Set());
