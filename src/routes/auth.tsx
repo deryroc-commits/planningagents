@@ -14,10 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Connexion — Planning agents UCPA" },
+      { title: "Connexion — Planning des agents" },
       {
         name: "description",
-        content: "Connectez-vous ou créez un compte pour accéder au planning des agents UCPA.",
+        content: "Connectez-vous ou créez un compte pour accéder au planning des agents.",
       },
     ],
   }),
