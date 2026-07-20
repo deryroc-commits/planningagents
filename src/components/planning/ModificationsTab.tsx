@@ -110,9 +110,20 @@ export function ModificationsTab() {
     <div className="space-y-6">
       {/* Bulk editor */}
       <section className="no-print rounded-xl border border-border bg-card p-4 shadow-sm">
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-          <CalendarCheck className="size-5" /> Édition multiple
-        </h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <CalendarCheck className="size-5" /> Édition multiple
+          </h2>
+          <label className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 accent-primary"
+              checked={includeInactive}
+              onChange={(e) => setIncludeInactive(e.target.checked)}
+            />
+            Inclure les agents inactifs
+          </label>
+        </div>
         <div className="flex flex-wrap items-end gap-4">
           {/* Agent */}
           <div className="flex flex-col gap-1">

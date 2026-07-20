@@ -195,7 +195,16 @@ export function OvertimeTab() {
           <h2 className="flex items-center gap-2 text-lg font-semibold">
             <Clock className="size-5" /> Gestion des heures supplémentaires
           </h2>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm">
+              <input
+                type="checkbox"
+                className="size-4 accent-primary"
+                checked={includeInactive}
+                onChange={(e) => setIncludeInactive(e.target.checked)}
+              />
+              Inclure inactifs
+            </label>
             <label className="text-xs font-medium text-muted-foreground">Seuil d'alerte (h)</label>
             <Input
               type="number"
