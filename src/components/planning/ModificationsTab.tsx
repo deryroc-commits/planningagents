@@ -20,7 +20,8 @@ import {
   MONTHS,
 } from "@/lib/planning/calc";
 import type { Agent, PlanningChange } from "@/lib/planning/types";
-import { CATEGORY_META, codeInlineStyle, isAgentActiveInMonth } from "@/lib/planning/types";
+import { CATEGORY_META, codeInlineStyle } from "@/lib/planning/types";
+import { getVisibleAgents } from "@/lib/planning/visible-agents";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -47,9 +48,14 @@ const DATE_FMT = new Intl.DateTimeFormat("fr-FR", {
 export function ModificationsTab() {
   const { year, agents: allAgents, codes, changes, fillRange, clearChanges } = usePlanning();
   const [month, setMonth] = useState(new Date().getMonth());
+  const [includeInactive, setIncludeInactive] = useState(false);
   const agents = useMemo(
-    () => allAgents.filter((a) => isAgentActiveInMonth(a, year, month)),
-    [allAgents, year, month],
+    () =>
+      getVisibleAgents(allAgents, {
+        scope: { kind: "month", year, month },
+        includeInactive,
+      }),
+    [allAgents, year, month, includeInactive],
   );
   const [agentId, setAgentId] = useState<string>("");
   const [codeValue, setCodeValue] = useState<string>("");

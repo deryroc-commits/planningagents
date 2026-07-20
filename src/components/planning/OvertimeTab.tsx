@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
 import { fmtHours } from "@/lib/planning/calc";
-import { type Agent, type OvertimeEntry, isAgentActiveInYear } from "@/lib/planning/types";
+import { type Agent, type OvertimeEntry } from "@/lib/planning/types";
+import { getVisibleAgents } from "@/lib/planning/visible-agents";
 import {
   exportOvertimeExcel,
   type OvertimeExportMovement,
@@ -77,9 +78,14 @@ export function OvertimeTab() {
     clearOvertimeYear,
     setOvertimeThreshold,
   } = usePlanning();
+  const [includeInactive, setIncludeInactive] = useState(false);
   const agents = useMemo(
-    () => allAgents.filter((a) => isAgentActiveInYear(a, year)),
-    [allAgents, year],
+    () =>
+      getVisibleAgents(allAgents, {
+        scope: { kind: "year", year },
+        includeInactive,
+      }),
+    [allAgents, year, includeInactive],
   );
 
   // Add-movement form state
