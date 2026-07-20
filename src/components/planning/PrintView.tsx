@@ -440,7 +440,8 @@ function PlanningSheet({
         </tbody>
       </table>
       <Legend />
-    </>
+    </div>
+
   );
 }
 
