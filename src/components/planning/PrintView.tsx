@@ -300,6 +300,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                     { codes, agents, planningByYear: { [year]: planning }, colors },
                     year,
                     month,
+                    printTitle,
                   );
                   setXlsxOpen(false);
                 } finally {
