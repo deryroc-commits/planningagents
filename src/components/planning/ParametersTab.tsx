@@ -1,10 +1,13 @@
-import { useState } from "react";
-import { Pencil, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Pencil, Plus, RotateCcw, Save, Trash2, Type, X } from "lucide-react";
+import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 import { ColorSettings } from "./ColorSettings";
 import { ColorPalette } from "./ColorPalette";
 import { BackupBar } from "./BackupBar";
 import { usePlanning } from "@/lib/planning/store";
+import { useWorkspace, DEFAULT_TITLES } from "@/lib/workspace/workspace-context";
+import { Label } from "@/components/ui/label";
 import {
   CATEGORY_META,
   codeInlineStyle,
