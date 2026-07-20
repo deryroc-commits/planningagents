@@ -112,6 +112,33 @@ export function WorkspaceOnboarding() {
             placeholder="Cuisine centrale UCPA"
           />
         </div>
+        <div className="mt-3 space-y-2">
+          <Label htmlFor="ws-main">Titre principal</Label>
+          <Input
+            id="ws-main"
+            value={mainTitle}
+            onChange={(e) => setMainTitle(e.target.value)}
+            placeholder="Planning des agents"
+          />
+        </div>
+        <div className="mt-3 space-y-2">
+          <Label htmlFor="ws-sub">Sous-titre</Label>
+          <Input
+            id="ws-sub"
+            value={subtitle}
+            onChange={(e) => setSubtitle(e.target.value)}
+            placeholder="Cuisine Centrale — UCPA"
+          />
+        </div>
+        <div className="mt-3 space-y-2">
+          <Label htmlFor="ws-print">Titre d'impression</Label>
+          <Input
+            id="ws-print"
+            value={printTitle}
+            onChange={(e) => setPrintTitle(e.target.value)}
+            placeholder="PLANNING AGENTS UCPA"
+          />
+        </div>
         <Button type="submit" className="mt-4 w-full" disabled={busy !== null}>
           {busy === "create" && <Loader2 className="mr-2 size-4 animate-spin" />}
           Créer l'équipe
