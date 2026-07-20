@@ -172,6 +172,7 @@ function buildStyledMonthSheet(
   state: PlanningState,
   year: number,
   month: number,
+  printTitle: string = "PLANNING AGENTS UCPA",
 ): any {
   const map = codesMap(state.codes);
   const holidays = holidaysForYear(year);
@@ -216,7 +217,7 @@ function buildStyledMonthSheet(
   );
   for (let k = 1; k < leftSpan; k++) titleRow.push(cell("", { bg: bannerBg }));
   titleRow.push(
-    cell("PLANNING AGENTS UCPA", {
+    cell(printTitle, {
       bg: XLS_TITLE.bg,
       fg: XLS_TITLE.fg,
       bold: true,
@@ -386,10 +387,11 @@ export async function exportStyledMonthExcel(
   state: PlanningState,
   year: number,
   month: number,
+  printTitle?: string,
 ): Promise<void> {
   const XLSX = await import("xlsx-js-style");
   const wb = XLSX.utils.book_new();
-  const ws = buildStyledMonthSheet(XLSX, state, year, month);
+  const ws = buildStyledMonthSheet(XLSX, state, year, month, printTitle);
   XLSX.utils.book_append_sheet(wb, ws, MONTHS[month].slice(0, 20));
   XLSX.writeFile(wb, `planning-ucpa-${MONTHS[month].toLowerCase()}-${year}.xlsx`);
 }
@@ -401,11 +403,12 @@ export async function exportStyledMonthExcel(
 export async function exportStyledYearExcel(
   state: PlanningState,
   year: number,
+  printTitle?: string,
 ): Promise<void> {
   const XLSX = await import("xlsx-js-style");
   const wb = XLSX.utils.book_new();
   for (let month = 0; month < 12; month++) {
-    const ws = buildStyledMonthSheet(XLSX, state, year, month);
+    const ws = buildStyledMonthSheet(XLSX, state, year, month, printTitle);
     XLSX.utils.book_append_sheet(wb, ws, MONTHS[month].slice(0, 20));
   }
   XLSX.writeFile(wb, `planning-ucpa-${year}.xlsx`);

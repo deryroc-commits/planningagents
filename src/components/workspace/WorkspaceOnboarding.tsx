@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Clock, Loader2, LogIn, LogOut, Plus, Users, X } from "lucide-react";
 import { toast } from "sonner";
 
-import { useWorkspace } from "@/lib/workspace/workspace-context";
+import { useWorkspace, DEFAULT_TITLES } from "@/lib/workspace/workspace-context";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,9 @@ export function WorkspaceOnboarding() {
   const { createWorkspace, joinWorkspace, pendingMemberships, cancelPending } = useWorkspace();
   const { user, signOut } = useAuth();
   const [name, setName] = useState("");
+  const [mainTitle, setMainTitle] = useState<string>(DEFAULT_TITLES.main_title);
+  const [subtitle, setSubtitle] = useState<string>(DEFAULT_TITLES.subtitle);
+  const [printTitle, setPrintTitle] = useState<string>(DEFAULT_TITLES.print_title);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<"create" | "join" | null>(null);
 
@@ -19,7 +22,11 @@ export function WorkspaceOnboarding() {
     e.preventDefault();
     setBusy("create");
     try {
-      await createWorkspace(name);
+      await createWorkspace(name, {
+        main_title: mainTitle,
+        subtitle,
+        print_title: printTitle,
+      });
       toast.success("Équipe créée");
     } catch (err) {
       toast.error("Impossible de créer l'équipe", {
@@ -103,6 +110,33 @@ export function WorkspaceOnboarding() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Cuisine centrale UCPA"
+          />
+        </div>
+        <div className="mt-3 space-y-2">
+          <Label htmlFor="ws-main">Titre principal</Label>
+          <Input
+            id="ws-main"
+            value={mainTitle}
+            onChange={(e) => setMainTitle(e.target.value)}
+            placeholder="Planning des agents"
+          />
+        </div>
+        <div className="mt-3 space-y-2">
+          <Label htmlFor="ws-sub">Sous-titre</Label>
+          <Input
+            id="ws-sub"
+            value={subtitle}
+            onChange={(e) => setSubtitle(e.target.value)}
+            placeholder="Cuisine Centrale — UCPA"
+          />
+        </div>
+        <div className="mt-3 space-y-2">
+          <Label htmlFor="ws-print">Titre d'impression</Label>
+          <Input
+            id="ws-print"
+            value={printTitle}
+            onChange={(e) => setPrintTitle(e.target.value)}
+            placeholder="PLANNING AGENTS UCPA"
           />
         </div>
         <Button type="submit" className="mt-4 w-full" disabled={busy !== null}>

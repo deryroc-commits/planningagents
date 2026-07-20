@@ -18,6 +18,21 @@ export interface Workspace {
   name: string;
   invite_code: string;
   owner_id: string;
+  main_title: string;
+  subtitle: string;
+  print_title: string;
+}
+
+export const DEFAULT_TITLES = {
+  main_title: "Planning des agents",
+  subtitle: "Cuisine Centrale — UCPA",
+  print_title: "PLANNING AGENTS UCPA",
+} as const;
+
+export interface WorkspaceTitles {
+  main_title?: string;
+  subtitle?: string;
+  print_title?: string;
 }
 
 export interface WorkspaceMembership extends Workspace {
@@ -71,9 +86,10 @@ interface WorkspaceContextValue {
   refreshMembers: () => Promise<void>;
   refreshBlocklist: () => Promise<void>;
   refreshAccessLog: () => Promise<void>;
-  createWorkspace: (name: string) => Promise<WorkspaceMembership>;
+  createWorkspace: (name: string, titles?: WorkspaceTitles) => Promise<WorkspaceMembership>;
   joinWorkspace: (code: string) => Promise<WorkspaceMembership>;
   renameWorkspace: (name: string) => Promise<void>;
+  updateWorkspaceTitles: (titles: WorkspaceTitles) => Promise<void>;
   regenerateInviteCode: () => Promise<string>;
   updateMemberRole: (userId: string, role: WorkspaceRole) => Promise<void>;
   removeMember: (userId: string) => Promise<void>;
@@ -116,7 +132,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
     const { data, error } = await supabase
       .from("workspace_members")
-      .select("role, status, workspaces(id, name, invite_code, owner_id)")
+      .select("role, status, workspaces(id, name, invite_code, owner_id, main_title, subtitle, print_title)")
       .eq("user_id", user.id);
 
     if (error) {
@@ -127,9 +143,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     const list: WorkspaceMembership[] = (data ?? [])
       .filter((row) => row.workspaces)
       .map((row) => {
-        const ws = row.workspaces as unknown as Workspace;
+        const ws = row.workspaces as unknown as Partial<Workspace> & {
+          id: string;
+          name: string;
+          invite_code: string;
+          owner_id: string;
+        };
         return {
-          ...ws,
+          id: ws.id,
+          name: ws.name,
+          invite_code: ws.invite_code,
+          owner_id: ws.owner_id,
+          main_title: ws.main_title ?? DEFAULT_TITLES.main_title,
+          subtitle: ws.subtitle ?? DEFAULT_TITLES.subtitle,
+          print_title: ws.print_title ?? DEFAULT_TITLES.print_title,
           role: row.role as WorkspaceRole,
           status: ((row as { status?: string }).status as MembershipStatus) ?? "active",
         };
@@ -255,13 +282,31 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [user, refreshMemberships, refreshMembers]);
 
   const createWorkspace = useCallback(
-    async (name: string): Promise<WorkspaceMembership> => {
+    async (name: string, titles?: WorkspaceTitles): Promise<WorkspaceMembership> => {
       const { data, error } = await supabase.rpc("create_workspace", { _name: name });
       if (error) throw new Error(error.message);
-      await refreshMemberships();
       const ws = data as unknown as Workspace;
+      const patch: WorkspaceTitles = {};
+      if (titles?.main_title?.trim()) patch.main_title = titles.main_title.trim();
+      if (titles?.subtitle?.trim()) patch.subtitle = titles.subtitle.trim();
+      if (titles?.print_title?.trim()) patch.print_title = titles.print_title.trim();
+      if (Object.keys(patch).length) {
+        const { error: upErr } = await supabase
+          .from("workspaces")
+          .update(patch)
+          .eq("id", ws.id);
+        if (upErr) console.warn("Titres personnalisés non enregistrés", upErr.message);
+      }
+      await refreshMemberships();
       setActiveWorkspaceId(ws.id);
-      return { ...ws, role: "owner", status: "active" };
+      return {
+        ...ws,
+        main_title: patch.main_title ?? ws.main_title ?? DEFAULT_TITLES.main_title,
+        subtitle: patch.subtitle ?? ws.subtitle ?? DEFAULT_TITLES.subtitle,
+        print_title: patch.print_title ?? ws.print_title ?? DEFAULT_TITLES.print_title,
+        role: "owner",
+        status: "active",
+      };
     },
     [refreshMemberships, setActiveWorkspaceId],
   );
@@ -272,7 +317,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       if (error) throw new Error(error.message);
       await refreshMemberships();
       const ws = data as unknown as Workspace;
-      return { ...ws, role: "editor", status: "pending" };
+      return {
+        ...ws,
+        main_title: ws.main_title ?? DEFAULT_TITLES.main_title,
+        subtitle: ws.subtitle ?? DEFAULT_TITLES.subtitle,
+        print_title: ws.print_title ?? DEFAULT_TITLES.print_title,
+        role: "editor",
+        status: "pending",
+      };
     },
     [refreshMemberships],
   );
@@ -283,6 +335,27 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from("workspaces")
         .update({ name })
+        .eq("id", activeWorkspaceId);
+      if (error) throw new Error(error.message);
+      await refreshMemberships();
+    },
+    [activeWorkspaceId, refreshMemberships],
+  );
+
+  const updateWorkspaceTitles = useCallback(
+    async (titles: WorkspaceTitles) => {
+      if (!activeWorkspaceId) return;
+      const patch: WorkspaceTitles = {};
+      if (typeof titles.main_title === "string")
+        patch.main_title = titles.main_title.trim() || DEFAULT_TITLES.main_title;
+      if (typeof titles.subtitle === "string")
+        patch.subtitle = titles.subtitle.trim() || DEFAULT_TITLES.subtitle;
+      if (typeof titles.print_title === "string")
+        patch.print_title = titles.print_title.trim() || DEFAULT_TITLES.print_title;
+      if (!Object.keys(patch).length) return;
+      const { error } = await supabase
+        .from("workspaces")
+        .update(patch)
         .eq("id", activeWorkspaceId);
       if (error) throw new Error(error.message);
       await refreshMemberships();
@@ -538,6 +611,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       createWorkspace,
       joinWorkspace,
       renameWorkspace,
+      updateWorkspaceTitles,
       regenerateInviteCode,
       updateMemberRole,
       removeMember,
@@ -570,6 +644,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       createWorkspace,
       joinWorkspace,
       renameWorkspace,
+      updateWorkspaceTitles,
       regenerateInviteCode,
       updateMemberRole,
       removeMember,

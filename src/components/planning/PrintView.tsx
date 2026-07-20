@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FileSpreadsheet, Loader2, Printer } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
+import { useWorkspace } from "@/lib/workspace/workspace-context";
 import {
   codesMap,
   dateOfDayIndex,
@@ -80,6 +81,8 @@ function paginateGroups(groups: Group[], perPage: number): Group[][] {
 
 export function PrintView({ month, setMonth }: PrintViewProps) {
   const { year, setYear, agents, codes, planning, colors, yearRange } = usePlanning();
+  const { activeWorkspace } = useWorkspace();
+  const printTitle = activeWorkspace?.print_title ?? "PLANNING AGENTS UCPA";
   const [xlsxOpen, setXlsxOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [pdfSaving, setPdfSaving] = useState(false);
@@ -238,6 +241,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               month={month}
               year={year}
               printDate={printDate}
+              printTitle={printTitle}
               groups={pageGroups}
               indices={indices}
               planning={planning}
@@ -270,6 +274,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                 month={month}
                 year={year}
                 printDate={printDate}
+                printTitle={printTitle}
                 groups={pageGroups}
                 indices={indices}
                 planning={planning}
@@ -295,6 +300,7 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
                     { codes, agents, planningByYear: { [year]: planning }, colors },
                     year,
                     month,
+                    printTitle,
                   );
                   setXlsxOpen(false);
                 } finally {
@@ -405,6 +411,7 @@ interface SheetProps {
   month: number;
   year: number;
   printDate: string;
+  printTitle: string;
   groups: { team: string; agents: Agent[] }[];
   indices: number[];
   planning: ReturnType<typeof usePlanning>["planning"];
@@ -420,6 +427,7 @@ function PlanningSheet({
   month,
   year,
   printDate,
+  printTitle,
   groups,
   indices,
   planning,
@@ -444,7 +452,7 @@ function PlanningSheet({
         </div>
         <div className="flex flex-1 items-center justify-center rounded bg-destructive px-4 py-1.5">
           <h1 className="text-xl font-bold tracking-wide text-destructive-foreground">
-            PLANNING AGENTS UCPA
+            {printTitle}
           </h1>
         </div>
         <div className="flex min-w-[150px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">
