@@ -3,6 +3,22 @@ import { createStart, createMiddleware } from "@tanstack/react-start";
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
+const canonicalHostMiddleware = createMiddleware().server(async ({ next, request }) => {
+  try {
+    const url = new URL(request.url);
+    if (url.hostname === "www.duvalericlabs.com") {
+      url.hostname = "duvalericlabs.com";
+      return new Response(null, {
+        status: 301,
+        headers: { location: url.toString() },
+      });
+    }
+  } catch {
+    // ignore
+  }
+  return next();
+});
+
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
     return await next();
@@ -20,5 +36,6 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [errorMiddleware],
+  requestMiddleware: [canonicalHostMiddleware, errorMiddleware],
 }));
+
