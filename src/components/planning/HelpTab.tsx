@@ -373,20 +373,36 @@ const SECTIONS: Section[] = [
     title: "Équipe & partage",
     icon: Users,
     intro:
-      "Gérez les membres, leurs rôles, et validez les demandes d'accès.",
+      "Gérez les membres, changez leur niveau d'accès à tout moment et validez les demandes en attente. Les 4 codes d'invitation se trouvent en haut de l'onglet.",
     steps: [
       {
         title: "Inviter un membre",
-        text: "Générez un code à 6 chiffres et transmettez-le. Le nouvel utilisateur l'utilise à l'inscription.",
+        text: "Utilisez le bloc de code correspondant au niveau souhaité (Lecteur, Éditeur, Administrateur, Personnalisé) et transmettez-le. Chaque bloc dispose de Copier / Partager / Régénérer indépendants.",
       },
       {
         title: "Valider les demandes",
         text: "Les demandes en attente apparaissent dans une liste : approuvez, refusez (avec motif) ou révoquez un accès existant.",
       },
       {
-        title: "Rôles",
-        text: "Propriétaire (contrôle total), Administrateur (gestion + édition), Éditeur (édition), Lecteur (consultation).",
+        title: "Les 4 rôles",
+        text: "Propriétaire (contrôle total, immuable), Administrateur (édition + gestion équipe/codes/blocage), Éditeur (édition des données), Lecteur (consultation seule), Personnalisé (droits par onglet).",
       },
+      {
+        title: "Changer le niveau d'un membre",
+        text: "Un sélecteur à côté de chaque membre actif permet de basculer entre Lecteur / Éditeur / Administrateur / Personnalisé. Le changement est appliqué au prochain rafraîchissement côté membre.",
+      },
+      {
+        title: "Bouton « Droits » (mode personnalisé)",
+        text: "Le bouton Droits est toujours visible pour chaque membre non-propriétaire. Il ouvre une fenêtre listant tous les onglets (Planning, Stats, Roulement, Paramètres, Agents, Modifs, Heures sup, Impression, Équipe, QR) avec, pour chacun, 3 choix : Modifier, Lecture seule, Masqué.",
+      },
+      {
+        title: "Effet des permissions personnalisées",
+        text: "Onglet Masqué → disparaît de la barre de navigation du membre. Onglet Lecture seule → visible avec un bandeau, toutes les interactions d'édition sont bloquées. Onglet Modifier → accès normal. Enregistrer bascule automatiquement le membre en mode Personnalisé.",
+      },
+    ],
+    tips: [
+      "Le propriétaire ne peut pas être rétrogradé (protection).",
+      "Un administrateur a les mêmes droits que le propriétaire sur la gestion des membres, des codes et du blocage.",
     ],
   },
   {
