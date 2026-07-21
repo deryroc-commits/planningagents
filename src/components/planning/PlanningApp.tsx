@@ -649,7 +649,32 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
   );
 }
 
-function ExportButton() {
+function TabPermGate({
+  tab,
+  canEditTab,
+  children,
+}: {
+  tab: TabKey;
+  canEditTab: (t: TabKey) => boolean;
+  children: React.ReactNode;
+}) {
+  const readOnly = !canEditTab(tab);
+  if (!readOnly) return <>{children}</>;
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 rounded-lg border border-sky-300/60 bg-sky-50 px-3 py-2 text-sm text-sky-900 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-100">
+        <LockIcon className="size-4" />
+        <span>
+          <Eye className="mr-1 inline size-3.5" /> Lecture seule — vous n'avez pas les droits pour modifier cet onglet.
+        </span>
+      </div>
+      <div className="pointer-events-none select-none opacity-80" aria-disabled>
+        {children}
+      </div>
+    </div>
+  );
+}
+
   const { codes, agents, planning, year, colors } = usePlanning();
   return (
     <Button
