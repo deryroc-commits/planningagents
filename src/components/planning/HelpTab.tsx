@@ -430,8 +430,20 @@ const SECTIONS: Section[] = [
       "Échangez vos données avec Excel pour archiver, migrer ou charger un ancien planning.",
     steps: [
       {
-        title: "Exporter",
-        text: "Cliquez sur « Exporter » pour télécharger l'année complète au format .xlsx avec les couleurs et le titre d'impression.",
+        title: "Menu Exporter (7 options)",
+        text: "Le bouton « Exporter » ouvre un menu avec plusieurs choix : toute l'application, l'année complète, un mois spécifique, la base des agents, les codes & paramètres, le roulement WE, ou les heures supplémentaires. Chaque fichier reprend les couleurs et la mise en forme de l'écran.",
+      },
+      {
+        title: "Toute l'application",
+        text: "Génère un classeur unique regroupant tous les onglets (planning mensuel, agents, codes, roulement, heures sup.) prêt à être archivé ou partagé.",
+      },
+      {
+        title: "Année ou mois spécifique",
+        text: "Exportez l'année entière (12 feuilles mensuelles) ou uniquement le mois affiché — idéal pour transmettre un planning ponctuel.",
+      },
+      {
+        title: "Exports ciblés",
+        text: "Base agents (avec équipes et dates), codes & paramètres (avec les couleurs), roulement WE (par année) et heures supplémentaires : chaque onglet peut être exporté seul.",
       },
       {
         title: "Importer (dialogue dédié)",
@@ -445,6 +457,7 @@ const SECTIONS: Section[] = [
     tips: [
       "L'import écrase les cellules de l'année importée : faites d'abord un export ou une sauvegarde nommée par sécurité.",
       "Sur Android (APK), le dialogue d'import est stabilisé pour éviter les problèmes de focus.",
+      "Une procédure PDF complète et illustrée est téléchargeable depuis la section « Procédure complète » de cette aide.",
     ],
   },
   {
