@@ -429,13 +429,12 @@ export async function exportFullWorkbookExcel(opts: {
 }): Promise<void> {
   const { state, year, printTitle, rotation, overtime, overtimeThreshold } = opts;
   const XLSX = await import("xlsx-js-style");
-  // Reuse the styled monthly builder from excel.ts to keep months in sync.
-  const { buildStyledMonthSheetPublic } = await import("./excel-month-builder");
+  const { buildStyledMonthSheet } = await import("./excel");
   const wb = XLSX.utils.book_new();
 
   // 12 monthly planning sheets
   for (let m = 0; m < 12; m++) {
-    const ws = buildStyledMonthSheetPublic(XLSX, state, year, m, printTitle);
+    const ws = buildStyledMonthSheet(XLSX, state, year, m, printTitle);
     XLSX.utils.book_append_sheet(wb, ws, MONTHS[m].slice(0, 20));
   }
   // Extra tabs
