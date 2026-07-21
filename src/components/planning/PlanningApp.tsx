@@ -681,19 +681,162 @@ function TabPermGate({
 }
 
 function ExportButton() {
-  const { codes, agents, planning, year, colors } = usePlanning();
-  return (
-    <Button
-      size="sm"
-      onClick={() =>
-        exportStyledYearExcel(
-          { codes, agents, planningByYear: { [year]: planning }, colors },
+  const {
+    codes,
+    agents,
+    planning,
+    planningByYear,
+    year,
+    colors,
+    rotation,
+    overtime,
+    overtimeThreshold,
+  } = usePlanning();
+  const { activeWorkspace } = useWorkspace();
+  const printTitle = activeWorkspace?.print_title ?? "PLANNING DES AGENTS";
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [monthChoice, setMonthChoice] = useState<number>(new Date().getMonth());
+
+  const state = { codes, agents, planningByYear, colors };
+  const monthState = { codes, agents, planningByYear: { [year]: planning }, colors };
+
+  const run = async (id: string, fn: () => Promise<void>) => {
+    setBusy(id);
+    try {
+      await fn();
+    } catch (e) {
+      console.error("[export]", e);
+      alert(`Échec de l'export : ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const options: {
+    id: string;
+    title: string;
+    desc: string;
+    run: () => Promise<void>;
+  }[] = [
+    {
+      id: "full",
+      title: "Toute l'application",
+      desc: `Un seul fichier avec les 12 mois de ${year}, la base agents, les codes, le roulement WE et les heures supplémentaires.`,
+      run: () =>
+        exportFullWorkbookExcel({
+          state,
           year,
-        )
-      }
-    >
-      <Download /> Exporter
-    </Button>
+          printTitle,
+          rotation,
+          overtime,
+          overtimeThreshold,
+        }),
+    },
+    {
+      id: "year",
+      title: `Planning — Année complète (${year})`,
+      desc: "Une feuille par mois avec les mêmes couleurs et mises en forme que l'écran.",
+      run: () => exportStyledYearExcel(state, year, printTitle),
+    },
+    {
+      id: "month",
+      title: `Planning — Mois spécifique (${MONTHS[monthChoice]} ${year})`,
+      desc: "Un seul mois, prêt à imprimer ou à retravailler dans Excel.",
+      run: () => exportStyledMonthExcel(monthState, year, monthChoice, printTitle),
+    },
+    {
+      id: "agents",
+      title: "Base agents",
+      desc: "Liste complète des agents avec équipe, dates d'arrivée / départ.",
+      run: () => exportAgentsBookExcel(state),
+    },
+    {
+      id: "codes",
+      title: "Codes & Paramètres",
+      desc: "Tous les codes avec leur libellé, heures, catégorie et couleur.",
+      run: () => exportCodesBookExcel(state),
+    },
+    {
+      id: "rotation",
+      title: "Roulement WE",
+      desc: `Grille du roulement pour chaque agent (cycle de ${rotation.cycleWeeks} semaines).`,
+      run: () => exportRotationBookExcel(state, rotation, year),
+    },
+    {
+      id: "overtime",
+      title: `Heures supplémentaires (${year})`,
+      desc: "Soldes par agent et détail de tous les mouvements de l'année.",
+      run: () => exportOvertimeBookExcel(state, year, overtime, overtimeThreshold),
+    },
+  ];
+
+  return (
+    <>
+      <Button size="sm" onClick={() => setOpen(true)}>
+        <Download /> Exporter
+      </Button>
+      <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}>
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Download className="size-5" /> Exporter au format Excel
+            </DialogTitle>
+            <DialogDescription>
+              Choisissez ce que vous souhaitez exporter. Chaque fichier reprend
+              exactement les couleurs, colonnes et mises en forme de
+              l'application, prêt à être retravaillé dans Excel.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {options.map((opt) => (
+              <div
+                key={opt.id}
+                className="flex flex-col gap-2 rounded-md border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <div className="font-semibold">{opt.title}</div>
+                  <p className="text-sm text-muted-foreground">{opt.desc}</p>
+                  {opt.id === "month" && (
+                    <div className="mt-2">
+                      <Select
+                        value={String(monthChoice)}
+                        onValueChange={(v) => setMonthChoice(Number(v))}
+                      >
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MONTHS.map((m, i) => (
+                            <SelectItem key={m} value={String(i)}>
+                              {m}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  disabled={!!busy}
+                  onClick={() => run(opt.id, opt.run)}
+                  className="shrink-0"
+                >
+                  <Download className="mr-1.5 size-4" />
+                  {busy === opt.id ? "Export…" : "Exporter"}
+                </Button>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={!!busy} onClick={() => setOpen(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
