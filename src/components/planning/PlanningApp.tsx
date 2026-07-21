@@ -237,7 +237,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
             </div>
             <div>
               <h1 className="text-base font-bold leading-tight">{activeWorkspace?.main_title ?? "Planning des agents"}</h1>
-              <p className="text-xs text-muted-foreground">{activeWorkspace?.subtitle ?? "Cuisine Centrale — UCPA"}</p>
+              <p className="text-xs text-muted-foreground">{activeWorkspace?.subtitle ?? "Gestion du planning annuel"}</p>
             </div>
           </Link>
 

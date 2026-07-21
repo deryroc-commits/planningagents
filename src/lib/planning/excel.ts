@@ -172,7 +172,7 @@ function buildStyledMonthSheet(
   state: PlanningState,
   year: number,
   month: number,
-  printTitle: string = "PLANNING AGENTS UCPA",
+  printTitle: string = "PLANNING DES AGENTS",
 ): any {
   const map = codesMap(state.codes);
   const holidays = holidaysForYear(year);
@@ -804,7 +804,7 @@ function parseUcpaWorkbook(wb: any, XLSX: any): ImportResult | null {
       planningByYear: { [year]: yp },
     },
     year,
-    summary: `Fichier UCPA importé : ${codes.length} codes, ${agents.length} agents, planning ${year}.`,
+    summary: `Fichier importé : ${codes.length} codes, ${agents.length} agents, planning ${year}.`,
   };
 }
 
@@ -1079,7 +1079,7 @@ export async function importFromExcel(
     state: partial,
     summary: parts.length
       ? `Importé : ${parts.join(", ")}.`
-      : "Format non reconnu : aucune feuille exploitable (attendu : export annuel UCPA, export mensuel stylé, ou feuilles « Planning » / « Paramètres » / « Base agents »).",
+      : "Format non reconnu : aucune feuille exploitable (attendu : export annuel, export mensuel stylé, ou feuilles « Planning » / « Paramètres » / « Base agents »).",
   };
 }
 

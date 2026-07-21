@@ -109,7 +109,7 @@ export function WorkspaceOnboarding() {
             id="ws-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Cuisine centrale UCPA"
+            placeholder="Mon équipe"
           />
         </div>
         <div className="mt-3 space-y-2">
@@ -127,7 +127,7 @@ export function WorkspaceOnboarding() {
             id="ws-sub"
             value={subtitle}
             onChange={(e) => setSubtitle(e.target.value)}
-            placeholder="Cuisine Centrale — UCPA"
+            placeholder="Gestion du planning annuel"
           />
         </div>
         <div className="mt-3 space-y-2">
@@ -136,7 +136,7 @@ export function WorkspaceOnboarding() {
             id="ws-print"
             value={printTitle}
             onChange={(e) => setPrintTitle(e.target.value)}
-            placeholder="PLANNING AGENTS UCPA"
+            placeholder="PLANNING DES AGENTS"
           />
         </div>
         <Button type="submit" className="mt-4 w-full" disabled={busy !== null}>

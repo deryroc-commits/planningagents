@@ -584,7 +584,7 @@ function OvertimeSheet({ year, threshold, balances, entries, nameById }: SheetPr
         </div>
         <div className="flex flex-1 items-center justify-center rounded bg-destructive px-4 py-1.5">
           <h1 className="text-lg font-bold tracking-wide text-destructive-foreground">
-            HEURES SUPPLÉMENTAIRES — UCPA
+            HEURES SUPPLÉMENTAIRES
           </h1>
         </div>
         <div className="flex min-w-[120px] flex-col items-center justify-center rounded border border-border bg-muted px-3 py-1.5">

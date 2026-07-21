@@ -31,13 +31,13 @@ export const Route = createFileRoute("/app")({
   },
   head: () => ({
     meta: [
-      { title: "Planning des agents — UCPA" },
+      { title: "Planning des agents" },
       {
         name: "description",
         content:
           "Grille de planning annuel type Excel : saisie contrôlée, calcul automatique des heures, jours fériés et week-ends colorés, impression et export.",
       },
-      { property: "og:title", content: "Planning des agents — UCPA" },
+      { property: "og:title", content: "Planning des agents" },
       {
         property: "og:description",
         content:
