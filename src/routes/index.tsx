@@ -19,17 +19,17 @@ import { DEFAULT_TITLES } from "@/lib/workspace/workspace-context";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Planning agents UCPA — Cuisine centrale" },
+      { title: "Planning des agents" },
       {
         name: "description",
         content:
-          "Application de gestion du planning annuel des agents de la cuisine centrale UCPA : planning général, statistiques, roulement des week-ends, paramètres, base agents et impression.",
+          "Application de gestion du planning annuel des agents : planning général, statistiques, roulement des week-ends, paramètres, base agents et impression.",
       },
-      { property: "og:title", content: "Planning agents UCPA — Cuisine centrale" },
+      { property: "og:title", content: "Planning des agents" },
       {
         property: "og:description",
         content:
-          "Gestion du planning annuel des agents UCPA : planning général, statistiques, roulement des week-ends, paramètres, base agents, impression.",
+          "Gestion du planning annuel des agents : planning général, statistiques, roulement des week-ends, paramètres, base agents, impression.",
       },
     ],
   }),

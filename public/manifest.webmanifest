@@ -1,7 +1,7 @@
 {
-  "name": "Planning agents UCPA — Cuisine centrale",
-  "short_name": "Planning UCPA",
-  "description": "Gestion du planning annuel des agents de la cuisine centrale UCPA.",
+  "name": "Planning des agents",
+  "short_name": "Planning des agents",
+  "description": "Gestion du planning annuel des agents.",
   "start_url": "/",
   "scope": "/",
   "display": "fullscreen",
