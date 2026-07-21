@@ -179,6 +179,7 @@ export type Database = {
           joined_at: string
           role: Database["public"]["Enums"]["app_role"]
           status: string
+          tab_permissions: Json | null
           user_id: string
           workspace_id: string
         }
@@ -187,6 +188,7 @@ export type Database = {
           joined_at?: string
           role?: Database["public"]["Enums"]["app_role"]
           status?: string
+          tab_permissions?: Json | null
           user_id: string
           workspace_id: string
         }
@@ -195,6 +197,7 @@ export type Database = {
           joined_at?: string
           role?: Database["public"]["Enums"]["app_role"]
           status?: string
+          tab_permissions?: Json | null
           user_id?: string
           workspace_id?: string
         }
@@ -239,6 +242,9 @@ export type Database = {
           created_at: string
           id: string
           invite_code: string
+          invite_code_admin: string
+          invite_code_custom: string
+          invite_code_viewer: string
           main_title: string
           name: string
           owner_id: string
@@ -250,6 +256,9 @@ export type Database = {
           created_at?: string
           id?: string
           invite_code: string
+          invite_code_admin: string
+          invite_code_custom: string
+          invite_code_viewer: string
           main_title?: string
           name: string
           owner_id: string
@@ -261,6 +270,9 @@ export type Database = {
           created_at?: string
           id?: string
           invite_code?: string
+          invite_code_admin?: string
+          invite_code_custom?: string
+          invite_code_viewer?: string
           main_title?: string
           name?: string
           owner_id?: string
@@ -281,6 +293,9 @@ export type Database = {
           created_at: string
           id: string
           invite_code: string
+          invite_code_admin: string
+          invite_code_custom: string
+          invite_code_viewer: string
           main_title: string
           name: string
           owner_id: string
@@ -305,6 +320,9 @@ export type Database = {
           created_at: string
           id: string
           invite_code: string
+          invite_code_admin: string
+          invite_code_custom: string
+          invite_code_viewer: string
           main_title: string
           name: string
           owner_id: string
@@ -319,10 +337,13 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      regenerate_invite_code: { Args: { _workspace: string }; Returns: string }
+      regenerate_invite_code: {
+        Args: { _level?: string; _workspace: string }
+        Returns: string
+      }
     }
     Enums: {
-      app_role: "owner" | "editor" | "viewer"
+      app_role: "owner" | "editor" | "viewer" | "admin" | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -450,7 +471,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["owner", "editor", "viewer"],
+      app_role: ["owner", "editor", "viewer", "admin", "custom"],
     },
   },
 } as const

@@ -10,13 +10,69 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/auth-context";
 
-export type WorkspaceRole = "owner" | "editor" | "viewer";
+export type WorkspaceRole = "owner" | "admin" | "editor" | "viewer" | "custom";
 export type MembershipStatus = "active" | "pending" | "blocked";
+export type InviteLevel = "editor" | "viewer" | "admin" | "custom";
+
+export type TabKey =
+  | "planning"
+  | "stats"
+  | "rotation"
+  | "params"
+  | "agents"
+  | "mods"
+  | "overtime"
+  | "print"
+  | "team"
+  | "qr"
+  | "help";
+
+export type TabPermission = "hidden" | "read" | "edit";
+
+export type TabPermissions = Partial<Record<TabKey, TabPermission>>;
+
+export const TAB_LABELS: Record<TabKey, string> = {
+  planning: "Planning",
+  stats: "Statistiques",
+  rotation: "Roulement WE",
+  params: "Paramètres",
+  agents: "Base agents",
+  mods: "Modifications",
+  overtime: "Heures supp.",
+  print: "Impression",
+  team: "Équipe",
+  qr: "QR codes",
+  help: "Aide",
+};
+
+export const ALL_TABS: TabKey[] = [
+  "planning",
+  "stats",
+  "rotation",
+  "params",
+  "agents",
+  "mods",
+  "overtime",
+  "print",
+  "team",
+  "qr",
+  "help",
+];
+
+/**
+ * Onglets toujours accessibles quel que soit le rôle. « team » permet à
+ * l'utilisateur de voir son statut d'accès et de quitter l'équipe. « help »
+ * est l'aide de l'application.
+ */
+const ALWAYS_VISIBLE: TabKey[] = ["team", "help"];
 
 export interface Workspace {
   id: string;
   name: string;
   invite_code: string;
+  invite_code_viewer: string;
+  invite_code_admin: string;
+  invite_code_custom: string;
   owner_id: string;
   main_title: string;
   subtitle: string;
@@ -38,6 +94,7 @@ export interface WorkspaceTitles {
 export interface WorkspaceMembership extends Workspace {
   role: WorkspaceRole;
   status: MembershipStatus;
+  tab_permissions: TabPermissions | null;
 }
 
 export interface Member {
@@ -48,6 +105,7 @@ export interface Member {
   joined_at: string;
   display_name: string | null;
   email: string | null;
+  tab_permissions: TabPermissions | null;
 }
 
 export interface BlocklistEntry {
@@ -77,6 +135,9 @@ interface WorkspaceContextValue {
   role: WorkspaceRole | null;
   canEdit: boolean;
   isOwner: boolean;
+  isAdmin: boolean;
+  canViewTab: (tab: TabKey) => boolean;
+  canEditTab: (tab: TabKey) => boolean;
   members: Member[];
   pendingMembers: Member[];
   blockedMembers: Member[];
@@ -90,8 +151,9 @@ interface WorkspaceContextValue {
   joinWorkspace: (code: string) => Promise<WorkspaceMembership>;
   renameWorkspace: (name: string) => Promise<void>;
   updateWorkspaceTitles: (titles: WorkspaceTitles) => Promise<void>;
-  regenerateInviteCode: () => Promise<string>;
+  regenerateInviteCode: (level?: InviteLevel) => Promise<string>;
   updateMemberRole: (userId: string, role: WorkspaceRole) => Promise<void>;
+  updateMemberTabPermissions: (userId: string, perms: TabPermissions) => Promise<void>;
   removeMember: (userId: string) => Promise<void>;
   approveMember: (userId: string) => Promise<void>;
   rejectMember: (userId: string) => Promise<void>;
@@ -106,6 +168,22 @@ interface WorkspaceContextValue {
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
 const ACTIVE_KEY = "planning-active-workspace";
+
+function parseTabPermissions(raw: unknown): TabPermissions | null {
+  if (!raw || typeof raw !== "object") return null;
+  const out: TabPermissions = {};
+  for (const key of ALL_TABS) {
+    const v = (raw as Record<string, unknown>)[key];
+    if (v === "hidden" || v === "read" || v === "edit") out[key] = v;
+  }
+  return out;
+}
+
+export function defaultTabPermissions(): TabPermissions {
+  const out: TabPermissions = {};
+  for (const t of ALL_TABS) out[t] = "read";
+  return out;
+}
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -132,7 +210,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
     const { data, error } = await supabase
       .from("workspace_members")
-      .select("role, status, workspaces(id, name, invite_code, owner_id, main_title, subtitle, print_title)")
+      .select(
+        "role, status, tab_permissions, workspaces(id, name, invite_code, invite_code_viewer, invite_code_admin, invite_code_custom, owner_id, main_title, subtitle, print_title)",
+      )
       .eq("user_id", user.id);
 
     if (error) {
@@ -153,12 +233,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           id: ws.id,
           name: ws.name,
           invite_code: ws.invite_code,
+          invite_code_viewer: ws.invite_code_viewer ?? "",
+          invite_code_admin: ws.invite_code_admin ?? "",
+          invite_code_custom: ws.invite_code_custom ?? "",
           owner_id: ws.owner_id,
           main_title: ws.main_title ?? DEFAULT_TITLES.main_title,
           subtitle: ws.subtitle ?? DEFAULT_TITLES.subtitle,
           print_title: ws.print_title ?? DEFAULT_TITLES.print_title,
           role: row.role as WorkspaceRole,
-          status: ((row as { status?: string }).status as MembershipStatus) ?? "active",
+          status:
+            ((row as { status?: string }).status as MembershipStatus) ?? "active",
+          tab_permissions: parseTabPermissions(
+            (row as { tab_permissions?: unknown }).tab_permissions,
+          ),
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -218,7 +305,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
     const { data, error } = await supabase
       .from("workspace_members")
-      .select("id, user_id, role, status, joined_at")
+      .select("id, user_id, role, status, joined_at, tab_permissions")
       .eq("workspace_id", activeWorkspaceId)
       .order("joined_at", { ascending: true });
 
@@ -254,6 +341,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         joined_at: row.joined_at,
         display_name: profile?.display_name ?? null,
         email: row.user_id === selfId ? selfEmail : null,
+        tab_permissions: parseTabPermissions(
+          (row as { tab_permissions?: unknown }).tab_permissions,
+        ),
       };
     });
     setMembers(list);
@@ -306,6 +396,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         print_title: patch.print_title ?? ws.print_title ?? DEFAULT_TITLES.print_title,
         role: "owner",
         status: "active",
+        tab_permissions: null,
       };
     },
     [refreshMemberships, setActiveWorkspaceId],
@@ -319,11 +410,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       const ws = data as unknown as Workspace;
       return {
         ...ws,
+        invite_code_viewer: ws.invite_code_viewer ?? "",
+        invite_code_admin: ws.invite_code_admin ?? "",
+        invite_code_custom: ws.invite_code_custom ?? "",
         main_title: ws.main_title ?? DEFAULT_TITLES.main_title,
         subtitle: ws.subtitle ?? DEFAULT_TITLES.subtitle,
         print_title: ws.print_title ?? DEFAULT_TITLES.print_title,
         role: "editor",
         status: "pending",
+        tab_permissions: null,
       };
     },
     [refreshMemberships],
@@ -363,22 +458,42 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [activeWorkspaceId, refreshMemberships],
   );
 
-  const regenerateInviteCode = useCallback(async () => {
-    if (!activeWorkspaceId) throw new Error("Aucune équipe active");
-    const { data, error } = await supabase.rpc("regenerate_invite_code", {
-      _workspace: activeWorkspaceId,
-    });
-    if (error) throw new Error(error.message);
-    await refreshMemberships();
-    return data as unknown as string;
-  }, [activeWorkspaceId, refreshMemberships]);
+  const regenerateInviteCode = useCallback(
+    async (level: InviteLevel = "editor") => {
+      if (!activeWorkspaceId) throw new Error("Aucune équipe active");
+      const { data, error } = await supabase.rpc("regenerate_invite_code", {
+        _workspace: activeWorkspaceId,
+        _level: level,
+      });
+      if (error) throw new Error(error.message);
+      await refreshMemberships();
+      return data as unknown as string;
+    },
+    [activeWorkspaceId, refreshMemberships],
+  );
 
   const updateMemberRole = useCallback(
     async (userId: string, role: WorkspaceRole) => {
       if (!activeWorkspaceId) return;
+      const patch: { role: WorkspaceRole; tab_permissions?: TabPermissions } = { role };
+      if (role === "custom") patch.tab_permissions = defaultTabPermissions();
       const { error } = await supabase
         .from("workspace_members")
-        .update({ role })
+        .update(patch as never)
+        .eq("workspace_id", activeWorkspaceId)
+        .eq("user_id", userId);
+      if (error) throw new Error(error.message);
+      await refreshMembers();
+    },
+    [activeWorkspaceId, refreshMembers],
+  );
+
+  const updateMemberTabPermissions = useCallback(
+    async (userId: string, perms: TabPermissions) => {
+      if (!activeWorkspaceId) return;
+      const { error } = await supabase
+        .from("workspace_members")
+        .update({ role: "custom", tab_permissions: perms as never })
         .eq("workspace_id", activeWorkspaceId)
         .eq("user_id", userId);
       if (error) throw new Error(error.message);
@@ -587,6 +702,42 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const blockedMembers = useMemo(() => members.filter((m) => m.status === "blocked"), [members]);
 
   const role = activeWorkspace?.role ?? null;
+  const isOwner = role === "owner";
+  const isAdmin = role === "owner" || role === "admin";
+
+  const canViewTab = useCallback(
+    (tab: TabKey): boolean => {
+      if (!role) return false;
+      if (ALWAYS_VISIBLE.includes(tab)) return true;
+      if (role === "owner" || role === "admin" || role === "editor" || role === "viewer") return true;
+      // custom
+      const perms = activeWorkspace?.tab_permissions ?? {};
+      const p = perms[tab] ?? "read";
+      return p !== "hidden";
+    },
+    [role, activeWorkspace],
+  );
+
+  const canEditTab = useCallback(
+    (tab: TabKey): boolean => {
+      if (!role) return false;
+      // Team/help are never "edit-writable" for the planning store itself; team
+      // actions have their own permission checks server-side and help is static.
+      if (role === "owner" || role === "admin" || role === "editor") return true;
+      if (role === "viewer") return false;
+      // custom
+      const perms = activeWorkspace?.tab_permissions ?? {};
+      return (perms[tab] ?? "read") === "edit";
+    },
+    [role, activeWorkspace],
+  );
+
+  const canEdit = useMemo(() => {
+    if (role === "owner" || role === "admin" || role === "editor") return true;
+    if (role === "viewer" || !role) return false;
+    const perms = activeWorkspace?.tab_permissions ?? {};
+    return ALL_TABS.some((t) => (perms[t] ?? "read") === "edit");
+  }, [role, activeWorkspace]);
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({
@@ -597,8 +748,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       activeWorkspaceId,
       setActiveWorkspaceId,
       role,
-      canEdit: role === "owner" || role === "editor",
-      isOwner: role === "owner",
+      canEdit,
+      isOwner,
+      isAdmin,
+      canViewTab,
+      canEditTab,
       members: activeMembers,
       pendingMembers,
       blockedMembers,
@@ -614,6 +768,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       updateWorkspaceTitles,
       regenerateInviteCode,
       updateMemberRole,
+      updateMemberTabPermissions,
       removeMember,
       approveMember,
       rejectMember,
@@ -632,6 +787,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       activeWorkspaceId,
       setActiveWorkspaceId,
       role,
+      canEdit,
+      isOwner,
+      isAdmin,
+      canViewTab,
+      canEditTab,
       activeMembers,
       pendingMembers,
       blockedMembers,
@@ -647,6 +807,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       updateWorkspaceTitles,
       regenerateInviteCode,
       updateMemberRole,
+      updateMemberTabPermissions,
       removeMember,
       approveMember,
       rejectMember,

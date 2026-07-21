@@ -1,62 +1,64 @@
-# Onglet « Équipe & Partage »
+## Objectif
 
-Objectif : reproduire l'écran de l'image dans l'application Planning — comptes utilisateurs, workspaces (équipes) avec code d'invitation à 6 chiffres, liste des membres avec rôles (OWNER / Éditeur / Lecteur), et un planning propre à chaque workspace.
+Remplacer le code d'invitation unique par **4 codes distincts**, chacun donnant un niveau d'accès différent, et permettre au propriétaire de changer le niveau d'un membre à tout moment (y compris en mode personnalisé par onglet).
 
-## Ce qui change pour l'utilisateur
+## Les 4 niveaux d'accès
 
-```text
-Aujourd'hui : on ouvre l'app → tout le monde voit le même planning (anonyme)
-Demain      : on se connecte → on choisit/crée une équipe → on voit le planning de cette équipe
-              on partage un code à 6 chiffres pour inviter d'autres membres
-```
+| Niveau | Description |
+|---|---|
+| **Lecture seule** | Peut voir tous les onglets, ne peut rien modifier |
+| **Éditeur** | Peut modifier planning, agents, paramètres, roulement, sauvegardes (comme aujourd'hui) |
+| **Administrateur** | Éditeur + gestion de l'équipe, des titres, des codes, du blocage |
+| **Personnalisé** | Le propriétaire choisit onglet par onglet : *Masqué* / *Lecture* / *Édition* |
 
-- Connexion par **email/mot de passe + Google** (page `/auth`).
-- Chaque personne peut **créer une équipe** (elle en devient OWNER) ou **en rejoindre une** avec un code à 6 chiffres.
-- Chaque équipe a **son propre planning** (agents, postes, roulement, heures supp., etc.), synchronisé en temps réel entre tous ses membres.
-- Un onglet **Équipe** affiche : le code d'invitation (copier / partager / régénérer), le champ « Rejoindre un workspace », et la liste des membres avec leur rôle.
+Le **Propriétaire** (créateur de l'équipe) reste au-dessus, immuable.
 
-## Rôles
+## Onglet Équipe — refonte de la carte "Code d'invitation"
 
-- **OWNER** : gère l'équipe, les membres et leurs rôles, régénère le code, peut tout éditer.
-- **Éditeur** : modifie le planning.
-- **Lecteur** : consulte uniquement.
+Remplacée par 4 blocs de code (un par niveau), chacun avec :
+- Un code à 6 chiffres unique et distinct
+- Boutons **Copier**, **Partager**, **Régénérer** (indépendants)
+- Une pastille de couleur pour le niveau (lecture/éditeur/admin/perso)
 
-## Étapes
+Rejoindre : l'invité entre n'importe lequel de ces codes ; le niveau est déduit du code utilisé.
 
-### 1. Base de données (migration)
-- `profiles` — nom affiché + email, créé automatiquement à l'inscription.
-- `app_role` (enum : owner, editor, viewer).
-- `workspaces` — nom, code d'invitation à 6 chiffres unique, propriétaire.
-- `workspace_members` — lien membre ↔ workspace + rôle + date d'arrivée.
-- `workspace_planning` — le planning (JSON) propre à chaque workspace (remplace l'espace unique actuel).
-- Fonctions `security definer` (`is_workspace_member`, `has_workspace_role`) pour éviter la récursion RLS.
-- Policies RLS : chaque membre lit/écrit le planning et voit les membres de ses équipes ; seul l'OWNER gère les membres et le code.
+Pour le niveau **Personnalisé**, après approbation, le propriétaire ouvre une petite fenêtre listant les 10 onglets (Planning, Stats, Roulement, Paramètres, Agents, Modifs, Heures sup, Impression, Équipe, QR) avec pour chacun un choix Masqué / Lecture / Édition.
 
-### 2. Authentification
-- Activation Google + email/mot de passe.
-- Page `/auth` (connexion / inscription) et protection des routes de l'app.
-- En-tête avec l'utilisateur connecté et le bouton de déconnexion.
+## Gestion des membres (liste existante)
 
-### 3. Sélection de workspace
-- Écran « Créer une équipe / Rejoindre avec un code » quand on n'a pas encore d'équipe.
-- Sélecteur d'équipe active dans l'en-tête si on appartient à plusieurs.
+Ajout d'un sélecteur de niveau à côté de chaque membre actif :
+- Lecture seule / Éditeur / Administrateur / Personnalisé
+- Le choix « Personnalisé » ouvre le panneau de permissions par onglet
+- Modification appliquée en direct (le membre voit son accès changer au prochain rafraîchissement)
 
-### 4. Onglet « Équipe »
-- Carte **Code d'invitation** : affichage du code, boutons Copier / Partager / Régénérer (OWNER).
-- Carte **Rejoindre un workspace** : champ code + bouton Rejoindre.
-- Carte **Membres** : liste avec avatar, nom, date d'arrivée, badge de rôle, et gestion des rôles / retrait (OWNER).
+Le propriétaire ne peut pas être rétrogradé (protection).
 
-### 5. Planning par équipe
-- Le store de planning lit/écrit désormais `workspace_planning` de l'équipe active (au lieu de l'espace unique `main`).
-- Synchronisation temps réel conservée, scoping par workspace.
+## Application des droits dans l'app
 
-### 6. Migration des données existantes
-- Reprise du planning partagé actuel dans une première équipe par défaut, pour ne rien perdre.
+- **Lecture seule** → `canEdit=false` global (déjà supporté par `PlanningProvider writable`)
+- **Éditeur** → comme aujourd'hui
+- **Administrateur** → comme éditeur + accès complet à l'onglet Équipe
+- **Personnalisé** → chaque onglet lit sa permission :
+  - *Masqué* : l'onglet disparaît de la barre de navigation
+  - *Lecture* : l'onglet est visible mais tous les contrôles d'édition sont désactivés
+  - *Édition* : accès normal
 
-## Points techniques
-- Nouvelles tables sécurisées par RLS, scoping via `auth.uid()` et appartenance au workspace.
-- Rôles stockés dans `workspace_members` (jamais sur le profil) pour éviter l'élévation de privilèges.
-- Code d'invitation régénérable ; unicité garantie côté base.
-- Store de planning migré de l'espace unique vers un espace par workspace, sync temps réel conservée.
+## Détails techniques
 
-Dis-moi si je valide ce plan et je commence par la base de données.
+**Base de données**
+- `workspaces` : ajout de `invite_code_viewer`, `invite_code_editor`, `invite_code_admin`, `invite_code_custom` (text, uniques). Migration copie l'`invite_code` existant vers `invite_code_editor` pour ne rien casser.
+- `workspace_members` : le champ `role` passe à `enum(owner, admin, editor, viewer, custom)` ; ajout d'une colonne `tab_permissions jsonb` (utilisée uniquement quand role='custom').
+- RPC `join_workspace(_code)` : cherche le code parmi les 4 colonnes, attribue le rôle correspondant, statut `pending`.
+- RPC `regenerate_invite_code(_workspace, _level)` : régénère uniquement le code du niveau demandé.
+- Politiques RLS mises à jour : `admin` a les mêmes droits d'écriture que `owner` sur `workspace_members` et `workspace_email_blocklist` ; `custom` et `viewer` ne peuvent que lire.
+
+**Front**
+- `workspace-context.tsx` : expose les 4 codes, `updateMemberLevel(userId, level, tabPermissions?)`, `regenerateCode(level)`.
+- `TeamTab.tsx` : nouvelle section "Codes d'invitation" à 4 blocs + sélecteur de niveau par membre + dialog permissions personnalisées.
+- `PlanningApp.tsx` : lit `tabPermissions` depuis le contexte et cache/désactive les onglets en conséquence ; `canEdit` devient dérivé par onglet.
+
+## Ce qui ne change pas
+
+- Le flux d'approbation (`pending` → `active`) et le blocage restent identiques.
+- Les codes existants restent valides (migrés vers "Éditeur").
+- Aucun changement sur les données de planning, agents, roulement, etc.

@@ -20,7 +20,8 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
-import { useWorkspace } from "@/lib/workspace/workspace-context";
+import { useWorkspace, type TabKey } from "@/lib/workspace/workspace-context";
+import { Eye, Lock as LockIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { TeamTab } from "@/components/planning/TeamTab";
 import { ShareQrTab } from "@/components/planning/ShareQrTab";
@@ -77,12 +78,19 @@ import { RefreshCw } from "lucide-react";
 
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
   const { year, setYear, codes, planning, replaceState, clearYear, resetAll, yearRange } = usePlanning();
-  const { memberships, activeWorkspace, activeWorkspaceId, setActiveWorkspaceId } = useWorkspace();
+  const { memberships, activeWorkspace, activeWorkspaceId, setActiveWorkspaceId, canViewTab, canEditTab } = useWorkspace();
   const { user, signOut } = useAuth();
   const YEARS = useSelectableYears(yearRange);
   const [month, setMonth] = useState(new Date().getMonth());
   const [janWeeks, setJanWeeks] = useState(3);
   const [tab, setTab] = useState(initialTab);
+  // If the current tab becomes hidden for this user, fall back to a visible one.
+  useEffect(() => {
+    if (!canViewTab(tab as TabKey)) {
+      const fallback = (["planning", "team", "help"] as TabKey[]).find(canViewTab) ?? "team";
+      setTab(fallback);
+    }
+  }, [tab, canViewTab]);
   const [status, setStatus] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -479,121 +487,145 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
       <main className="mx-auto max-w-[1600px] px-4 py-5">
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="no-print flex-wrap h-auto">
-            <TabsTrigger value="planning" className="tt tt-planning">
-              <Table2 className="mr-1.5 size-4" /> Planning
-            </TabsTrigger>
-            <TabsTrigger value="stats" className="tt tt-stats">
-              <BarChart3 className="mr-1.5 size-4" /> Statistiques
-            </TabsTrigger>
-            <TabsTrigger value="rotation" className="tt tt-rotation">
-              <CalendarClock className="mr-1.5 size-4" /> Roulement WE
-            </TabsTrigger>
-            <TabsTrigger value="params" className="tt tt-params">
-              <Settings2 className="mr-1.5 size-4" /> Paramètres
-            </TabsTrigger>
-            <TabsTrigger value="agents" className="tt tt-agents">
-              <Users className="mr-1.5 size-4" /> Base agents
-            </TabsTrigger>
-            <TabsTrigger value="mods" className="tt tt-mods">
-              <PencilLine className="mr-1.5 size-4" /> Modifications
-            </TabsTrigger>
-            <TabsTrigger value="overtime" className="tt tt-overtime">
-              <Clock className="mr-1.5 size-4" /> Heures supp.
-            </TabsTrigger>
-            <TabsTrigger value="print" className="tt tt-print">
-              <Printer className="mr-1.5 size-4" /> Impression
-            </TabsTrigger>
-            <TabsTrigger value="team" className="tt tt-agents">
-              <Users className="mr-1.5 size-4" /> Équipe
-            </TabsTrigger>
-            <TabsTrigger value="qr" className="tt tt-agents">
-              <QrCode className="mr-1.5 size-4" /> QR codes
-            </TabsTrigger>
-            <TabsTrigger value="help" className="tt tt-params">
-              <HelpCircle className="mr-1.5 size-4" /> Aide
-            </TabsTrigger>
+            {canViewTab("planning") && (
+              <TabsTrigger value="planning" className="tt tt-planning">
+                <Table2 className="mr-1.5 size-4" /> Planning
+              </TabsTrigger>
+            )}
+            {canViewTab("stats") && (
+              <TabsTrigger value="stats" className="tt tt-stats">
+                <BarChart3 className="mr-1.5 size-4" /> Statistiques
+              </TabsTrigger>
+            )}
+            {canViewTab("rotation") && (
+              <TabsTrigger value="rotation" className="tt tt-rotation">
+                <CalendarClock className="mr-1.5 size-4" /> Roulement WE
+              </TabsTrigger>
+            )}
+            {canViewTab("params") && (
+              <TabsTrigger value="params" className="tt tt-params">
+                <Settings2 className="mr-1.5 size-4" /> Paramètres
+              </TabsTrigger>
+            )}
+            {canViewTab("agents") && (
+              <TabsTrigger value="agents" className="tt tt-agents">
+                <Users className="mr-1.5 size-4" /> Base agents
+              </TabsTrigger>
+            )}
+            {canViewTab("mods") && (
+              <TabsTrigger value="mods" className="tt tt-mods">
+                <PencilLine className="mr-1.5 size-4" /> Modifications
+              </TabsTrigger>
+            )}
+            {canViewTab("overtime") && (
+              <TabsTrigger value="overtime" className="tt tt-overtime">
+                <Clock className="mr-1.5 size-4" /> Heures supp.
+              </TabsTrigger>
+            )}
+            {canViewTab("print") && (
+              <TabsTrigger value="print" className="tt tt-print">
+                <Printer className="mr-1.5 size-4" /> Impression
+              </TabsTrigger>
+            )}
+            {canViewTab("team") && (
+              <TabsTrigger value="team" className="tt tt-agents">
+                <Users className="mr-1.5 size-4" /> Équipe
+              </TabsTrigger>
+            )}
+            {canViewTab("qr") && (
+              <TabsTrigger value="qr" className="tt tt-agents">
+                <QrCode className="mr-1.5 size-4" /> QR codes
+              </TabsTrigger>
+            )}
+            {canViewTab("help") && (
+              <TabsTrigger value="help" className="tt tt-params">
+                <HelpCircle className="mr-1.5 size-4" /> Aide
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="planning" className="tab-surface tint-planning space-y-3">
-            <BackupBar />
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setMonth((m) => (m + 12) % 13)}
-                >
-                  <ChevronLeft />
-                </Button>
-                <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                  <SelectTrigger className="w-52">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MONTHS.map((m, i) => (
-                      <SelectItem key={m} value={String(i)}>
-                        {m} {year}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value={String(TRANSITION_MONTH)}>
-                      Transition déc. {year} → janv. {year + 1}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" size="icon" onClick={() => setMonth((m) => (m + 1) % 13)}>
-                  <ChevronRight />
-                </Button>
-                {month === TRANSITION_MONTH && (
-                  <Select
-                    value={String(janWeeks)}
-                    onValueChange={(v) => setJanWeeks(Number(v))}
+            <TabPermGate tab="planning" canEditTab={canEditTab}>
+              <BackupBar />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setMonth((m) => (m + 12) % 13)}
                   >
-                    <SelectTrigger className="ml-1 w-40">
+                    <ChevronLeft />
+                  </Button>
+                  <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+                    <SelectTrigger className="w-52">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="2">2 semaines de janvier</SelectItem>
-                      <SelectItem value="3">3 semaines de janvier</SelectItem>
+                      {MONTHS.map((m, i) => (
+                        <SelectItem key={m} value={String(i)}>
+                          {m} {year}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value={String(TRANSITION_MONTH)}>
+                        Transition déc. {year} → janv. {year + 1}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                )}
+                  <Button variant="outline" size="icon" onClick={() => setMonth((m) => (m + 1) % 13)}>
+                    <ChevronRight />
+                  </Button>
+                  {month === TRANSITION_MONTH && (
+                    <Select
+                      value={String(janWeeks)}
+                      onValueChange={(v) => setJanWeeks(Number(v))}
+                    >
+                      <SelectTrigger className="ml-1 w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">2 semaines de janvier</SelectItem>
+                        <SelectItem value="3">3 semaines de janvier</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+                <Legend />
               </div>
-              <Legend />
-            </div>
-            {month === TRANSITION_MONTH ? (
-              <TransitionGrid year={year} janWeeks={janWeeks} />
-            ) : (
-              <PlanningGrid month={month} />
-            )}
-            <p className="text-xs text-muted-foreground">
-              Cliquez sur une cellule pour choisir un code. Seules les valeurs définies dans «
-              Paramètres » sont autorisées — toute autre valeur apparaît en rouge.
-            </p>
+              {month === TRANSITION_MONTH ? (
+                <TransitionGrid year={year} janWeeks={janWeeks} />
+              ) : (
+                <PlanningGrid month={month} />
+              )}
+              <p className="text-xs text-muted-foreground">
+                Cliquez sur une cellule pour choisir un code. Seules les valeurs définies dans «
+                Paramètres » sont autorisées — toute autre valeur apparaît en rouge.
+              </p>
+            </TabPermGate>
           </TabsContent>
 
 
           <TabsContent value="stats" className="tab-surface tint-stats">
-            <StatsTab />
+            <TabPermGate tab="stats" canEditTab={canEditTab}><StatsTab /></TabPermGate>
           </TabsContent>
 
           <TabsContent value="rotation" className="tab-surface tint-rotation">
-            <RotationTab />
+            <TabPermGate tab="rotation" canEditTab={canEditTab}><RotationTab /></TabPermGate>
           </TabsContent>
 
           <TabsContent value="params" className="tab-surface tint-params">
-            <ParametersTab />
+            <TabPermGate tab="params" canEditTab={canEditTab}><ParametersTab /></TabPermGate>
           </TabsContent>
 
           <TabsContent value="agents" className="tab-surface tint-agents">
-            <AgentsTab />
+            <TabPermGate tab="agents" canEditTab={canEditTab}><AgentsTab /></TabPermGate>
           </TabsContent>
 
           <TabsContent value="mods" className="tab-surface tint-mods">
-            <ModificationsTab />
+            <TabPermGate tab="mods" canEditTab={canEditTab}><ModificationsTab /></TabPermGate>
           </TabsContent>
 
           <TabsContent value="overtime" className="tab-surface tint-overtime">
-            <OvertimeTab />
+            <TabPermGate tab="overtime" canEditTab={canEditTab}><OvertimeTab /></TabPermGate>
           </TabsContent>
 
           <TabsContent value="print" className="tab-surface tint-print">
@@ -613,6 +645,32 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
           </TabsContent>
         </Tabs>
       </main>
+    </div>
+  );
+}
+
+function TabPermGate({
+  tab,
+  canEditTab,
+  children,
+}: {
+  tab: TabKey;
+  canEditTab: (t: TabKey) => boolean;
+  children: React.ReactNode;
+}) {
+  const readOnly = !canEditTab(tab);
+  if (!readOnly) return <>{children}</>;
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 rounded-lg border border-sky-300/60 bg-sky-50 px-3 py-2 text-sm text-sky-900 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-100">
+        <LockIcon className="size-4" />
+        <span>
+          <Eye className="mr-1 inline size-3.5" /> Lecture seule — vous n'avez pas les droits pour modifier cet onglet.
+        </span>
+      </div>
+      <div className="pointer-events-none select-none opacity-80" aria-disabled>
+        {children}
+      </div>
     </div>
   );
 }
