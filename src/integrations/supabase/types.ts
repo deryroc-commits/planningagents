@@ -337,7 +337,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      regenerate_invite_code: { Args: { _workspace: string }; Returns: string }
+      regenerate_invite_code: {
+        Args: { _level?: string; _workspace: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "owner" | "editor" | "viewer" | "admin" | "custom"
