@@ -167,7 +167,7 @@ function cell(
  * on-screen / print planning (colors, columns, rows, table borders).
  * Shared by both the single-month and the full-year styled exports.
  */
-function buildStyledMonthSheet(
+export function buildStyledMonthSheet(
   XLSX: any,
   state: PlanningState,
   year: number,
