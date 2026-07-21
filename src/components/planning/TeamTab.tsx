@@ -6,6 +6,7 @@ import {
   Clock,
   Copy,
   Crown,
+  Eye,
   History,
   Loader2,
   Lock,
@@ -15,8 +16,12 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  Settings2,
   Share2,
+  Shield,
+  ShieldCheck,
   ShieldOff,
+  Sliders,
   Trash2,
   Unlock,
   Users,
@@ -26,7 +31,14 @@ import { toast } from "sonner";
 
 import {
   useWorkspace,
+  ALL_TABS,
+  TAB_LABELS,
+  defaultTabPermissions,
+  type InviteLevel,
   type Member,
+  type TabKey,
+  type TabPermission,
+  type TabPermissions,
   type WorkspaceRole,
 } from "@/lib/workspace/workspace-context";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -41,11 +53,63 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const ROLE_LABEL: Record<WorkspaceRole, string> = {
   owner: "Propriétaire",
+  admin: "Administrateur",
   editor: "Éditeur",
   viewer: "Lecteur",
+  custom: "Personnalisé",
+};
+
+const ROLE_DESCRIPTION: Record<WorkspaceRole, string> = {
+  owner: "Contrôle total. Seul rôle pouvant supprimer l'équipe.",
+  admin: "Peut modifier tout et gérer les membres.",
+  editor: "Peut modifier tous les onglets.",
+  viewer: "Peut consulter tous les onglets, sans modification.",
+  custom: "Droits définis onglet par onglet (voir / modifier / masquer).",
+};
+
+const INVITE_META: Record<
+  InviteLevel,
+  { label: string; description: string; badgeCls: string; iconCls: string; icon: typeof Eye }
+> = {
+  editor: {
+    label: "Code Éditeur",
+    description: "Accès complet en modification (tous les onglets).",
+    badgeCls: "bg-primary/15 text-primary",
+    iconCls: "text-primary",
+    icon: Pencil,
+  },
+  viewer: {
+    label: "Code Lecteur",
+    description: "Accès en lecture seule sur tous les onglets.",
+    badgeCls: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+    iconCls: "text-sky-600 dark:text-sky-300",
+    icon: Eye,
+  },
+  admin: {
+    label: "Code Administrateur",
+    description: "Peut modifier et gérer les membres (sauf suppression de l'équipe).",
+    badgeCls: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    iconCls: "text-amber-600 dark:text-amber-300",
+    icon: ShieldCheck,
+  },
+  custom: {
+    label: "Code Personnalisé",
+    description: "Droits attribués ensuite par l'administrateur, onglet par onglet.",
+    badgeCls: "bg-purple-500/15 text-purple-700 dark:text-purple-300",
+    iconCls: "text-purple-600 dark:text-purple-300",
+    icon: Sliders,
+  },
 };
 
 function initials(name: string | null, email: string | null): string {
@@ -66,6 +130,7 @@ export function TeamTab() {
   const {
     activeWorkspace,
     isOwner,
+    isAdmin,
     members,
     pendingMembers,
     blockedMembers,
@@ -75,6 +140,7 @@ export function TeamTab() {
     renameWorkspace,
     regenerateInviteCode,
     updateMemberRole,
+    updateMemberTabPermissions,
     removeMember,
     approveMember,
     rejectMember,
@@ -91,29 +157,37 @@ export function TeamTab() {
 
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
-  const [regenerating, setRegenerating] = useState(false);
+  const [regenerating, setRegenerating] = useState<InviteLevel | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [banEmail, setBanEmail] = useState("");
   const [banning, setBanning] = useState(false);
+  const [permsMember, setPermsMember] = useState<Member | null>(null);
 
   if (!activeWorkspace) return null;
-  const code = activeWorkspace.invite_code;
 
-  const copyCode = async () => {
+  const codes: Record<InviteLevel, string> = {
+    editor: activeWorkspace.invite_code,
+    viewer: activeWorkspace.invite_code_viewer,
+    admin: activeWorkspace.invite_code_admin,
+    custom: activeWorkspace.invite_code_custom,
+  };
+
+  const copy = async (value: string) => {
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(value);
       toast.success("Code copié");
     } catch {
       toast.error("Copie impossible");
     }
   };
 
-  const shareCode = async () => {
-    const text = `Rejoignez l'équipe "${activeWorkspace.name}" sur le Planning UCPA avec le code ${code} : ${window.location.origin}/app?tab=team`;
+  const share = async (level: InviteLevel) => {
+    const info = INVITE_META[level];
+    const text = `Rejoignez l'équipe « ${activeWorkspace.name} » — ${info.label} : ${codes[level]}\n${window.location.origin}/app?tab=team`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Code d'invitation", text });
+        await navigator.share({ title: info.label, text });
         return;
       } catch {
         /* cancelled */
@@ -123,17 +197,17 @@ export function TeamTab() {
     toast.success("Invitation copiée");
   };
 
-  const onRegenerate = async () => {
-    setRegenerating(true);
+  const onRegenerate = async (level: InviteLevel) => {
+    setRegenerating(level);
     try {
-      await regenerateInviteCode();
+      await regenerateInviteCode(level);
       toast.success("Nouveau code généré");
     } catch (err) {
       toast.error("Impossible de régénérer", {
         description: err instanceof Error ? err.message : undefined,
       });
     } finally {
-      setRegenerating(false);
+      setRegenerating(null);
     }
   };
 
@@ -144,7 +218,8 @@ export function TeamTab() {
       await joinWorkspace(joinCode.trim());
       setJoinCode("");
       toast.success("Demande envoyée", {
-        description: "Le propriétaire doit approuver votre accès avant que vous voyiez le planning.",
+        description:
+          "L'administrateur doit approuver votre accès avant que vous voyiez le planning.",
       });
     } catch (err) {
       toast.error("Code invalide", {
@@ -188,7 +263,7 @@ export function TeamTab() {
                 <Users className="size-5 text-primary" />
                 <h2 className="text-lg font-bold">{activeWorkspace.name}</h2>
               </div>
-              {isOwner && (
+              {isAdmin && (
                 <Button
                   size="sm"
                   variant="ghost"
@@ -230,7 +305,7 @@ export function TeamTab() {
               <div className="min-w-0">
                 <div className="truncate font-medium">{m.name}</div>
                 <div className="text-xs text-amber-800/80 dark:text-amber-200/80">
-                  En attente d'approbation par le propriétaire
+                  En attente d'approbation par l'administrateur
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -249,42 +324,62 @@ export function TeamTab() {
             </div>
           ))}
           <p className="text-xs text-muted-foreground">
-            Si une demande a disparu de cette liste sans être approuvée, elle a été refusée par le propriétaire. Redemandez un accès avec un nouveau code d'invitation.
+            Si une demande a disparu de cette liste sans être approuvée, elle a été refusée par l'administrateur. Redemandez un accès avec un nouveau code d'invitation.
           </p>
         </div>
       </div>
 
-      {/* Invite code */}
+      {/* Invite codes — 4 levels */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <h3 className="text-base font-semibold">Code d'invitation</h3>
+        <h3 className="flex items-center gap-2 text-base font-semibold">
+          <Shield className="size-4 text-primary" /> Codes d'invitation
+        </h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Partagez ce code à 6 chiffres pour inviter d'autres membres.
+          Choisissez le niveau d'accès à partager. Chaque code correspond à un rôle différent.
         </p>
-        <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-3">
-          <span className="text-3xl font-bold tracking-[0.3em]">{code}</span>
-          <Button size="icon" variant="ghost" onClick={copyCode} title="Copier">
-            <Copy className="size-5" />
-          </Button>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button variant="outline" className="flex-1" onClick={shareCode}>
-            <Share2 className="mr-1.5 size-4" /> Partager
-          </Button>
-          {isOwner && (
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={onRegenerate}
-              disabled={regenerating}
-            >
-              {regenerating ? (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-1.5 size-4" />
-              )}
-              Régénérer
-            </Button>
-          )}
+        <div className="mt-3 space-y-3">
+          {(Object.keys(INVITE_META) as InviteLevel[]).map((level) => {
+            const meta = INVITE_META[level];
+            const Icon = meta.icon;
+            const codeValue = codes[level];
+            const isRegen = regenerating === level;
+            return (
+              <div key={level} className="rounded-xl border border-border/70 p-3">
+                <div className="flex items-center gap-2">
+                  <Icon className={`size-4 ${meta.iconCls}`} />
+                  <span className="font-medium">{meta.label}</span>
+                  <Badge className={`ml-auto ${meta.badgeCls}`}>{ROLE_LABEL[level === "editor" ? "editor" : level === "viewer" ? "viewer" : level === "admin" ? "admin" : "custom"]}</Badge>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{meta.description}</p>
+                <div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
+                  <span className="text-2xl font-bold tracking-[0.25em]">{codeValue || "——————"}</span>
+                  <div className="flex items-center gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => void copy(codeValue)} title="Copier">
+                      <Copy className="size-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => void share(level)} title="Partager">
+                      <Share2 className="size-4" />
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => void onRegenerate(level)}
+                        disabled={isRegen}
+                        title="Régénérer"
+                      >
+                        {isRegen ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="size-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -314,14 +409,14 @@ export function TeamTab() {
         </div>
       </form>
 
-      {/* Pending requests — visible only to the owner */}
-      {isOwner && (
+      {/* Pending requests — admins */}
+      {isAdmin && (
         <div className={`rounded-2xl border p-5 shadow-sm ${pendingMembers.length > 0 ? "border-amber-300 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-500/10" : "border-border bg-card"}`}>
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <Clock className="size-4 text-amber-600" /> Demandes d'accès ({pendingMembers.length})
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Les personnes qui utilisent votre code d'invitation apparaissent ici en attente d'approbation.
+            Les personnes qui utilisent un code d'invitation apparaissent ici en attente d'approbation.
           </p>
           {pendingMembers.length === 0 ? (
             <p className="mt-3 rounded-xl border border-dashed border-border/70 px-3 py-4 text-center text-sm text-muted-foreground">
@@ -332,7 +427,7 @@ export function TeamTab() {
               {pendingMembers.map((m) => (
                 <li
                   key={m.id}
-                  className="flex items-center gap-3 rounded-xl bg-background/80 px-3 py-2.5"
+                  className="flex flex-wrap items-center gap-3 rounded-xl bg-background/80 px-3 py-2.5"
                 >
                   <Avatar className="size-10">
                     <AvatarFallback className="bg-amber-500/15 text-sm font-semibold text-amber-700 dark:text-amber-300">
@@ -344,12 +439,7 @@ export function TeamTab() {
                       {m.display_name || m.email || "Nouveau membre"}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      Demande du{" "}
-                      {new Date(m.joined_at).toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      Demande : <span className="font-medium">{ROLE_LABEL[m.role]}</span>
                     </p>
                   </div>
                   <Button
@@ -388,8 +478,9 @@ export function TeamTab() {
               key={m.id}
               member={m}
               isSelf={m.user_id === user?.id}
-              canManage={isOwner && m.user_id !== user?.id}
+              canManage={isAdmin && m.role !== "owner" && m.user_id !== user?.id}
               onRoleChange={(role) => void updateMemberRole(m.user_id, role)}
+              onCustomize={() => setPermsMember(m)}
               onRemove={() => {
                 if (!confirm(`Supprimer définitivement ${m.display_name || m.email || "ce membre"} ?`)) return;
                 void removeMember(m.user_id).then(() => toast.success("Membre supprimé"));
@@ -403,7 +494,7 @@ export function TeamTab() {
       </div>
 
       {/* Blocked members */}
-      {isOwner && (
+      {isAdmin && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <Lock className="size-4 text-destructive" /> Comptes bloqués ({blockedMembers.length})
@@ -460,13 +551,13 @@ export function TeamTab() {
       )}
 
       {/* Email blocklist */}
-      {isOwner && (
+      {isAdmin && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <ShieldOff className="size-4 text-destructive" /> Emails bannis ({blocklist.length})
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Les adresses listées ici ne pourront plus rejoindre l'équipe, même avec le code d'invitation.
+            Les adresses listées ici ne pourront plus rejoindre l'équipe, même avec un code d'invitation.
           </p>
           <form
             className="mt-3 flex gap-2"
@@ -531,7 +622,7 @@ export function TeamTab() {
       )}
 
       {/* Access log */}
-      {isOwner && (
+      {isAdmin && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <History className="size-4 text-primary" /> Journal d'accès
@@ -600,6 +691,23 @@ export function TeamTab() {
           </Button>
         </div>
       </div>
+
+      <CustomPermissionsDialog
+        member={permsMember}
+        onClose={() => setPermsMember(null)}
+        onSave={async (perms) => {
+          if (!permsMember) return;
+          try {
+            await updateMemberTabPermissions(permsMember.user_id, perms);
+            toast.success("Droits mis à jour");
+            setPermsMember(null);
+          } catch (err) {
+            toast.error("Impossible d'enregistrer", {
+              description: err instanceof Error ? err.message : undefined,
+            });
+          }
+        }}
+      />
     </div>
   );
 }
@@ -609,6 +717,7 @@ function MemberRow({
   isSelf,
   canManage,
   onRoleChange,
+  onCustomize,
   onRemove,
   onBlock,
 }: {
@@ -616,6 +725,7 @@ function MemberRow({
   isSelf: boolean;
   canManage: boolean;
   onRoleChange: (role: WorkspaceRole) => void;
+  onCustomize: () => void;
   onRemove: () => void;
   onBlock: () => void;
 }) {
@@ -625,7 +735,7 @@ function MemberRow({
     year: "numeric",
   });
   return (
-    <li className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-2.5">
+    <li className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 px-3 py-2.5">
       <Avatar className="size-10">
         <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
           {initials(member.display_name, member.email)}
@@ -652,14 +762,27 @@ function MemberRow({
       ) : canManage ? (
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Select value={member.role} onValueChange={(v) => onRoleChange(v as WorkspaceRole)}>
-            <SelectTrigger className="h-9 w-[104px] text-xs">
+            <SelectTrigger className="h-9 w-[140px] text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="admin">{ROLE_LABEL.admin}</SelectItem>
               <SelectItem value="editor">{ROLE_LABEL.editor}</SelectItem>
               <SelectItem value="viewer">{ROLE_LABEL.viewer}</SelectItem>
+              <SelectItem value="custom">{ROLE_LABEL.custom}</SelectItem>
             </SelectContent>
           </Select>
+          {member.role === "custom" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-9"
+              onClick={onCustomize}
+              title="Configurer les droits"
+            >
+              <Settings2 className="mr-1 size-4" /> Droits
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
@@ -687,3 +810,110 @@ function MemberRow({
     </li>
   );
 }
+
+const PERM_OPTIONS: { value: TabPermission; label: string }[] = [
+  { value: "edit", label: "Modifier" },
+  { value: "read", label: "Lecture seule" },
+  { value: "hidden", label: "Masquer" },
+];
+
+function CustomPermissionsDialog({
+  member,
+  onClose,
+  onSave,
+}: {
+  member: Member | null;
+  onClose: () => void;
+  onSave: (perms: TabPermissions) => Promise<void>;
+}) {
+  const [perms, setPerms] = useState<TabPermissions>(() =>
+    member?.tab_permissions ?? defaultTabPermissions(),
+  );
+  const [saving, setSaving] = useState(false);
+
+  // Reset when a different member opens the dialog
+  const memberId = member?.id ?? null;
+  useState(() => memberId);
+
+  const open = !!member;
+
+  const setAll = (v: TabPermission) => {
+    const next: TabPermissions = {};
+    for (const t of ALL_TABS) next[t] = v;
+    setPerms(next);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) onClose();
+        else if (member) setPerms(member.tab_permissions ?? defaultTabPermissions());
+      }}
+    >
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Droits personnalisés</DialogTitle>
+          <DialogDescription>
+            Choisissez pour chaque onglet si le membre peut modifier, uniquement consulter ou ne pas voir l'onglet.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="mb-3 flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => setAll("edit")}>
+            Tout modifier
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setAll("read")}>
+            Tout en lecture
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setAll("hidden")}>
+            Tout masquer
+          </Button>
+        </div>
+        <div className="max-h-[50vh] space-y-2 overflow-auto pr-1">
+          {ALL_TABS.map((tab) => (
+            <div
+              key={tab}
+              className="flex items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2"
+            >
+              <span className="font-medium">{TAB_LABELS[tab]}</span>
+              <Select
+                value={perms[tab] ?? "read"}
+                onValueChange={(v) => setPerms({ ...perms, [tab]: v as TabPermission })}
+              >
+                <SelectTrigger className="h-9 w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERM_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Annuler
+          </Button>
+          <Button
+            disabled={saving}
+            onClick={async () => {
+              setSaving(true);
+              await onSave(perms);
+              setSaving(false);
+            }}
+          >
+            {saving && <Loader2 className="mr-1.5 size-4 animate-spin" />}
+            Enregistrer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Suppress unused type warnings for exported types used only in props above.
+export type _UnusedTabKey = TabKey;
