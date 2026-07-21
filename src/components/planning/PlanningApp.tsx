@@ -20,7 +20,8 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { usePlanning } from "@/lib/planning/store";
-import { useWorkspace } from "@/lib/workspace/workspace-context";
+import { useWorkspace, type TabKey } from "@/lib/workspace/workspace-context";
+import { Eye, Lock as LockIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { TeamTab } from "@/components/planning/TeamTab";
 import { ShareQrTab } from "@/components/planning/ShareQrTab";
