@@ -675,6 +675,7 @@ function TabPermGate({
   );
 }
 
+function ExportButton() {
   const { codes, agents, planning, year, colors } = usePlanning();
   return (
     <Button
