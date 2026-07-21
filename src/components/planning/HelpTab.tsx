@@ -69,31 +69,35 @@ const SECTIONS: Section[] = [
   },
   {
     id: "acces",
-    title: "Accès & sécurité (code d'invitation)",
+    title: "Accès & sécurité (4 codes d'invitation)",
     icon: ShieldCheck,
     intro:
-      "L'accès à un planning existant est protégé : sans code d'invitation valide, un nouveau compte ne peut pas voir les plannings d'autres équipes.",
+      "Chaque équipe dispose de 4 codes d'invitation distincts à 6 chiffres, un par niveau d'accès. Le code utilisé détermine automatiquement les droits accordés au nouveau membre.",
     steps: [
       {
+        title: "Les 4 niveaux",
+        text: "Lecteur (consultation seule), Éditeur (modification classique), Administrateur (édition + gestion des membres et des codes), Personnalisé (droits choisis onglet par onglet par le propriétaire).",
+      },
+      {
         title: "Obtenir un code",
-        text: "Un administrateur de l'équipe génère un code à 6 chiffres depuis l'onglet Équipe & partage et vous le transmet.",
+        text: "Depuis l'onglet Équipe & partage, chaque niveau a son propre bloc avec les boutons Copier / Partager / Régénérer. Le propriétaire ou un administrateur transmet le code correspondant au niveau voulu.",
       },
       {
         title: "Utiliser le code",
-        text: "Lors de la création de votre compte, saisissez le code. Votre demande passe en statut « en attente » jusqu'à validation par un administrateur.",
+        text: "Lors de la création du compte, saisissez n'importe lequel des 4 codes : le rôle est déduit automatiquement. La demande passe en statut « en attente » jusqu'à validation.",
       },
       {
         title: "Suivre son statut",
-        text: "L'onglet Équipe affiche une bannière « Mon statut d'accès » : en attente, actif ou refusé (avec la raison le cas échéant).",
+        text: "L'onglet Équipe affiche la bannière « Mon statut d'accès » : en attente, actif ou refusé (avec la raison le cas échéant).",
       },
       {
         title: "Créer un planning indépendant",
-        text: "Sans code, votre compte crée un nouveau planning entièrement vierge (aucun agent, aucune donnée d'une autre équipe). Vous en devenez automatiquement l'administrateur.",
+        text: "Sans code, votre compte crée un nouveau planning entièrement vierge. Vous en devenez automatiquement le propriétaire, avec vos 4 codes générés.",
       },
     ],
     tips: [
+      "Régénérer un code n'invalide que celui-ci : les 3 autres restent actifs.",
       "Chaque planning est totalement isolé : aucune donnée n'est partagée entre équipes.",
-      "Un administrateur peut approuver, refuser ou révoquer un accès à tout moment depuis l'onglet Équipe.",
     ],
   },
   {
