@@ -142,8 +142,13 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hostname === "www.duvalericlabs.com") {
+      window.location.replace(`https://duvalericlabs.com${window.location.pathname}${window.location.search}${window.location.hash}`);
+      return;
+    }
     registerServiceWorker();
   }, []);
+
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
