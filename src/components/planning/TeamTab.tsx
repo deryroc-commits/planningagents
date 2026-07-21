@@ -772,17 +772,15 @@ function MemberRow({
               <SelectItem value="custom">{ROLE_LABEL.custom}</SelectItem>
             </SelectContent>
           </Select>
-          {member.role === "custom" && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-9"
-              onClick={onCustomize}
-              title="Configurer les droits"
-            >
-              <Settings2 className="mr-1 size-4" /> Droits
-            </Button>
-          )}
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-9"
+            onClick={onCustomize}
+            title={member.role === "custom" ? "Configurer les droits" : "Personnaliser les droits onglet par onglet"}
+          >
+            <Settings2 className="mr-1 size-4" /> Droits
+          </Button>
           <Button
             size="sm"
             variant="outline"
