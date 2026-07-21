@@ -81,8 +81,8 @@ export interface Workspace {
 
 export const DEFAULT_TITLES = {
   main_title: "Planning des agents",
-  subtitle: "Cuisine Centrale — UCPA",
-  print_title: "PLANNING AGENTS UCPA",
+  subtitle: "Gestion du planning annuel",
+  print_title: "PLANNING DES AGENTS",
 } as const;
 
 export interface WorkspaceTitles {
