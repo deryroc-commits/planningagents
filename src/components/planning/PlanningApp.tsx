@@ -78,12 +78,19 @@ import { RefreshCw } from "lucide-react";
 
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
   const { year, setYear, codes, planning, replaceState, clearYear, resetAll, yearRange } = usePlanning();
-  const { memberships, activeWorkspace, activeWorkspaceId, setActiveWorkspaceId } = useWorkspace();
+  const { memberships, activeWorkspace, activeWorkspaceId, setActiveWorkspaceId, canViewTab, canEditTab } = useWorkspace();
   const { user, signOut } = useAuth();
   const YEARS = useSelectableYears(yearRange);
   const [month, setMonth] = useState(new Date().getMonth());
   const [janWeeks, setJanWeeks] = useState(3);
   const [tab, setTab] = useState(initialTab);
+  // If the current tab becomes hidden for this user, fall back to a visible one.
+  useEffect(() => {
+    if (!canViewTab(tab as TabKey)) {
+      const fallback = (["planning", "team", "help"] as TabKey[]).find(canViewTab) ?? "team";
+      setTab(fallback);
+    }
+  }, [tab, canViewTab]);
   const [status, setStatus] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
