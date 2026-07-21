@@ -628,6 +628,40 @@ export function HelpTab() {
           </a>
         </div>
 
+        <div className="mt-4 rounded-xl border border-border bg-background overflow-hidden">
+          <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
+            <p className="text-xs font-semibold text-muted-foreground">
+              Aperçu du guide (lecteur intégré)
+            </p>
+            <a
+              href="/procedure-planning-agents.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Ouvrir en plein écran ↗
+            </a>
+          </div>
+          <object
+            data="/procedure-planning-agents.pdf#view=FitH"
+            type="application/pdf"
+            className="w-full h-[70vh] min-h-[500px]"
+            aria-label="Procédure complète — Planning des agents"
+          >
+            <iframe
+              src="/procedure-planning-agents.pdf#view=FitH"
+              title="Procédure complète — Planning des agents"
+              className="w-full h-[70vh] min-h-[500px] border-0"
+            />
+            <p className="p-4 text-sm text-muted-foreground">
+              Votre navigateur ne peut pas afficher le PDF. Utilisez le bouton
+              « Télécharger » ci-dessus pour l'ouvrir.
+            </p>
+          </object>
+        </div>
+
+
+
 
         {filtered.length === 0 && (
           <p className="mt-4 text-sm text-muted-foreground">
