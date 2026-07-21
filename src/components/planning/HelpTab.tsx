@@ -606,6 +606,29 @@ export function HelpTab() {
           )}
         </div>
 
+        <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <FileSpreadsheet className="size-5" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Procédure complète (PDF)</p>
+            <p className="text-xs text-muted-foreground">
+              Guide illustré, en couleurs et pas à pas, pour prendre en main toute l'application.
+            </p>
+          </div>
+          <a
+            href="/procedure-planning-agents.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+          >
+            <Download className="size-4" />
+            Télécharger
+          </a>
+        </div>
+
+
         {filtered.length === 0 && (
           <p className="mt-4 text-sm text-muted-foreground">
             Aucun résultat pour « {query} ». Essayez un autre mot-clé.
