@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   Table2,
@@ -24,6 +24,8 @@ import {
   CalendarRange,
   Save,
   FileSpreadsheet,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -566,7 +568,8 @@ function Highlight({ text, query }: { text: string; query: string }) {
         part.toLowerCase() === q.toLowerCase() ? (
           <mark
             key={i}
-            className="rounded px-0.5 bg-yellow-200 text-yellow-950 dark:bg-yellow-400/40 dark:text-yellow-50"
+            data-help-match=""
+            className="help-mark rounded px-0.5 bg-yellow-200 text-yellow-950 dark:bg-yellow-400/40 dark:text-yellow-50"
           >
             {part}
           </mark>
@@ -580,6 +583,44 @@ function Highlight({ text, query }: { text: string; query: string }) {
 
 export function HelpTab() {
   const [query, setQuery] = useState("");
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const [matchCount, setMatchCount] = useState(0);
+  const [activeMatch, setActiveMatch] = useState(0);
+
+  // Recompute matches after each render when query changes
+  useLayoutEffect(() => {
+    if (!query.trim() || !resultsRef.current) {
+      setMatchCount(0);
+      setActiveMatch(0);
+      return;
+    }
+    const marks = resultsRef.current.querySelectorAll<HTMLElement>("mark[data-help-match]");
+    setMatchCount(marks.length);
+    setActiveMatch(marks.length > 0 ? 0 : 0);
+  }, [query]);
+
+  // Scroll to & highlight active match
+  useEffect(() => {
+    if (!resultsRef.current || matchCount === 0) return;
+    const marks = resultsRef.current.querySelectorAll<HTMLElement>("mark[data-help-match]");
+    marks.forEach((m, i) => {
+      if (i === activeMatch) {
+        m.classList.add("help-mark-active");
+        m.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        m.classList.remove("help-mark-active");
+      }
+    });
+  }, [activeMatch, matchCount, query]);
+
+  const goPrev = () => {
+    if (matchCount === 0) return;
+    setActiveMatch((i) => (i - 1 + matchCount) % matchCount);
+  };
+  const goNext = () => {
+    if (matchCount === 0) return;
+    setActiveMatch((i) => (i + 1) % matchCount);
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -691,9 +732,41 @@ export function HelpTab() {
         )}
 
         {query && filtered.length > 0 && (
-          <p className="mt-4 text-sm text-muted-foreground">
-            {filtered.length} résultat{filtered.length > 1 ? "s" : ""} pour « {query} »
-          </p>
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              {filtered.length} section{filtered.length > 1 ? "s" : ""} · {matchCount} occurrence{matchCount > 1 ? "s" : ""}
+              {matchCount > 0 && (
+                <span className="ml-1 font-semibold text-foreground">
+                  ({activeMatch + 1}/{matchCount})
+                </span>
+              )}
+              <span className="ml-1">pour « {query} »</span>
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2"
+                onClick={goPrev}
+                disabled={matchCount === 0}
+                aria-label="Occurrence précédente"
+                title="Précédent (occurrence précédente)"
+              >
+                <ChevronUp className="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2"
+                onClick={goNext}
+                disabled={matchCount === 0}
+                aria-label="Occurrence suivante"
+                title="Suivant (occurrence suivante)"
+              >
+                <ChevronDown className="size-4" />
+              </Button>
+            </div>
+          </div>
         )}
 
 
@@ -722,7 +795,7 @@ export function HelpTab() {
         )}
       </div>
 
-      <div className="space-y-4">
+      <div ref={resultsRef} className="space-y-4">
         {filtered.map((s) => (
           <section
             key={s.id}
