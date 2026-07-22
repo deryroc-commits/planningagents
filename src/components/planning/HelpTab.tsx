@@ -568,7 +568,8 @@ function Highlight({ text, query }: { text: string; query: string }) {
         part.toLowerCase() === q.toLowerCase() ? (
           <mark
             key={i}
-            className="rounded px-0.5 bg-yellow-200 text-yellow-950 dark:bg-yellow-400/40 dark:text-yellow-50"
+            data-help-match=""
+            className="help-mark rounded px-0.5 bg-yellow-200 text-yellow-950 dark:bg-yellow-400/40 dark:text-yellow-50"
           >
             {part}
           </mark>
