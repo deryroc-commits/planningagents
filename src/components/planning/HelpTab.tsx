@@ -583,6 +583,44 @@ function Highlight({ text, query }: { text: string; query: string }) {
 
 export function HelpTab() {
   const [query, setQuery] = useState("");
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const [matchCount, setMatchCount] = useState(0);
+  const [activeMatch, setActiveMatch] = useState(0);
+
+  // Recompute matches after each render when query changes
+  useLayoutEffect(() => {
+    if (!query.trim() || !resultsRef.current) {
+      setMatchCount(0);
+      setActiveMatch(0);
+      return;
+    }
+    const marks = resultsRef.current.querySelectorAll<HTMLElement>("mark[data-help-match]");
+    setMatchCount(marks.length);
+    setActiveMatch(marks.length > 0 ? 0 : 0);
+  }, [query]);
+
+  // Scroll to & highlight active match
+  useEffect(() => {
+    if (!resultsRef.current || matchCount === 0) return;
+    const marks = resultsRef.current.querySelectorAll<HTMLElement>("mark[data-help-match]");
+    marks.forEach((m, i) => {
+      if (i === activeMatch) {
+        m.classList.add("help-mark-active");
+        m.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        m.classList.remove("help-mark-active");
+      }
+    });
+  }, [activeMatch, matchCount, query]);
+
+  const goPrev = () => {
+    if (matchCount === 0) return;
+    setActiveMatch((i) => (i - 1 + matchCount) % matchCount);
+  };
+  const goNext = () => {
+    if (matchCount === 0) return;
+    setActiveMatch((i) => (i + 1) % matchCount);
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
