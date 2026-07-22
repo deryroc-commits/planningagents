@@ -552,6 +552,32 @@ const SECTIONS: Section[] = [
   },
 ];
 
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  const q = query.trim();
+  if (!q) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${escapeRegExp(q)})`, "gi"));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === q.toLowerCase() ? (
+          <mark
+            key={i}
+            className="rounded px-0.5 bg-yellow-200 text-yellow-950 dark:bg-yellow-400/40 dark:text-yellow-50"
+          >
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export function HelpTab() {
   const [query, setQuery] = useState("");
 
