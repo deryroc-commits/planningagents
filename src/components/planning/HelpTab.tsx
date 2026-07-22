@@ -606,59 +606,70 @@ export function HelpTab() {
           )}
         </div>
 
-        <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <FileSpreadsheet className="size-5" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold">Procédure complète (PDF)</p>
-            <p className="text-xs text-muted-foreground">
-              Guide illustré, en couleurs et pas à pas, pour prendre en main toute l'application.
-            </p>
-          </div>
-          <a
-            href="/procedure-planning-agents.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            download
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-          >
-            <Download className="size-4" />
-            Télécharger
-          </a>
-        </div>
+        {!query && (
+          <>
+            <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <FileSpreadsheet className="size-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Procédure complète (PDF)</p>
+                <p className="text-xs text-muted-foreground">
+                  Guide illustré, en couleurs et pas à pas, pour prendre en main toute l'application.
+                </p>
+              </div>
+              <a
+                href="/procedure-planning-agents.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              >
+                <Download className="size-4" />
+                Télécharger
+              </a>
+            </div>
 
-        <div className="mt-4 rounded-xl border border-border bg-background overflow-hidden">
-          <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
-            <p className="text-xs font-semibold text-muted-foreground">
-              Aperçu du guide (lecteur intégré)
-            </p>
-            <a
-              href="/procedure-planning-agents.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-medium text-primary hover:underline"
-            >
-              Ouvrir en plein écran ↗
-            </a>
-          </div>
-          <object
-            data="/procedure-planning-agents.pdf#view=FitH"
-            type="application/pdf"
-            className="w-full h-[70vh] min-h-[500px]"
-            aria-label="Procédure complète — Planning des agents"
-          >
-            <iframe
-              src="/procedure-planning-agents.pdf#view=FitH"
-              title="Procédure complète — Planning des agents"
-              className="w-full h-[70vh] min-h-[500px] border-0"
-            />
-            <p className="p-4 text-sm text-muted-foreground">
-              Votre navigateur ne peut pas afficher le PDF. Utilisez le bouton
-              « Télécharger » ci-dessus pour l'ouvrir.
-            </p>
-          </object>
-        </div>
+            <div className="mt-4 rounded-xl border border-border bg-background overflow-hidden">
+              <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
+                <p className="text-xs font-semibold text-muted-foreground">
+                  Aperçu du guide (lecteur intégré)
+                </p>
+                <a
+                  href="/procedure-planning-agents.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Ouvrir en plein écran ↗
+                </a>
+              </div>
+              <object
+                data="/procedure-planning-agents.pdf#view=FitH"
+                type="application/pdf"
+                className="w-full h-[70vh] min-h-[500px]"
+                aria-label="Procédure complète — Planning des agents"
+              >
+                <iframe
+                  src="/procedure-planning-agents.pdf#view=FitH"
+                  title="Procédure complète — Planning des agents"
+                  className="w-full h-[70vh] min-h-[500px] border-0"
+                />
+                <p className="p-4 text-sm text-muted-foreground">
+                  Votre navigateur ne peut pas afficher le PDF. Utilisez le bouton
+                  « Télécharger » ci-dessus pour l'ouvrir.
+                </p>
+              </object>
+            </div>
+          </>
+        )}
+
+        {query && filtered.length > 0 && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            {filtered.length} résultat{filtered.length > 1 ? "s" : ""} pour « {query} »
+          </p>
+        )}
+
 
 
 
