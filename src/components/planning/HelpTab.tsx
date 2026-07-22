@@ -552,6 +552,32 @@ const SECTIONS: Section[] = [
   },
 ];
 
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  const q = query.trim();
+  if (!q) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${escapeRegExp(q)})`, "gi"));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === q.toLowerCase() ? (
+          <mark
+            key={i}
+            className="rounded px-0.5 bg-yellow-200 text-yellow-950 dark:bg-yellow-400/40 dark:text-yellow-50"
+          >
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export function HelpTab() {
   const [query, setQuery] = useState("");
 
@@ -707,9 +733,13 @@ export function HelpTab() {
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <s.icon className="size-5" />
               </div>
-              <h3 className="text-lg font-bold">{s.title}</h3>
+              <h3 className="text-lg font-bold">
+                <Highlight text={s.title} query={query} />
+              </h3>
             </header>
-            <p className="mt-2 text-sm text-muted-foreground">{s.intro}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              <Highlight text={s.intro} query={query} />
+            </p>
 
             <ol className="mt-4 space-y-3">
               {s.steps.map((step, i) => (
@@ -718,8 +748,12 @@ export function HelpTab() {
                     {i + 1}
                   </span>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold">{step.title}</p>
-                    <p className="text-sm text-muted-foreground">{step.text}</p>
+                    <p className="text-sm font-semibold">
+                      <Highlight text={step.title} query={query} />
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      <Highlight text={step.text} query={query} />
+                    </p>
                   </div>
                 </li>
               ))}
@@ -734,7 +768,7 @@ export function HelpTab() {
                   {s.tips.map((t, i) => (
                     <li key={i} className="flex gap-2 text-sm text-amber-900 dark:text-amber-100">
                       <ArrowRight className="mt-0.5 size-3.5 shrink-0" />
-                      <span>{t}</span>
+                      <span><Highlight text={t} query={query} /></span>
                     </li>
                   ))}
                 </ul>
