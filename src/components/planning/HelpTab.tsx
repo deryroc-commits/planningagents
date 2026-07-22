@@ -795,7 +795,7 @@ export function HelpTab() {
         )}
       </div>
 
-      <div className="space-y-4">
+      <div ref={resultsRef} className="space-y-4">
         {filtered.map((s) => (
           <section
             key={s.id}
