@@ -732,9 +732,41 @@ export function HelpTab() {
         )}
 
         {query && filtered.length > 0 && (
-          <p className="mt-4 text-sm text-muted-foreground">
-            {filtered.length} résultat{filtered.length > 1 ? "s" : ""} pour « {query} »
-          </p>
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              {filtered.length} section{filtered.length > 1 ? "s" : ""} · {matchCount} occurrence{matchCount > 1 ? "s" : ""}
+              {matchCount > 0 && (
+                <span className="ml-1 font-semibold text-foreground">
+                  ({activeMatch + 1}/{matchCount})
+                </span>
+              )}
+              <span className="ml-1">pour « {query} »</span>
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2"
+                onClick={goPrev}
+                disabled={matchCount === 0}
+                aria-label="Occurrence précédente"
+                title="Précédent (occurrence précédente)"
+              >
+                <ChevronUp className="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2"
+                onClick={goNext}
+                disabled={matchCount === 0}
+                aria-label="Occurrence suivante"
+                title="Suivant (occurrence suivante)"
+              >
+                <ChevronDown className="size-4" />
+              </Button>
+            </div>
+          </div>
         )}
 
 
