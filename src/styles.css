@@ -252,6 +252,14 @@
   .tint-overtime { background-color: oklch(0.975 0.035 45); }
   .tint-print { background-color: oklch(0.98 0.008 256); }
 
+  /* Active match in Help search */
+  .help-mark-active {
+    background-color: oklch(0.82 0.22 65) !important;
+    color: #1a1a1a !important;
+    box-shadow: 0 0 0 2px oklch(0.55 0.22 40);
+    border-radius: 3px;
+  }
+
   /* Colored tab triggers */
   .tt {
     color: var(--tt-c);
