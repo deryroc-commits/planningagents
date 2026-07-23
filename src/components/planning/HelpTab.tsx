@@ -583,6 +583,10 @@ const SECTIONS: Section[] = [
         title: "Poignée de recopie",
         text: "Tirer le carré bleu en bas à droite d'une cellule pour recopier sa valeur.",
       },
+      {
+        title: "Recherche dans l'aide",
+        text: "Dans le champ de recherche : ↓/Entrée = occurrence suivante, ↑/Maj+Entrée = précédente. Compteur (n/total) et surlignage orange sur l'occurrence active.",
+      },
     ],
   },
 ];
