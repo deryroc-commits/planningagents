@@ -484,6 +484,39 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "aide-recherche",
+    title: "Recherche dans l'aide",
+    icon: Search,
+    intro:
+      "La barre de recherche filtre les sections en temps réel, surligne les termes trouvés et permet de naviguer d'une occurrence à l'autre.",
+    steps: [
+      {
+        title: "Filtrer les sections",
+        text: "Tapez un mot-clé (ex : « import », « code », « sauvegarde ») : seules les sections concernées restent affichées et le lecteur PDF est masqué pour laisser la place aux résultats.",
+      },
+      {
+        title: "Surlignage des correspondances",
+        text: "Les termes trouvés sont surlignés en jaune dans les titres, intros, étapes et astuces. L'occurrence active est mise en évidence en orange.",
+      },
+      {
+        title: "Boutons Précédent / Suivant",
+        text: "Un compteur « (n/total) » indique l'occurrence courante. Les boutons ↑ / ↓ à droite du compteur défilent automatiquement jusqu'à la correspondance suivante ou précédente.",
+      },
+      {
+        title: "Navigation clavier",
+        text: "Depuis la barre de recherche : ↓ ou Entrée pour l'occurrence suivante, ↑ ou Maj+Entrée pour la précédente. Aucun besoin de lâcher le clavier.",
+      },
+      {
+        title: "Effacer la recherche",
+        text: "Le bouton « Effacer » à droite du champ réaffiche le lecteur PDF et la liste complète des sections.",
+      },
+    ],
+    tips: [
+      "La recherche est insensible à la casse et aux accents partiels.",
+      "Le compteur affiche à la fois le nombre de sections filtrées et le nombre total d'occurrences.",
+    ],
+  },
+  {
     id: "reset",
     title: "Réinitialiser",
     icon: Trash2,
@@ -549,6 +582,10 @@ const SECTIONS: Section[] = [
       {
         title: "Poignée de recopie",
         text: "Tirer le carré bleu en bas à droite d'une cellule pour recopier sa valeur.",
+      },
+      {
+        title: "Recherche dans l'aide",
+        text: "Dans le champ de recherche : ↓/Entrée = occurrence suivante, ↑/Maj+Entrée = précédente. Compteur (n/total) et surlignage orange sur l'occurrence active.",
       },
     ],
   },
