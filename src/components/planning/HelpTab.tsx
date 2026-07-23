@@ -658,7 +658,17 @@ export function HelpTab() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher… (ex : import, copier, code, sauvegarde, hors-ligne)"
+            onKeyDown={(e) => {
+              if (matchCount === 0) return;
+              if (e.key === "ArrowDown" || (e.key === "Enter" && !e.shiftKey)) {
+                e.preventDefault();
+                goNext();
+              } else if (e.key === "ArrowUp" || (e.key === "Enter" && e.shiftKey)) {
+                e.preventDefault();
+                goPrev();
+              }
+            }}
+            placeholder="Rechercher… (↑/↓ ou Entrée pour naviguer)"
             className="pl-9"
           />
           {query && (
