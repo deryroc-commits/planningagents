@@ -675,7 +675,9 @@ function TabPermGate({
           <Eye className="mr-1 inline size-3.5" /> Lecture seule — vous n'avez pas les droits pour modifier cet onglet.
         </span>
       </div>
-      {children}
+      <div className="pointer-events-none select-none opacity-80" aria-disabled="true">
+        {children}
+      </div>
     </div>
   );
 }
