@@ -55,24 +55,6 @@ export type Database = {
           },
         ]
       }
-      planning_cloud_state: {
-        Row: {
-          id: string
-          state: Json
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          state: Json
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          state?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string
