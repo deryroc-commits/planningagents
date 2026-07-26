@@ -260,6 +260,23 @@
     border-radius: 3px;
   }
 
+  /* Read-only tab lock: block direct field edits & drag, keep navigation
+     (buttons, selects, tabs) usable so viewers can still change month/filters. */
+  .readonly-tab input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+  .readonly-tab textarea,
+  .readonly-tab [contenteditable="true"] {
+    pointer-events: none !important;
+    user-select: none;
+    background-color: color-mix(in oklch, var(--muted), transparent 40%) !important;
+    cursor: not-allowed !important;
+  }
+  .readonly-tab input[type="checkbox"]:not([data-nav]),
+  .readonly-tab input[type="radio"]:not([data-nav]) {
+    pointer-events: none !important;
+    opacity: 0.7;
+  }
+  .readonly-tab [draggable="true"] { -webkit-user-drag: none; }
+
   /* Colored tab triggers */
   .tt {
     color: var(--tt-c);
