@@ -84,6 +84,30 @@ function slug(s: string): string {
     .toLowerCase();
 }
 
+const QR_BASE_URL_KEY = "qr_base_url";
+const CANONICAL_BASE_URL = "https://duvalericlabs.com";
+
+function getDefaultBaseUrl(): string {
+  const env = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_PUBLIC_APP_URL;
+  if (env && /^https?:\/\//i.test(env)) return env.replace(/\/+$/, "");
+  return CANONICAL_BASE_URL;
+}
+
+function readStoredBaseUrl(): string {
+  if (typeof window === "undefined") return getDefaultBaseUrl();
+  const v = window.localStorage.getItem(QR_BASE_URL_KEY);
+  return v && /^https?:\/\//i.test(v) ? v.replace(/\/+$/, "") : getDefaultBaseUrl();
+}
+
+function isValidHttpUrl(v: string): boolean {
+  try {
+    const u = new URL(v);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function ShareQrTab() {
   const { agents: allAgents, year: currentYear, yearRange } = usePlanning();
   const { activeWorkspaceId, canEdit } = useWorkspace();
