@@ -133,7 +133,7 @@ export function ShareQrTab() {
     window.localStorage.setItem(QR_BASE_URL_KEY, cleaned);
     setBaseUrl(cleaned);
     setBaseUrlInput(cleaned);
-    toast.success("URL des QR codes enregistrée.");
+    toast.success("Domaine de l'application enregistré.");
   }, [baseUrlInput, baseUrlValid]);
 
   const resetBaseUrl = useCallback(() => {
