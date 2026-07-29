@@ -397,6 +397,46 @@ export function ShareQrTab() {
         </p>
       </div>
 
+      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Link2 className="size-4 text-primary" />
+          <h3 className="text-sm font-semibold">URL des QR codes</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Domaine utilisé pour tous les QR générés ensuite (Lovable ou domaine personnalisé).
+          Cette valeur est stockée localement et prioritaire sur <code className="rounded bg-muted px-1">VITE_PUBLIC_APP_URL</code>,
+          puis sur le domaine canonique.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            value={baseUrlInput}
+            onChange={(e) => setBaseUrlInput(e.target.value)}
+            placeholder="https://mon-domaine.com"
+            className="min-w-64 flex-1"
+            aria-invalid={!baseUrlValid}
+          />
+          <Button onClick={saveBaseUrl} disabled={!baseUrlValid || baseUrlInput.replace(/\/+$/, "") === baseUrl}>
+            <Check /> Enregistrer
+          </Button>
+          <Button variant="outline" onClick={resetBaseUrl} title={`Par défaut : ${defaultBaseUrl}`}>
+            <RotateCcw /> Par défaut
+          </Button>
+        </div>
+        {!baseUrlValid ? (
+          <div className="flex items-center gap-2 text-xs text-destructive">
+            <AlertCircle className="size-3.5" /> URL invalide (doit commencer par http:// ou https://).
+          </div>
+        ) : (
+          <div className="rounded-md border border-primary/20 bg-primary/5 p-2 text-xs">
+            <span className="text-muted-foreground">Aperçu : </span>
+            <span className="font-mono text-foreground break-all">
+              {baseUrl}/p/&lt;token&gt;?y={year}&amp;mo={activeMonths[0]}&amp;ms={activeMonths.join(",")}
+            </span>
+          </div>
+        )}
+      </div>
+
+
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
         <div>
           <label className="mb-1 block text-xs font-medium text-muted-foreground">
