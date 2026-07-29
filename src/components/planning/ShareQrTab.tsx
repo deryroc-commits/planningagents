@@ -400,12 +400,12 @@ export function ShareQrTab() {
       <div className="rounded-lg border border-border bg-card p-4 space-y-3">
         <div className="flex items-center gap-2">
           <Link2 className="size-4 text-primary" />
-          <h3 className="text-sm font-semibold">URL des QR codes</h3>
+          <h3 className="text-sm font-semibold">Domaine de l'application</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Domaine utilisé pour tous les QR générés ensuite (Lovable ou domaine personnalisé).
-          Cette valeur est stockée localement et prioritaire sur <code className="rounded bg-muted px-1">VITE_PUBLIC_APP_URL</code>,
-          puis sur le domaine canonique.
+          Domaine utilisé par l'application (Lovable ou domaine personnalisé). Il sert notamment
+          aux liens partagés et aux QR codes générés ensuite. Valeur stockée localement, prioritaire
+          sur <code className="rounded bg-muted px-1">VITE_PUBLIC_APP_URL</code> puis sur le domaine canonique.
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <Input
