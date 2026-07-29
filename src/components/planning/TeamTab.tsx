@@ -281,7 +281,10 @@ export function TeamTab() {
         </div>
       </div>
 
+      <AppDomainCard />
+
       {/* My invitation status */}
+
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <h3 className="flex items-center gap-2 text-base font-semibold">
           <Mail className="size-4 text-primary" /> Mon statut d'accès
