@@ -298,8 +298,8 @@ export function ShareQrTab() {
 
   const buildUrl = useCallback(
     (token: string) =>
-      `${window.location.origin}/p/${token}?y=${year}&mo=${activeMonths[0]}&ms=${activeMonths.join(",")}`,
-    [year, activeMonths],
+      `${baseUrl}/p/${token}?y=${year}&mo=${activeMonths[0]}&ms=${activeMonths.join(",")}`,
+    [baseUrl, year, activeMonths],
   );
 
   const copyLink = useCallback(
