@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { Copy, Download, QrCode, Loader2, Info, RefreshCw, Clock, Link2, RotateCcw, Check, AlertCircle } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Copy, Download, QrCode, Loader2, Info, RefreshCw, Clock } from "lucide-react";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanning } from "@/lib/planning/store";
