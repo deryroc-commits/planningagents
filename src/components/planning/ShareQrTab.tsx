@@ -122,6 +122,27 @@ export function ShareQrTab() {
     new Date().getMonth(),
   ]);
   const [preview, setPreview] = useState<{ name: string; dataUrl: string; url: string; expiresAt: string | null } | null>(null);
+  const [baseUrl, setBaseUrl] = useState<string>(() => readStoredBaseUrl());
+  const [baseUrlInput, setBaseUrlInput] = useState<string>(() => readStoredBaseUrl());
+  const baseUrlValid = isValidHttpUrl(baseUrlInput);
+  const defaultBaseUrl = getDefaultBaseUrl();
+
+  const saveBaseUrl = useCallback(() => {
+    if (!baseUrlValid) return;
+    const cleaned = baseUrlInput.replace(/\/+$/, "");
+    window.localStorage.setItem(QR_BASE_URL_KEY, cleaned);
+    setBaseUrl(cleaned);
+    setBaseUrlInput(cleaned);
+    toast.success("URL des QR codes enregistrée.");
+  }, [baseUrlInput, baseUrlValid]);
+
+  const resetBaseUrl = useCallback(() => {
+    window.localStorage.removeItem(QR_BASE_URL_KEY);
+    const d = getDefaultBaseUrl();
+    setBaseUrl(d);
+    setBaseUrlInput(d);
+    toast.success("URL par défaut rétablie.");
+  }, []);
   const agents = useMemo(() => {
     if (scope === "month") {
       return getVisibleAgents(allAgents, {
