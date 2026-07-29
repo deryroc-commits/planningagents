@@ -123,26 +123,19 @@ export function ShareQrTab() {
   ]);
   const [preview, setPreview] = useState<{ name: string; dataUrl: string; url: string; expiresAt: string | null } | null>(null);
   const [baseUrl, setBaseUrl] = useState<string>(() => readStoredBaseUrl());
-  const [baseUrlInput, setBaseUrlInput] = useState<string>(() => readStoredBaseUrl());
-  const baseUrlValid = isValidHttpUrl(baseUrlInput);
-  const defaultBaseUrl = getDefaultBaseUrl();
-
-  const saveBaseUrl = useCallback(() => {
-    if (!baseUrlValid) return;
-    const cleaned = baseUrlInput.replace(/\/+$/, "");
-    window.localStorage.setItem(QR_BASE_URL_KEY, cleaned);
-    setBaseUrl(cleaned);
-    setBaseUrlInput(cleaned);
-    toast.success("Domaine de l'application enregistré.");
-  }, [baseUrlInput, baseUrlValid]);
-
-  const resetBaseUrl = useCallback(() => {
-    window.localStorage.removeItem(QR_BASE_URL_KEY);
-    const d = getDefaultBaseUrl();
-    setBaseUrl(d);
-    setBaseUrlInput(d);
-    toast.success("URL par défaut rétablie.");
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === QR_BASE_URL_KEY) setBaseUrl(readStoredBaseUrl());
+    };
+    const onFocus = () => setBaseUrl(readStoredBaseUrl());
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
+
   const agents = useMemo(() => {
     if (scope === "month") {
       return getVisibleAgents(allAgents, {
