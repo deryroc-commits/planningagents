@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { Copy, Download, QrCode, Loader2, Info, RefreshCw, Clock } from "lucide-react";
+import { Copy, Download, QrCode, Loader2, Info, RefreshCw, Clock, Link2, RotateCcw, Check, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanning } from "@/lib/planning/store";
@@ -83,6 +84,30 @@ function slug(s: string): string {
     .toLowerCase();
 }
 
+const QR_BASE_URL_KEY = "qr_base_url";
+const CANONICAL_BASE_URL = "https://duvalericlabs.com";
+
+function getDefaultBaseUrl(): string {
+  const env = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_PUBLIC_APP_URL;
+  if (env && /^https?:\/\//i.test(env)) return env.replace(/\/+$/, "");
+  return CANONICAL_BASE_URL;
+}
+
+function readStoredBaseUrl(): string {
+  if (typeof window === "undefined") return getDefaultBaseUrl();
+  const v = window.localStorage.getItem(QR_BASE_URL_KEY);
+  return v && /^https?:\/\//i.test(v) ? v.replace(/\/+$/, "") : getDefaultBaseUrl();
+}
+
+function isValidHttpUrl(v: string): boolean {
+  try {
+    const u = new URL(v);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function ShareQrTab() {
   const { agents: allAgents, year: currentYear, yearRange } = usePlanning();
   const { activeWorkspaceId, canEdit } = useWorkspace();
@@ -97,6 +122,27 @@ export function ShareQrTab() {
     new Date().getMonth(),
   ]);
   const [preview, setPreview] = useState<{ name: string; dataUrl: string; url: string; expiresAt: string | null } | null>(null);
+  const [baseUrl, setBaseUrl] = useState<string>(() => readStoredBaseUrl());
+  const [baseUrlInput, setBaseUrlInput] = useState<string>(() => readStoredBaseUrl());
+  const baseUrlValid = isValidHttpUrl(baseUrlInput);
+  const defaultBaseUrl = getDefaultBaseUrl();
+
+  const saveBaseUrl = useCallback(() => {
+    if (!baseUrlValid) return;
+    const cleaned = baseUrlInput.replace(/\/+$/, "");
+    window.localStorage.setItem(QR_BASE_URL_KEY, cleaned);
+    setBaseUrl(cleaned);
+    setBaseUrlInput(cleaned);
+    toast.success("URL des QR codes enregistrée.");
+  }, [baseUrlInput, baseUrlValid]);
+
+  const resetBaseUrl = useCallback(() => {
+    window.localStorage.removeItem(QR_BASE_URL_KEY);
+    const d = getDefaultBaseUrl();
+    setBaseUrl(d);
+    setBaseUrlInput(d);
+    toast.success("URL par défaut rétablie.");
+  }, []);
   const agents = useMemo(() => {
     if (scope === "month") {
       return getVisibleAgents(allAgents, {
@@ -252,8 +298,8 @@ export function ShareQrTab() {
 
   const buildUrl = useCallback(
     (token: string) =>
-      `${window.location.origin}/p/${token}?y=${year}&mo=${activeMonths[0]}&ms=${activeMonths.join(",")}`,
-    [year, activeMonths],
+      `${baseUrl}/p/${token}?y=${year}&mo=${activeMonths[0]}&ms=${activeMonths.join(",")}`,
+    [baseUrl, year, activeMonths],
   );
 
   const copyLink = useCallback(
@@ -350,6 +396,46 @@ export function ShareQrTab() {
           mois — sans avoir besoin de compte.
         </p>
       </div>
+
+      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Link2 className="size-4 text-primary" />
+          <h3 className="text-sm font-semibold">URL des QR codes</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Domaine utilisé pour tous les QR générés ensuite (Lovable ou domaine personnalisé).
+          Cette valeur est stockée localement et prioritaire sur <code className="rounded bg-muted px-1">VITE_PUBLIC_APP_URL</code>,
+          puis sur le domaine canonique.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            value={baseUrlInput}
+            onChange={(e) => setBaseUrlInput(e.target.value)}
+            placeholder="https://mon-domaine.com"
+            className="min-w-64 flex-1"
+            aria-invalid={!baseUrlValid}
+          />
+          <Button onClick={saveBaseUrl} disabled={!baseUrlValid || baseUrlInput.replace(/\/+$/, "") === baseUrl}>
+            <Check /> Enregistrer
+          </Button>
+          <Button variant="outline" onClick={resetBaseUrl} title={`Par défaut : ${defaultBaseUrl}`}>
+            <RotateCcw /> Par défaut
+          </Button>
+        </div>
+        {!baseUrlValid ? (
+          <div className="flex items-center gap-2 text-xs text-destructive">
+            <AlertCircle className="size-3.5" /> URL invalide (doit commencer par http:// ou https://).
+          </div>
+        ) : (
+          <div className="rounded-md border border-primary/20 bg-primary/5 p-2 text-xs">
+            <span className="text-muted-foreground">Aperçu : </span>
+            <span className="font-mono text-foreground break-all">
+              {baseUrl}/p/&lt;token&gt;?y={year}&amp;mo={activeMonths[0]}&amp;ms={activeMonths.join(",")}
+            </span>
+          </div>
+        )}
+      </div>
+
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
         <div>
