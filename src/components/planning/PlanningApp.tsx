@@ -19,6 +19,8 @@ import {
   Printer,
   HelpCircle,
 } from "lucide-react";
+import { ChevronsUp, ChevronsDown, Maximize2, Minimize2 } from "lucide-react";
+import { useDisplayPrefs } from "@/hooks/use-display-prefs";
 import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace, type TabKey } from "@/lib/workspace/workspace-context";
 import { Eye, Lock as LockIcon } from "lucide-react";
