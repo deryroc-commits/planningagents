@@ -379,6 +379,22 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               <Upload /> Importer
             </Button>
             <ExportButton />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setHideHeader(true)}
+              title="Masquer le bandeau"
+            >
+              <ChevronsUp className="size-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void toggleFullscreen()}
+              title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+            >
+              {isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+            </Button>
             <ResetDialog
               year={year}
               onClearYear={() => {
