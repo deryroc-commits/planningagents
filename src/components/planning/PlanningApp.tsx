@@ -99,6 +99,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     }
   }, [tab, canViewTab]);
   const [status, setStatus] = useState<string | null>(null);
+  const { hideHeader, setHideHeader, isFullscreen, toggleFullscreen } = useDisplayPrefs();
   const [importOpen, setImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
