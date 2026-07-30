@@ -286,9 +286,28 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel className="max-w-56 truncate">{user?.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuLabel>Affichage</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setHideHeader(!hideHeader)}>
+                  {hideHeader ? (
+                    <ChevronsDown className="mr-2 size-4" />
+                  ) : (
+                    <ChevronsUp className="mr-2 size-4" />
+                  )}
+                  {hideHeader ? "Afficher le bandeau" : "Masquer le bandeau"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void toggleFullscreen()}>
+                  {isFullscreen ? (
+                    <Minimize2 className="mr-2 size-4" />
+                  ) : (
+                    <Maximize2 className="mr-2 size-4" />
+                  )}
+                  {isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setTab("team")}>
                   <Users className="mr-2 size-4" /> Équipe & partage
                 </DropdownMenuItem>
+
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   onClick={() => void signOut()}
