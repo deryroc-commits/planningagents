@@ -19,6 +19,8 @@ import {
   Printer,
   HelpCircle,
 } from "lucide-react";
+import { ChevronsUp, ChevronsDown, Maximize2, Minimize2 } from "lucide-react";
+import { useDisplayPrefs } from "@/hooks/use-display-prefs";
 import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace, type TabKey } from "@/lib/workspace/workspace-context";
 import { Eye, Lock as LockIcon } from "lucide-react";
@@ -99,6 +101,7 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
     }
   }, [tab, canViewTab]);
   const [status, setStatus] = useState<string | null>(null);
+  const { hideHeader, setHideHeader, isFullscreen, toggleFullscreen } = useDisplayPrefs();
   const [importOpen, setImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
@@ -236,7 +239,24 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="no-print sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
+      {hideHeader && (
+        <div className="no-print sticky top-0 z-40 flex items-center justify-end gap-2 border-b border-border bg-card/95 px-4 py-1 backdrop-blur">
+          <Button size="sm" variant="ghost" onClick={() => setHideHeader(false)}>
+            <ChevronsDown className="mr-1.5 size-4" /> Afficher le bandeau
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => void toggleFullscreen()}
+            title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+          >
+            {isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+          </Button>
+        </div>
+      )}
+      <header
+        className={`no-print sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur ${hideHeader ? "hidden" : ""}`}
+      >
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3">
           <Link to="/" className="flex items-center gap-2 rounded-md px-1 py-0.5 hover:bg-accent">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -283,9 +303,28 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel className="max-w-56 truncate">{user?.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuLabel>Affichage</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setHideHeader(!hideHeader)}>
+                  {hideHeader ? (
+                    <ChevronsDown className="mr-2 size-4" />
+                  ) : (
+                    <ChevronsUp className="mr-2 size-4" />
+                  )}
+                  {hideHeader ? "Afficher le bandeau" : "Masquer le bandeau"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void toggleFullscreen()}>
+                  {isFullscreen ? (
+                    <Minimize2 className="mr-2 size-4" />
+                  ) : (
+                    <Maximize2 className="mr-2 size-4" />
+                  )}
+                  {isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setTab("team")}>
                   <Users className="mr-2 size-4" /> Équipe & partage
                 </DropdownMenuItem>
+
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   onClick={() => void signOut()}
@@ -340,6 +379,22 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
               <Upload /> Importer
             </Button>
             <ExportButton />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setHideHeader(true)}
+              title="Masquer le bandeau"
+            >
+              <ChevronsUp className="size-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void toggleFullscreen()}
+              title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+            >
+              {isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+            </Button>
             <ResetDialog
               year={year}
               onClearYear={() => {
