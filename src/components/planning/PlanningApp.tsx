@@ -239,7 +239,24 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="no-print sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
+      {hideHeader && (
+        <div className="no-print sticky top-0 z-40 flex items-center justify-end gap-2 border-b border-border bg-card/95 px-4 py-1 backdrop-blur">
+          <Button size="sm" variant="ghost" onClick={() => setHideHeader(false)}>
+            <ChevronsDown className="mr-1.5 size-4" /> Afficher le bandeau
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => void toggleFullscreen()}
+            title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+          >
+            {isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+          </Button>
+        </div>
+      )}
+      <header
+        className={`no-print sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur ${hideHeader ? "hidden" : ""}`}
+      >
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3">
           <Link to="/" className="flex items-center gap-2 rounded-md px-1 py-0.5 hover:bg-accent">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
