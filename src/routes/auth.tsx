@@ -50,7 +50,7 @@ function AuthPage() {
 
   useEffect(() => {
     if (!loading && session) {
-      navigate({ to: "/app", replace: true });
+      navigate({ to: "/app", search: { tab: "planning" }, replace: true });
     }
   }, [loading, session, navigate]);
 
