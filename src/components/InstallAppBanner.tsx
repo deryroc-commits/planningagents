@@ -4,7 +4,7 @@ import { Download, Share, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const DISMISS_KEY = "pwa:install-banner-dismissed";
-const APP_NAME = "Planning des agents";
+const APP_NAME = "Planning Agents";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
