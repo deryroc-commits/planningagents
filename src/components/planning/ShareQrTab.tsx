@@ -85,7 +85,7 @@ function slug(s: string): string {
 }
 
 const QR_BASE_URL_KEY = "qr_base_url";
-const CANONICAL_BASE_URL = "https://duvalericlabs.com";
+const CANONICAL_BASE_URL = "https://planningagents.duvalericlabs.com";
 
 function getDefaultBaseUrl(): string {
   const env = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_PUBLIC_APP_URL;

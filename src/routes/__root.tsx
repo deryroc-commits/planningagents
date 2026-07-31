@@ -143,8 +143,8 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.hostname === "www.duvalericlabs.com") {
-      window.location.replace(`https://duvalericlabs.com${window.location.pathname}${window.location.search}${window.location.hash}`);
+    if (typeof window !== "undefined" && window.location.hostname === "www.planningagents.duvalericlabs.com") {
+      window.location.replace(`https://planningagents.duvalericlabs.com${window.location.pathname}${window.location.search}${window.location.hash}`);
       return;
     }
     registerServiceWorker();
