@@ -62,12 +62,12 @@ export function InstallAppBanner() {
     const onInstalled = () => setVisible(false);
     window.addEventListener("appinstalled", onInstalled);
 
-    // Fallback: browsers without beforeinstallprompt (iOS, Firefox) get the
-    // manual instructions after a short delay.
+    // Fallback: browsers without beforeinstallprompt (iOS Safari, desktop
+    // Safari, Firefox, etc.) get the manual instructions after a short delay.
     const timer = window.setTimeout(() => {
       setVisible((v) => {
         if (v) return v;
-        setIosHint(true);
+        setIosHint(isIos());
         return true;
       });
     }, 2500);
