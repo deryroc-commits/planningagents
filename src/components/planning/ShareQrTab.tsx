@@ -118,6 +118,7 @@ export function ShareQrTab() {
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(new Date().getMonth());
   const [scope, setScope] = useState<Scope>("month");
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [expireDays, setExpireDays] = useState(0);
   const [selectedMonths, setSelectedMonths] = useState<number[]>([
     new Date().getMonth(),
