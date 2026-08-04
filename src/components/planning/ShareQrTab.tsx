@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { Copy, Download, QrCode, Loader2, Info, RefreshCw, Clock } from "lucide-react";
+import { Copy, Download, QrCode, Loader2, Info, RefreshCw, Clock, ScanLine } from "lucide-react";
 
 
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { MONTHS } from "@/lib/planning/calc";
 import { getVisibleAgents } from "@/lib/planning/visible-agents";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { Button } from "@/components/ui/button";
+import { QrScannerDialog } from "@/components/planning/QrScannerDialog";
 import { Slider } from "@/components/ui/slider";
 import {
   Select,
@@ -381,6 +382,7 @@ export function ShareQrTab() {
 
   return (
     <div className="space-y-4">
+      <QrScannerDialog open={scannerOpen} onOpenChange={setScannerOpen} />
       <div>
         <h2 className="text-lg font-semibold">QR codes & partage</h2>
         <p className="text-sm text-muted-foreground">
@@ -447,9 +449,14 @@ export function ShareQrTab() {
             </Select>
           </div>
         )}
-        <Button className="ml-auto" onClick={() => void downloadAll()}>
-          <Download /> Télécharger tous les QR
-        </Button>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => setScannerOpen(true)}>
+            <ScanLine /> Scanner un QR code
+          </Button>
+          <Button onClick={() => void downloadAll()}>
+            <Download /> Télécharger tous les QR
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-lg border border-border bg-card p-3">
