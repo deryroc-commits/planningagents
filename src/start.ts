@@ -6,8 +6,8 @@ import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 const canonicalHostMiddleware = createMiddleware().server(async ({ next, request }) => {
   try {
     const url = new URL(request.url);
-    if (url.hostname === "www.planningagents.duvalericlabs.com") {
-      url.hostname = "planningagents.duvalericlabs.com";
+    if (url.hostname === "www.planningdesagents.duvalericlabs.com") {
+      url.hostname = "planningdesagents.duvalericlabs.com";
       return new Response(null, {
         status: 301,
         headers: { location: url.toString() },
