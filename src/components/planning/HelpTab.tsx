@@ -422,8 +422,21 @@ const SECTIONS: Section[] = [
         title: "Partager",
         text: "Imprimez ou affichez le QR code ; l'agent le scanne avec son appareil photo.",
       },
+      {
+        title: "Lecteur de QR code intégré",
+        text: "Le bouton « Scanner un QR code » en haut de l'onglet ouvre un lecteur intégré à l'application : utile sur les smartphones, tablettes ou ordinateurs qui n'ont pas de lecteur de QR code. Il utilise la caméra arrière de l'appareil et ouvre directement le planning dès que le code est reconnu.",
+      },
+      {
+        title: "Sans caméra : import d'une image",
+        text: "Si la caméra est absente, refusée ou indisponible, cliquez sur « Importer une image » et choisissez une photo ou une capture du QR code : le lien est décodé puis ouvert (ou copié s'il ne s'agit pas d'une adresse web). Le bouton « Scanner à nouveau » relance la caméra.",
+      },
+    ],
+    tips: [
+      "L'accès à la caméra nécessite une connexion sécurisée (https) et une autorisation du navigateur.",
+      "Après un changement de domaine, régénérez les QR codes pour qu'ils pointent vers la bonne adresse.",
     ],
   },
+
   {
     id: "import-export",
     title: "Import / Export Excel",
