@@ -82,6 +82,9 @@ export function ParametersTab() {
 
       <TitlesCard />
 
+      <PrintersCard />
+
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Codes & paramètres</h2>
