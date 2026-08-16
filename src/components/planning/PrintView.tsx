@@ -207,6 +207,21 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
             <FileSpreadsheet /> Aperçu Excel (XLSX)
           </Button>
           <Select
+            value={selectedPrinter.id}
+            onValueChange={setPrinterId}
+          >
+            <SelectTrigger className="w-56" aria-label="Imprimante">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {printers.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
             value={pdfFormat}
             onValueChange={(v) => setPdfFormat(v as PdfFormat)}
           >
@@ -218,6 +233,45 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
               <SelectItem value="a3">A3</SelectItem>
             </SelectContent>
           </Select>
+          {selectedPrinter.kind !== "system" && (
+            <Button
+              variant="outline"
+              disabled={ticketBusy}
+              onClick={async () => {
+                setTicketBusy(true);
+                try {
+                  const today = new Date();
+                  const idx =
+                    today.getFullYear() === year && today.getMonth() === month
+                      ? indices[today.getDate() - 1]
+                      : indices[0];
+                  const lines = visibleAgents.slice(0, 40).map((a) => {
+                    const code = (planning[a.id] ?? {})[idx] ?? "";
+                    return `${(a.name ?? "").slice(0, 22).padEnd(22, " ")}${code}`;
+                  });
+                  await printTicket(
+                    selectedPrinter,
+                    printTitle,
+                    [
+                      `${MONTHS[month]} ${year}`,
+                      ...(lines.length ? lines : ["Aucun agent visible"]),
+                    ],
+                  );
+                  toast.success("Ticket envoyé à l'imprimante");
+                } catch (e) {
+                  toast.error("Impression impossible", {
+                    description: e instanceof Error ? e.message : undefined,
+                  });
+                } finally {
+                  setTicketBusy(false);
+                }
+              }}
+            >
+              {ticketBusy ? <Loader2 className="animate-spin" /> : <Printer />}
+              Ticket du jour
+            </Button>
+          )}
+
           <Button
             disabled={pdfSaving}
             onClick={async () => {
