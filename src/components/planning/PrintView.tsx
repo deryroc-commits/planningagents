@@ -87,6 +87,12 @@ export function PrintView({ month, setMonth }: PrintViewProps) {
   const [saving, setSaving] = useState(false);
   const [pdfSaving, setPdfSaving] = useState(false);
   const [pdfFormat, setPdfFormat] = useState<PdfFormat>("a4");
+  const { printers, defaultPrinter } = usePrinters();
+  const [printerId, setPrinterId] = useState<string>("");
+  const selectedPrinter =
+    printers.find((p) => p.id === printerId) ?? defaultPrinter;
+  const [ticketBusy, setTicketBusy] = useState(false);
+
   const [includeInactive, setIncludeInactive] = useState(false);
   const pageRef = useRef<HTMLDivElement>(null);
   const map = useMemo(() => codesMap(codes), [codes]);
