@@ -18,6 +18,9 @@ import { getVisibleAgents } from "@/lib/planning/visible-agents";
 import type { Agent } from "@/lib/planning/types";
 import { exportStyledMonthExcel } from "@/lib/planning/excel";
 import { exportElementToPdf, type PdfFormat } from "@/lib/planning/pdf";
+import { printTicket, usePrinters } from "@/lib/printing/printers";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
