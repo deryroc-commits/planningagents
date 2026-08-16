@@ -5,6 +5,8 @@ import { Slider } from "@/components/ui/slider";
 import { ColorSettings } from "./ColorSettings";
 import { ColorPalette } from "./ColorPalette";
 import { BackupBar } from "./BackupBar";
+import { PrintersCard } from "./PrintersCard";
+
 import { usePlanning } from "@/lib/planning/store";
 import { useWorkspace, DEFAULT_TITLES } from "@/lib/workspace/workspace-context";
 import { Label } from "@/components/ui/label";
