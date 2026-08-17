@@ -347,6 +347,48 @@ const SECTIONS: Section[] = [
         title: "Titre affiché",
         text: "Le bandeau reprend le « Titre d'impression » défini dans Paramètres.",
       },
+      {
+        title: "Choisir l'imprimante",
+        text: "Un sélecteur d'imprimante est disponible en haut de l'onglet Impression : il reprend les imprimantes enregistrées dans Paramètres → Imprimantes (système, Bluetooth, réseau IP).",
+      },
+      {
+        title: "Ticket du jour",
+        text: "Avec une imprimante Bluetooth ou réseau, le bouton « Ticket du jour » imprime un résumé compact des agents et de leurs codes pour la journée sélectionnée, sans passer par le PDF.",
+      },
+    ],
+  },
+  {
+    id: "imprimantes",
+    title: "Imprimantes (système, Bluetooth, réseau)",
+    icon: Printer,
+    intro:
+      "La carte « Imprimantes » dans Paramètres permet d'enregistrer plusieurs imprimantes : la boîte de dialogue du navigateur, des imprimantes d'étiquettes Bluetooth et des imprimantes réseau IP. La liste est mémorisée dans le navigateur de l'appareil.",
+    steps: [
+      {
+        title: "Système (navigateur)",
+        text: "Imprimante par défaut toujours présente : elle ouvre la boîte de dialogue d'impression du navigateur (planning A4/A3, export PDF). Fonctionne sur tous les appareils.",
+      },
+      {
+        title: "Bluetooth (ESC/POS ou TSPL)",
+        text: "Cliquez sur « Bluetooth », puis « Appairer » pour choisir l'imprimante d'étiquettes. Sélectionnez le langage : ESC/POS pour les tickets, TSPL pour les étiquettes. Nécessite Chrome ou Edge en https (Web Bluetooth n'existe pas sur iPhone ni Firefox).",
+      },
+      {
+        title: "Réseau IP",
+        text: "Renseignez l'adresse IP et le port (9100 par défaut). Le navigateur ne peut pas ouvrir un port TCP brut : choisissez le transport HTTP si l'imprimante expose un service web, sinon passez par un agent local qui relaie vers le port 9100.",
+      },
+      {
+        title: "Imprimante par défaut et étiquettes",
+        text: "Chaque imprimante peut être marquée « Par défaut » (documents, planning) et/ou « Étiquettes par défaut » (tickets et étiquettes agents). Les deux réglages sont indépendants.",
+      },
+      {
+        title: "Tester et supprimer",
+        text: "Le bouton « Test impression » / « Test étiquette » envoie un ticket de contrôle. Les imprimantes ajoutées peuvent être renommées directement dans la liste ou supprimées ; l'imprimante système ne peut pas être retirée.",
+      },
+    ],
+    tips: [
+      "Les imprimantes sont propres à chaque navigateur/appareil : reconfigurez-les sur un nouveau téléphone ou PC.",
+      "Si l'appairage échoue, vérifiez que l'imprimante est allumée, en mode Bluetooth et pas déjà connectée à un autre appareil.",
+      "Pour un ticket lisible, préférez ESC/POS sur les imprimantes à rouleau et TSPL sur les imprimantes d'étiquettes prédécoupées.",
     ],
   },
   {
