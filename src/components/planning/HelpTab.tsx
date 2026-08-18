@@ -392,6 +392,51 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "depannage-imprimantes",
+    title: "Dépannage imprimantes",
+    icon: Printer,
+    intro:
+      "Solutions aux problèmes courants rencontrés avec les imprimantes Bluetooth, réseau et les autorisations du navigateur.",
+    steps: [
+      {
+        title: "Web Bluetooth non disponible",
+        text: "L'appairage Bluetooth nécessite Chrome ou Edge sur Windows, macOS ou Android, avec une connexion sécurisée (https). Web Bluetooth n'existe pas sur iPhone/iPad, ni sur Firefox ni Safari. Utilisez un autre navigateur ou basculez sur une imprimante réseau IP.",
+      },
+      {
+        title: "L'imprimante Bluetooth n'apparaît pas",
+        text: "Vérifiez que l'imprimante est allumée, en mode jumelage (non connectée à un autre téléphone/PC) et proche de l'appareil. Si le navigateur laisse apparaître une liste vide, éteignez puis rallumez l'imprimante et recommencez.",
+      },
+      {
+        title: "Erreur « Aucune caractéristique d'écriture trouvée »",
+        text: "L'imprimante n'expose pas le service série Bluetooth attendu. Essayez le mode « receive text »/SPP si l'imprimante le propose, ou utilisez une application constructeur pour préparer l'appairage. Si le problème persiste, basculez sur une imprimante réseau.",
+      },
+      {
+        title: "Ticket Bluetooth non imprimé",
+        text: "Après appairage, le bouton « Test étiquette » doit imprimer un ticket de contrôle. Si rien ne sort, vérifiez le langage (ESC/POS pour rouleau, TSPL pour étiquettes prédécoupées), l'ouverture du capot et la présence du papier. Réappairez l'imprimante si nécessaire.",
+      },
+      {
+        title: "Erreur réseau « Impossible d'ouvrir un port TCP brut »",
+        text: "Un navigateur web ne peut pas se connecter directement au port 9100 TCP. Deux solutions : choisissez le transport HTTP si l'imprimante expose un service web, ou installez un agent local sur un PC du réseau qui relaie les requêtes HTTP vers le port 9100 de l'imprimante.",
+      },
+      {
+        title: "Imprimante réseau HTTP : erreur 4xx/5xx",
+        text: "L'imprimante a bien reçu la requête mais n'a pas pu la traiter. Vérifiez l'adresse IP, le port, le chemin du service et le format accepté (ESC/POS ou TSPL). Consultez la documentation de l'imprimante pour le endpoint d'impression brut.",
+      },
+      {
+        title: "Autorisation de la caméra ou du Bluetooth refusée",
+        text: "Chrome/Edge demande une autorisation utilisateur lors du premier appairage Bluetooth. Si vous avez cliqué sur « Refuser », ouvrez l'icône de cadenas à gauche de l'adresse, puis Sites → Bluetooth → Autoriser. Pour l'APK, assurez-vous que les permissions Bluetooth et localisation sont activées dans les paramètres Android.",
+      },
+      {
+        title: "L'imprimante système (navigateur) ne fonctionne pas",
+        text: "L'imprimante système repose sur la boîte de dialogue Ctrl+P du navigateur. Si rien n'apparaît, désactivez les bloqueurs de pop-up, vérifiez que l'imprimante est configurée dans le système et essayez un autre navigateur.",
+      },
+    ],
+    tips: [
+      "Notez le modèle de l'imprimante et le langage requis (ESC/POS ou TSPL) avant de contacter le support.",
+      "Testez toujours avec le bouton « Test étiquette » avant d'imprimer un ticket réel.",
+    ],
+  },
+  {
     id: "sauvegardes",
     title: "Sauvegardes nommées",
     icon: Save,
