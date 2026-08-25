@@ -36,6 +36,7 @@ import {
   STORAGE_KEY,
 } from "./defaults";
 import { codeForCell, normalizeRotation } from "./rotation";
+import { markSynced } from "./offline-sync";
 import { daysInYear } from "./calc";
 
 export type SyncStatus = "idle" | "pending" | "syncing" | "error" | "offline";
