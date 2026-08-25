@@ -152,6 +152,7 @@ function AuthPage() {
         </div>
 
         <OfflineNotice />
+        <PendingSyncCard />
 
 
 
