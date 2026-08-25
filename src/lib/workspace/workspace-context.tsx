@@ -208,6 +208,25 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setAllMemberships([]);
       return;
     }
+    const cacheKey = `${ACTIVE_KEY}:cache:${user.id}`;
+
+    /** Hors ligne : réutiliser la dernière liste d'équipes connue. */
+    const restoreFromCache = () => {
+      try {
+        const raw = window.localStorage.getItem(cacheKey);
+        if (!raw) return;
+        const cached = JSON.parse(raw) as WorkspaceMembership[];
+        if (Array.isArray(cached) && cached.length) setAllMemberships(cached);
+      } catch {
+        /* ignore */
+      }
+    };
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      restoreFromCache();
+      return;
+    }
+
     const { data, error } = await supabase
       .from("workspace_members")
       .select(
@@ -217,6 +236,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.warn("Impossible de charger les équipes", error.message);
+      restoreFromCache();
       return;
     }
 
@@ -251,7 +271,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       .sort((a, b) => a.name.localeCompare(b.name));
 
     setAllMemberships(list);
+    try {
+      window.localStorage.setItem(cacheKey, JSON.stringify(list));
+    } catch {
+      /* ignore */
+    }
   }, [user]);
+
 
   const memberships = useMemo(
     () => allMemberships.filter((m) => m.status === "active"),
@@ -352,6 +378,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void refreshMembers();
   }, [refreshMembers]);
+
+  // Retour du réseau : rafraîchir la liste des équipes mise en cache hors ligne.
+  useEffect(() => {
+    const onOnline = () => {
+      void refreshMemberships();
+      void refreshMembers();
+    };
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [refreshMemberships, refreshMembers]);
+
+
 
   useEffect(() => {
     if (!user) return;
