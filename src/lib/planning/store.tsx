@@ -598,6 +598,7 @@ export function PlanningProvider({
             return;
           }
           lastCloudJson.current = json;
+          markSynced(workspaceId, json);
           setSyncStatus("idle");
         });
     }, CLOUD_SAVE_DEBOUNCE_MS);
