@@ -535,6 +535,7 @@ export function PlanningProvider({
       }
 
       lastCloudJson.current = json;
+      markSynced(workspaceId, json);
       setCloudReady(true);
     }
 
