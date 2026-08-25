@@ -24,7 +24,35 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+/** Bandeau affiché quand le navigateur n'a pas de réseau. */
+function OfflineNotice() {
+  const [offline, setOffline] = useState(false);
+
+  useEffect(() => {
+    const update = () => setOffline(!navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+
+  if (!offline) return null;
+  return (
+    <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+      <WifiOff className="mt-0.5 size-4 shrink-0" />
+      <span>
+        Hors ligne : la connexion à un compte est impossible. Si vous vous êtes déjà connecté sur
+        cet appareil, le dernier planning enregistré reste consultable.
+      </span>
+    </div>
+  );
+}
+
 function AuthPage() {
+
   const navigate = useNavigate();
   const { session, loading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
