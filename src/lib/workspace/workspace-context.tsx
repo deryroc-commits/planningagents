@@ -379,6 +379,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     void refreshMembers();
   }, [refreshMembers]);
 
+  // Retour du réseau : rafraîchir la liste des équipes mise en cache hors ligne.
+  useEffect(() => {
+    const onOnline = () => {
+      void refreshMemberships();
+      void refreshMembers();
+    };
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [refreshMemberships, refreshMembers]);
+
+
+
   useEffect(() => {
     if (!user) return;
     const channel = supabase
