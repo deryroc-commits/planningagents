@@ -36,6 +36,7 @@ import {
   STORAGE_KEY,
 } from "./defaults";
 import { codeForCell, normalizeRotation } from "./rotation";
+import { markSynced } from "./offline-sync";
 import { daysInYear } from "./calc";
 
 export type SyncStatus = "idle" | "pending" | "syncing" | "error" | "offline";
@@ -504,9 +505,11 @@ export function PlanningProvider({
 
       if (data?.state) {
         const next = normalizePlanningState(data.state as Partial<PlanningState>);
-        lastCloudJson.current = JSON.stringify(next);
+        const nextJson = JSON.stringify(next);
+        lastCloudJson.current = nextJson;
         setState(next);
         writeLocalState(next);
+        markSynced(workspaceId, nextJson);
         setCloudReady(true);
         return;
       }
@@ -532,6 +535,7 @@ export function PlanningProvider({
       }
 
       lastCloudJson.current = json;
+      markSynced(workspaceId, json);
       setCloudReady(true);
     }
 
@@ -595,6 +599,7 @@ export function PlanningProvider({
             return;
           }
           lastCloudJson.current = json;
+          markSynced(workspaceId, json);
           setSyncStatus("idle");
         });
     }, CLOUD_SAVE_DEBOUNCE_MS);
