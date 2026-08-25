@@ -123,6 +123,10 @@ function AuthPage() {
           </p>
         </div>
 
+        <OfflineNotice />
+
+
+
         <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Connexion</TabsTrigger>
