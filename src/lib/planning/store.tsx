@@ -505,9 +505,11 @@ export function PlanningProvider({
 
       if (data?.state) {
         const next = normalizePlanningState(data.state as Partial<PlanningState>);
-        lastCloudJson.current = JSON.stringify(next);
+        const nextJson = JSON.stringify(next);
+        lastCloudJson.current = nextJson;
         setState(next);
         writeLocalState(next);
+        markSynced(workspaceId, nextJson);
         setCloudReady(true);
         return;
       }
