@@ -38,7 +38,7 @@ export function PendingSyncCard() {
   }, [refresh]);
 
   const runSync = useCallback(async () => {
-    if (runningRef.current) return;
+    if (runningRef.current || !session) return;
     runningRef.current = true;
     setRunning(true);
     setDoneMessage(null);
