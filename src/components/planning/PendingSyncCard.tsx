@@ -92,9 +92,11 @@ export function PendingSyncCard() {
               : "Synchronisation"}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {online
-              ? "Vos modifications locales peuvent être envoyées au cloud."
-              : "Hors ligne : l'envoi démarrera automatiquement dès le retour du réseau."}
+            {!online
+              ? "Hors ligne : l'envoi démarrera automatiquement dès le retour du réseau."
+              : session
+                ? "Vos modifications locales peuvent être envoyées au cloud."
+                : "Connectez-vous ci-dessous : l'envoi démarre automatiquement après la connexion."}
           </p>
 
           {(running || progress.total > 0) && (
