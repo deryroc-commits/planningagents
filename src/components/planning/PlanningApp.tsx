@@ -83,6 +83,8 @@ import {
 import { hardReload, useNewVersionAvailable } from "@/lib/planning/version-check";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import { listPendingWorkspaces, syncPendingWorkspaces } from "@/lib/planning/offline-sync";
 
 
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
@@ -116,6 +118,27 @@ export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }
 
   const errors = countErrors(planning, codesMap(codes));
   const newVersion = useNewVersionAvailable();
+
+  // Envoi des modifications faites hors ligne dès qu'une session est active
+  // (la page de connexion ne peut pas le faire : l'utilisateur y est déconnecté).
+  useEffect(() => {
+    if (!user) return;
+    let busy = false;
+    const run = async () => {
+      if (busy || !navigator.onLine) return;
+      if (listPendingWorkspaces().length === 0) return;
+      busy = true;
+      try {
+        const result = await syncPendingWorkspaces();
+        if (result.sent > 0) toast.success(`${result.sent} planning(s) synchronisé(s).`);
+      } finally {
+        busy = false;
+      }
+    };
+    void run();
+    window.addEventListener("online", run);
+    return () => window.removeEventListener("online", run);
+  }, [user]);
 
   useEffect(() => {
     try {

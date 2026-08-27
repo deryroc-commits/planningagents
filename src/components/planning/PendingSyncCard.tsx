@@ -38,7 +38,7 @@ export function PendingSyncCard() {
   }, [refresh]);
 
   const runSync = useCallback(async () => {
-    if (runningRef.current) return;
+    if (runningRef.current || !session) return;
     runningRef.current = true;
     setRunning(true);
     setDoneMessage(null);
@@ -92,9 +92,11 @@ export function PendingSyncCard() {
               : "Synchronisation"}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {online
-              ? "Vos modifications locales peuvent être envoyées au cloud."
-              : "Hors ligne : l'envoi démarrera automatiquement dès le retour du réseau."}
+            {!online
+              ? "Hors ligne : l'envoi démarrera automatiquement dès le retour du réseau."
+              : session
+                ? "Vos modifications locales peuvent être envoyées au cloud."
+                : "Connectez-vous ci-dessous : l'envoi démarre automatiquement après la connexion."}
           </p>
 
           {(running || progress.total > 0) && (
@@ -124,7 +126,7 @@ export function PendingSyncCard() {
             size="sm"
             variant="outline"
             className="mt-2"
-            disabled={running || !online || pending.length === 0}
+            disabled={running || !online || !session || pending.length === 0}
             onClick={() => void runSync()}
           >
             {running ? (
