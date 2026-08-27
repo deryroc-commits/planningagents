@@ -126,7 +126,7 @@ export function PendingSyncCard() {
             size="sm"
             variant="outline"
             className="mt-2"
-            disabled={running || !online || pending.length === 0}
+            disabled={running || !online || !session || pending.length === 0}
             onClick={() => void runSync()}
           >
             {running ? (
