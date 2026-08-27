@@ -83,6 +83,8 @@ import {
 import { hardReload, useNewVersionAvailable } from "@/lib/planning/version-check";
 import { useSelectableYears } from "@/hooks/use-selectable-years";
 import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import { listPendingWorkspaces, syncPendingWorkspaces } from "@/lib/planning/offline-sync";
 
 
 export function PlanningApp({ initialTab = "planning" }: { initialTab?: string }) {
