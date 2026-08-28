@@ -4,7 +4,7 @@ import { CalendarDays, Loader2, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+
 import { useAuth } from "@/lib/auth/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,17 +122,16 @@ function AuthPage() {
   const onGoogle = async () => {
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin },
       });
-      if (result.error) {
+      if (error) {
         toast.error("Connexion Google impossible", {
-          description: result.error.message ?? "Réessayez plus tard.",
+          description: error.message ?? "Réessayez plus tard.",
         });
         setBusy(false);
-        return;
       }
-      if (result.redirected) return;
     } catch {
       toast.error("Connexion Google impossible");
       setBusy(false);
