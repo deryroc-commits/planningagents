@@ -8,11 +8,15 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  // Hors sandbox Lovable (ex: CI Vercel), on cible le preset Vercel pour produire
+  // .vercel/output. À l'intérieur de Lovable, ce réglage est ignoré (Cloudflare).
+  nitro: { preset: process.env.VERCEL ? "vercel" : undefined },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
