@@ -42,5 +42,11 @@ redirection d'authentification pour que la connexion Google fonctionne.
 
 - Ne pas déployer uniquement le dossier `dist` : le build serveur complet
   (`.vercel/output`) est nécessaire, sinon Vercel renvoie une **erreur 404**.
+- Le ciblage Vercel est automatique : `vite.config.ts` active le preset Nitro
+  `vercel` dès que la variable `VERCEL` est présente (définie par Vercel lors du
+  build). Le build produit alors `.vercel/output` avec une fonction serveur
+  `__server.func` et une route attrape-tout `/(.*)` → plus de 404 sur les routes
+  SSR, l'authentification ou les appels base de données.
 - Le bouton **Publier** de Lovable reste la voie la plus simple : il déploie
   déjà l'app complète sans configuration.
+
