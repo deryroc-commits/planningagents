@@ -52,14 +52,70 @@ async function unregisterMatching(): Promise<void> {
   }
 }
 
+const RECOVERY_FLAG = "planning-sw-recovery";
+
+/**
+ * A stale cached HTML document can reference build assets that no longer
+ * exist, which renders a blank page. When a module/chunk fails to load we
+ * purge every cache + service worker once and reload on the fresh build.
+ */
+async function recoverFromStaleCache(): Promise<void> {
+  try {
+    if (window.sessionStorage.getItem(RECOVERY_FLAG)) return;
+    window.sessionStorage.setItem(RECOVERY_FLAG, "1");
+  } catch {
+    return;
+  }
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {
+    /* ignore */
+  }
+  await unregisterMatching();
+  const url = new URL(window.location.href);
+  url.searchParams.set("_reload", String(Date.now()));
+  window.location.replace(url.toString());
+}
+
+function installStaleCacheGuard(): void {
+  const looksLikeChunkError = (message: string) =>
+    /dynamically imported module|Importing a module script failed|Failed to fetch dynamically|ChunkLoadError|Unexpected token '<'/i.test(
+      message,
+    );
+
+  window.addEventListener("error", (event) => {
+    const target = event.target as HTMLElement | null;
+    if (target && (target.tagName === "SCRIPT" || target.tagName === "LINK")) {
+      void recoverFromStaleCache();
+      return;
+    }
+    if (event.message && looksLikeChunkError(event.message)) {
+      void recoverFromStaleCache();
+    }
+  }, true);
+
+  window.addEventListener("unhandledrejection", (event) => {
+    const reason = event.reason;
+    const message =
+      typeof reason === "string" ? reason : reason?.message ? String(reason.message) : "";
+    if (looksLikeChunkError(message)) void recoverFromStaleCache();
+  });
+}
+
 export function registerServiceWorker(): void {
   if (typeof window === "undefined") return;
   if (!("serviceWorker" in navigator)) return;
+
+  installStaleCacheGuard();
 
   if (isRefusedContext()) {
     void unregisterMatching();
     return;
   }
+
 
   const register = () => {
     navigator.serviceWorker.register(SW_PATH, { scope: "/" }).catch(() => {
