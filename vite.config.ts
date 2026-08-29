@@ -29,6 +29,9 @@ export default defineConfig({
         navigateFallback: "/",
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === "navigate",
@@ -36,7 +39,7 @@ export default defineConfig({
             options: {
               cacheName: "html-navigations",
               networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 },
             },
           },
           {
