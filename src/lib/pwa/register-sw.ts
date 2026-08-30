@@ -60,6 +60,20 @@ const RECOVERY_FLAG = "planning-sw-recovery";
  * purge every cache + service worker once and reload on the fresh build.
  */
 async function recoverFromStaleCache(): Promise<void> {
+  // Never wipe the offline copy when the device/network is simply unreachable:
+  // offline or blocked networks also make scripts fail to load, and recovery
+  // would destroy the very cache needed to keep working offline.
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+
+  // Confirm the origin is actually reachable and serving a fresh build before
+  // destroying anything.
+  try {
+    const probe = await fetch(`/manifest.json?_probe=${Date.now()}`, { cache: "no-store" });
+    if (!probe.ok) return;
+  } catch {
+    return; // network blocked → keep the offline cache intact
+  }
+
   try {
     if (window.sessionStorage.getItem(RECOVERY_FLAG)) return;
     window.sessionStorage.setItem(RECOVERY_FLAG, "1");
@@ -109,12 +123,14 @@ export function registerServiceWorker(): void {
   if (typeof window === "undefined") return;
   if (!("serviceWorker" in navigator)) return;
 
-  installStaleCacheGuard();
-
   if (isRefusedContext()) {
     void unregisterMatching();
     return;
   }
+
+  // Only guard against stale caches where a service worker is actually active.
+  installStaleCacheGuard();
+
 
 
   const register = () => {
