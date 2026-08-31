@@ -103,6 +103,31 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "mot-de-passe",
+    title: "Mot de passe (changement & réinitialisation)",
+    icon: ShieldCheck,
+    intro:
+      "Deux options permettent de gérer votre mot de passe : le changement direct depuis l'application et la réinitialisation par e-mail depuis la page de connexion.",
+    steps: [
+      {
+        title: "Changer son mot de passe (connecté)",
+        text: "Onglet Équipe & partage → carte « Mon mot de passe » : saisissez le nouveau mot de passe (6 caractères minimum) et sa confirmation, puis validez. Le changement est immédiat.",
+      },
+      {
+        title: "Mot de passe oublié",
+        text: "Sur la page de connexion, cliquez « Mot de passe oublié ? », saisissez votre e-mail : un lien de réinitialisation vous est envoyé. Ce lien rouvre l'application sur un écran dédié pour choisir un nouveau mot de passe.",
+      },
+      {
+        title: "Comptes créés via Google",
+        text: "Si votre compte a été créé avec Google, définissez un mot de passe depuis la carte « Mon mot de passe » : vous pourrez ensuite aussi vous connecter par e-mail + mot de passe.",
+      },
+    ],
+    tips: [
+      "Le nouveau mot de passe est actif immédiatement sur tous vos appareils.",
+      "Le lien de réinitialisation est à usage unique : redemandez-le s'il a expiré.",
+    ],
+  },
+  {
     id: "planning",
     title: "Planning Général",
     icon: Table2,
