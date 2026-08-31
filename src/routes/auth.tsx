@@ -89,10 +89,10 @@ function AuthPage() {
   };
 
   useEffect(() => {
-    if (!loading && session) {
+    if (!loading && session && !recovery) {
       navigate({ to: "/app", search: { tab: "planning" }, replace: true });
     }
-  }, [loading, session, navigate]);
+  }, [loading, session, navigate, recovery]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +124,47 @@ function AuthPage() {
     } catch (err) {
       toast.error("Échec", {
         description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onForgotPassword = async () => {
+    if (!email) {
+      toast.error("Saisissez votre e-mail, puis cliquez sur « Mot de passe oublié ? ».");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/auth",
+      });
+      if (error) throw error;
+      toast.success("E-mail envoyé", {
+        description: "Cliquez sur le lien reçu pour choisir un nouveau mot de passe.",
+      });
+    } catch (err) {
+      toast.error("Envoi impossible", {
+        description: err instanceof Error ? err.message : "Réessayez plus tard.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success("Mot de passe modifié", { description: "Vous êtes connecté." });
+      setRecovery(false);
+      navigate({ to: "/app", search: { tab: "planning" }, replace: true });
+    } catch (err) {
+      toast.error("Échec", {
+        description: err instanceof Error ? err.message : "Réessayez plus tard.",
       });
     } finally {
       setBusy(false);
