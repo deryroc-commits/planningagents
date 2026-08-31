@@ -283,6 +283,8 @@ export function TeamTab() {
 
       <AppDomainCard />
 
+      <ChangePasswordCard />
+
       {/* My invitation status */}
 
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
