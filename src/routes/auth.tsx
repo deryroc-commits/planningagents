@@ -61,6 +61,17 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [recovery, setRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+
+  // Détecte un retour depuis le lien e-mail de réinitialisation.
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
+    });
+    if (window.location.hash.includes("type=recovery")) setRecovery(true);
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const explainAuthError = (message: string) => {
     const lower = message.toLowerCase();
