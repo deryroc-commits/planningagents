@@ -191,6 +191,43 @@ function AuthPage() {
     }
   };
 
+  if (recovery) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/20 px-4">
+        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl sm:p-8">
+          <div className="mb-6 flex flex-col items-center text-center">
+            <div className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+              <CalendarDays className="size-6" />
+            </div>
+            <h1 className="mt-3 text-xl font-bold">Nouveau mot de passe</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Choisissez un nouveau mot de passe pour votre compte.
+            </p>
+          </div>
+          <form onSubmit={onSetNewPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Nouveau mot de passe</Label>
+              <Input
+                id="new-password"
+                type="password"
+                required
+                minLength={6}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={busy || newPassword.length < 6}>
+              {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
+              Enregistrer le mot de passe
+            </Button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/20 px-4">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl sm:p-8">
@@ -253,6 +290,19 @@ function AuthPage() {
                 autoComplete={mode === "signup" ? "new-password" : "current-password"}
               />
             </div>
+
+            {mode === "signin" && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={onForgotPassword}
+                  disabled={busy}
+                  className="text-xs text-primary underline-offset-2 hover:underline disabled:opacity-50"
+                >
+                  Mot de passe oublié ?
+                </button>
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={busy}>
               {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
