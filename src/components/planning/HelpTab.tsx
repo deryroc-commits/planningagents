@@ -574,12 +574,20 @@ const SECTIONS: Section[] = [
         text: "Depuis le navigateur, ajoutez l'application à l'écran d'accueil. Sur Android, une APK est disponible.",
       },
       {
-        title: "Indicateur de sync",
-        text: "Un badge affiche l'état : en ligne, hors-ligne, ou synchronisation en cours. Les modifications hors-ligne sont mises en file d'attente.",
+        title: "Bandeau « Mode hors ligne »",
+        text: "Dès que la connexion est perdue (ou bloquée par le réseau d'entreprise), un bandeau rouge s'affiche en haut de l'écran. Il confirme que les données locales de l'appareil sont utilisées et disparaît automatiquement au retour du réseau.",
+      },
+      {
+        title: "Données toujours préservées",
+        text: "L'application ne recharge jamais la page de force et n'efface jamais le cache hors-ligne, même si un fichier échoue à charger. Votre dernier planning reste consultable en permanence.",
+      },
+      {
+        title: "Bouton « Synchroniser »",
+        text: "Sur la page de connexion, une carte « Modifications en attente » indique le nombre de changements locaux non envoyés. Le bouton « Synchroniser » les envoie au cloud manuellement, avec une barre de progression.",
       },
       {
         title: "Retour en ligne",
-        text: "Dès qu'Internet revient, les changements locaux sont envoyés au cloud automatiquement.",
+        text: "Dès qu'Internet revient, les changements locaux sont envoyés au cloud automatiquement après connexion, sans aucune action de votre part.",
       },
     ],
   },
