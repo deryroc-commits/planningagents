@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa/register-sw";
 
@@ -164,6 +165,7 @@ function RootComponent() {
       <AuthProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <OfflineBanner />
         <InstallAppBanner />
         <Toaster />
       </AuthProvider>
