@@ -43,6 +43,7 @@ import {
 } from "@/lib/workspace/workspace-context";
 import { useAuth } from "@/lib/auth/auth-context";
 import { AppDomainCard } from "./AppDomainCard";
+import { ChangePasswordCard } from "./ChangePasswordCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -282,6 +283,8 @@ export function TeamTab() {
       </div>
 
       <AppDomainCard />
+
+      <ChangePasswordCard />
 
       {/* My invitation status */}
 
