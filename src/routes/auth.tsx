@@ -296,10 +296,11 @@ function AuthPage() {
 
 
 
-        <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")}>
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup" | "phone")}>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="signin">Connexion</TabsTrigger>
             <TabsTrigger value="signup">Inscription</TabsTrigger>
+            <TabsTrigger value="phone">Téléphone</TabsTrigger>
           </TabsList>
 
           <form onSubmit={onSubmit} className="mt-4 space-y-4">
