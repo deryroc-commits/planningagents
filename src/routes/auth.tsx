@@ -156,6 +156,49 @@ function AuthPage() {
     }
   };
 
+  const onSendOtp = async () => {
+    const normalized = phone.replace(/[\s.-]/g, "");
+    if (!/^\+?[0-9]{8,15}$/.test(normalized)) {
+      toast.error("Numéro invalide", {
+        description: "Saisissez le numéro au format international, ex. +33612345678.",
+      });
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: normalized.startsWith("+") ? normalized : `+33${normalized.replace(/^0/, "")}`,
+      });
+      if (error) throw error;
+      setOtpSent(true);
+      toast.success("Code envoyé", { description: "Un code à 6 chiffres vient d'être envoyé par SMS." });
+    } catch (err) {
+      toast.error("Envoi impossible", {
+        description: err instanceof Error ? err.message : "Réessayez plus tard.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const normalized = phone.replace(/[\s.-]/g, "");
+      const e164 = normalized.startsWith("+") ? normalized : `+33${normalized.replace(/^0/, "")}`;
+      const { error } = await supabase.auth.verifyOtp({ phone: e164, token: otpCode, type: "sms" });
+      if (error) throw error;
+      toast.success("Connecté", { description: "Votre numéro est vérifié." });
+    } catch (err) {
+      toast.error("Code incorrect", {
+        description: err instanceof Error ? err.message : "Vérifiez le code reçu par SMS.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const onSetNewPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
