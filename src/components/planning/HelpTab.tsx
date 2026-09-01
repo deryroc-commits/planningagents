@@ -49,7 +49,11 @@ const SECTIONS: Section[] = [
     steps: [
       {
         title: "Se connecter ou créer un compte",
-        text: "À l'ouverture, la page de connexion s'affiche automatiquement. Créez un compte ou connectez-vous via Google.",
+        text: "À l'ouverture, la page de connexion s'affiche automatiquement. Créez un compte par e-mail + mot de passe, ou connectez-vous en un clic via Google, Microsoft ou Apple.",
+      },
+      {
+        title: "Connexion Google, Microsoft ou Apple",
+        text: "Cliquez sur le bouton du fournisseur de votre choix : une fenêtre sécurisée s'ouvre pour valider votre identité. Aucun mot de passe à créer dans l'application. Si votre compte a été créé via l'un de ces fournisseurs, vous pouvez définir un mot de passe secondaire depuis la carte « Mon mot de passe » (onglet Équipe) pour aussi vous connecter par e-mail.",
       },
       {
         title: "Rejoindre une équipe ou en créer une",
@@ -118,8 +122,8 @@ const SECTIONS: Section[] = [
         text: "Sur la page de connexion, cliquez « Mot de passe oublié ? », saisissez votre e-mail : un lien de réinitialisation vous est envoyé. Ce lien rouvre l'application sur un écran dédié pour choisir un nouveau mot de passe.",
       },
       {
-        title: "Comptes créés via Google",
-        text: "Si votre compte a été créé avec Google, définissez un mot de passe depuis la carte « Mon mot de passe » : vous pourrez ensuite aussi vous connecter par e-mail + mot de passe.",
+        title: "Comptes créés via Google, Microsoft ou Apple",
+        text: "Si votre compte a été créé avec Google, Microsoft ou Apple, définissez un mot de passe depuis la carte « Mon mot de passe » : vous pourrez ensuite aussi vous connecter par e-mail + mot de passe.",
       },
     ],
     tips: [
