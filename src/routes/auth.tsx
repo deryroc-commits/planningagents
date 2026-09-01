@@ -171,14 +171,15 @@ function AuthPage() {
     }
   };
 
-  const onGoogle = async () => {
+  const onOAuth = async (provider: "google" | "microsoft") => {
+    const label = provider === "google" ? "Google" : "Microsoft";
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
+      const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast.error("Connexion Google impossible", {
+        toast.error(`Connexion ${label} impossible`, {
           description: result.error.message ?? "Réessayez plus tard.",
         });
         setBusy(false);
@@ -186,10 +187,13 @@ function AuthPage() {
       }
       if (result.redirected) return;
     } catch {
-      toast.error("Connexion Google impossible");
+      toast.error(`Connexion ${label} impossible`);
       setBusy(false);
     }
   };
+
+  const onGoogle = () => onOAuth("google");
+  const onMicrosoft = () => onOAuth("microsoft");
 
   if (recovery) {
     return (
@@ -320,8 +324,22 @@ function AuthPage() {
         <Button variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
           <GoogleIcon /> Continuer avec Google
         </Button>
+        <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
+          <MicrosoftIcon /> Continuer avec Microsoft
+        </Button>
       </div>
     </div>
+  );
+}
+
+function MicrosoftIcon() {
+  return (
+    <svg className="mr-2 size-4" viewBox="0 0 23 23" aria-hidden="true">
+      <rect width="10" height="10" x="1" y="1" fill="#F25022" />
+      <rect width="10" height="10" x="12" y="1" fill="#7FBA00" />
+      <rect width="10" height="10" x="1" y="12" fill="#00A4EF" />
+      <rect width="10" height="10" x="12" y="12" fill="#FFB900" />
+    </svg>
   );
 }
 
