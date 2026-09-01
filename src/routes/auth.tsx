@@ -56,16 +56,13 @@ function AuthPage() {
 
   const navigate = useNavigate();
   const { session, loading } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup" | "phone">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
 
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
@@ -150,49 +147,6 @@ function AuthPage() {
     } catch (err) {
       toast.error("Envoi impossible", {
         description: err instanceof Error ? err.message : "Réessayez plus tard.",
-      });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const onSendOtp = async () => {
-    const normalized = phone.replace(/[\s.-]/g, "");
-    if (!/^\+?[0-9]{8,15}$/.test(normalized)) {
-      toast.error("Numéro invalide", {
-        description: "Saisissez le numéro au format international, ex. +33612345678.",
-      });
-      return;
-    }
-    setBusy(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: normalized.startsWith("+") ? normalized : `+33${normalized.replace(/^0/, "")}`,
-      });
-      if (error) throw error;
-      setOtpSent(true);
-      toast.success("Code envoyé", { description: "Un code à 6 chiffres vient d'être envoyé par SMS." });
-    } catch (err) {
-      toast.error("Envoi impossible", {
-        description: err instanceof Error ? err.message : "Réessayez plus tard.",
-      });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const onVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      const normalized = phone.replace(/[\s.-]/g, "");
-      const e164 = normalized.startsWith("+") ? normalized : `+33${normalized.replace(/^0/, "")}`;
-      const { error } = await supabase.auth.verifyOtp({ phone: e164, token: otpCode, type: "sms" });
-      if (error) throw error;
-      toast.success("Connecté", { description: "Votre numéro est vérifié." });
-    } catch (err) {
-      toast.error("Code incorrect", {
-        description: err instanceof Error ? err.message : "Vérifiez le code reçu par SMS.",
       });
     } finally {
       setBusy(false);
@@ -296,14 +250,12 @@ function AuthPage() {
 
 
 
-        <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup" | "phone")}>
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")}>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Connexion</TabsTrigger>
             <TabsTrigger value="signup">Inscription</TabsTrigger>
-            <TabsTrigger value="phone">Téléphone</TabsTrigger>
           </TabsList>
 
-          {mode !== "phone" && (
           <form onSubmit={onSubmit} className="mt-4 space-y-4">
             <TabsContent value="signup" className="mt-0 space-y-2">
               <Label htmlFor="name">Nom affiché</Label>
@@ -361,69 +313,6 @@ function AuthPage() {
               {mode === "signup" ? "Créer mon compte" : "Se connecter"}
             </Button>
           </form>
-          )}
-
-          <TabsContent value="phone" className="mt-4">
-            {!otpSent ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Numéro de téléphone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+33612345678"
-                    autoComplete="tel"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Format international recommandé. Un code à 6 chiffres sera envoyé par SMS.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  className="w-full"
-                  disabled={busy || phone.trim().length < 8}
-                  onClick={onSendOtp}
-                >
-                  {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  Recevoir le code par SMS
-                </Button>
-              </div>
-            ) : (
-              <form onSubmit={onVerifyOtp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="otp">Code reçu par SMS</Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    inputMode="numeric"
-                    required
-                    maxLength={6}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                    placeholder="123456"
-                    autoComplete="one-time-code"
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={busy || otpCode.length !== 6}>
-                  {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
-                  Vérifier et me connecter
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOtpSent(false);
-                    setOtpCode("");
-                  }}
-                  className="w-full text-xs text-primary underline-offset-2 hover:underline"
-                >
-                  Changer de numéro ou renvoyer un code
-                </button>
-              </form>
-            )}
-          </TabsContent>
         </Tabs>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
