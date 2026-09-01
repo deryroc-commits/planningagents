@@ -171,8 +171,8 @@ function AuthPage() {
     }
   };
 
-  const onOAuth = async (provider: "google" | "microsoft") => {
-    const label = provider === "google" ? "Google" : "Microsoft";
+  const onOAuth = async (provider: "google" | "microsoft" | "apple") => {
+    const label = provider === "google" ? "Google" : provider === "microsoft" ? "Microsoft" : "Apple";
     setBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
@@ -194,6 +194,7 @@ function AuthPage() {
 
   const onGoogle = () => onOAuth("google");
   const onMicrosoft = () => onOAuth("microsoft");
+  const onApple = () => onOAuth("apple");
 
   if (recovery) {
     return (
