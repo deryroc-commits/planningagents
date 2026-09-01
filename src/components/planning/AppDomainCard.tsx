@@ -120,9 +120,9 @@ export function AppDomainCard() {
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        Domaine utilisé par l'application (Lovable ou domaine personnalisé). Il sert notamment
-        aux liens partagés et aux QR codes générés ensuite. Valeur stockée localement, prioritaire
-        sur <code className="rounded bg-muted px-1">VITE_PUBLIC_APP_URL</code> puis sur le domaine canonique.
+        Domaine utilisé pour les liens partagés et les QR codes. Par défaut, l'application utilise
+        automatiquement le domaine ouvert à l'instant T (ex. lovable.app, Vercel, domaine
+        personnalisé). Une valeur enregistrée ici est stockée localement et devient prioritaire.
       </p>
 
       {!unlocked ? (
