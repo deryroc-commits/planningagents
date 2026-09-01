@@ -122,8 +122,8 @@ const SECTIONS: Section[] = [
         text: "Sur la page de connexion, cliquez « Mot de passe oublié ? », saisissez votre e-mail : un lien de réinitialisation vous est envoyé. Ce lien rouvre l'application sur un écran dédié pour choisir un nouveau mot de passe.",
       },
       {
-        title: "Comptes créés via Google",
-        text: "Si votre compte a été créé avec Google, définissez un mot de passe depuis la carte « Mon mot de passe » : vous pourrez ensuite aussi vous connecter par e-mail + mot de passe.",
+        title: "Comptes créés via Google, Microsoft ou Apple",
+        text: "Si votre compte a été créé avec Google, Microsoft ou Apple, définissez un mot de passe depuis la carte « Mon mot de passe » : vous pourrez ensuite aussi vous connecter par e-mail + mot de passe.",
       },
     ],
     tips: [
