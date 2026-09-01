@@ -56,16 +56,13 @@ function AuthPage() {
 
   const navigate = useNavigate();
   const { session, loading } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup" | "phone">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
 
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
