@@ -175,6 +175,19 @@ function AuthPage() {
     const label = provider === "google" ? "Google" : provider === "microsoft" ? "Microsoft" : "Apple";
     setBusy(true);
     try {
+      // The Lovable OAuth broker lives at /~oauth and is only available on
+      // Lovable-hosted domains. External deployments (for example Vercel)
+      // must start OAuth directly through the authentication backend.
+      if (!window.location.hostname.endsWith(".lovable.app")) {
+        const directProvider = provider === "microsoft" ? "azure" : provider;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: directProvider,
+          options: { redirectTo: window.location.origin },
+        });
+        if (error) throw error;
+        return;
+      }
+
       const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin,
       });
