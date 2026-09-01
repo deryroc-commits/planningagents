@@ -361,6 +361,69 @@ function AuthPage() {
               {mode === "signup" ? "Créer mon compte" : "Se connecter"}
             </Button>
           </form>
+          )}
+
+          <TabsContent value="phone" className="mt-4">
+            {!otpSent ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Numéro de téléphone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+33612345678"
+                    autoComplete="tel"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Format international recommandé. Un code à 6 chiffres sera envoyé par SMS.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  className="w-full"
+                  disabled={busy || phone.trim().length < 8}
+                  onClick={onSendOtp}
+                >
+                  {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Recevoir le code par SMS
+                </Button>
+              </div>
+            ) : (
+              <form onSubmit={onVerifyOtp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="otp">Code reçu par SMS</Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    inputMode="numeric"
+                    required
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="123456"
+                    autoComplete="one-time-code"
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={busy || otpCode.length !== 6}>
+                  {busy && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Vérifier et me connecter
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpSent(false);
+                    setOtpCode("");
+                  }}
+                  className="w-full text-xs text-primary underline-offset-2 hover:underline"
+                >
+                  Changer de numéro ou renvoyer un code
+                </button>
+              </form>
+            )}
+          </TabsContent>
         </Tabs>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
