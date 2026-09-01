@@ -328,6 +328,9 @@ function AuthPage() {
         <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
           <MicrosoftIcon /> Continuer avec Microsoft
         </Button>
+        <Button variant="outline" className="mt-2 w-full" onClick={onApple} disabled={busy}>
+          <AppleIcon /> Continuer avec Apple
+        </Button>
       </div>
     </div>
   );
