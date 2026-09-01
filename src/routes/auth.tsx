@@ -303,6 +303,7 @@ function AuthPage() {
             <TabsTrigger value="phone">Téléphone</TabsTrigger>
           </TabsList>
 
+          {mode !== "phone" && (
           <form onSubmit={onSubmit} className="mt-4 space-y-4">
             <TabsContent value="signup" className="mt-0 space-y-2">
               <Label htmlFor="name">Nom affiché</Label>
