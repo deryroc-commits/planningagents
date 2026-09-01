@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { WifiOff } from "lucide-react";
 import { useSyncStatus } from "@/lib/planning/store";
 
@@ -8,7 +9,23 @@ import { useSyncStatus } from "@/lib/planning/store";
  * synchronisation reprendra automatiquement au retour du réseau.
  */
 export function OfflineBanner() {
-  const { isOnline, status } = useSyncStatus();
+  // Le contexte de synchronisation n'existe que sous PlanningProvider ; ce
+  // bandeau est monté à la racine, on observe donc aussi le réseau nous-mêmes.
+  const { isOnline: syncOnline, status } = useSyncStatus();
+  const [navOnline, setNavOnline] = useState(true);
+
+  useEffect(() => {
+    const update = () => setNavOnline(navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+
+  const isOnline = navOnline && syncOnline;
 
   if (isOnline && status !== "offline") return null;
 
