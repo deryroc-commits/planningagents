@@ -171,8 +171,8 @@ function AuthPage() {
     }
   };
 
-  const onOAuth = async (provider: "google" | "microsoft") => {
-    const label = provider === "google" ? "Google" : "Microsoft";
+  const onOAuth = async (provider: "google" | "microsoft" | "apple") => {
+    const label = provider === "google" ? "Google" : provider === "microsoft" ? "Microsoft" : "Apple";
     setBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
@@ -194,6 +194,7 @@ function AuthPage() {
 
   const onGoogle = () => onOAuth("google");
   const onMicrosoft = () => onOAuth("microsoft");
+  const onApple = () => onOAuth("apple");
 
   if (recovery) {
     return (
@@ -327,6 +328,9 @@ function AuthPage() {
         <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
           <MicrosoftIcon /> Continuer avec Microsoft
         </Button>
+        <Button variant="outline" className="mt-2 w-full" onClick={onApple} disabled={busy}>
+          <AppleIcon /> Continuer avec Apple
+        </Button>
       </div>
     </div>
   );
@@ -362,6 +366,14 @@ function GoogleIcon() {
         fill="#EA4335"
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38Z"
       />
+    </svg>
+  );
+}
+
+function AppleIcon() {
+  return (
+    <svg className="mr-2 size-4" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.06 1.87-2.54 6.98.22 8.13-.57 1.5-1.31 2.99-2.27 4.08zm-5.85-15.1c.07-2.04 1.76-3.79 3.8-3.92.29 2.32-1.92 4.47-3.8 3.92z" />
     </svg>
   );
 }
