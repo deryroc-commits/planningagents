@@ -171,14 +171,15 @@ function AuthPage() {
     }
   };
 
-  const onGoogle = async () => {
+  const onOAuth = async (provider: "google" | "microsoft") => {
+    const label = provider === "google" ? "Google" : "Microsoft";
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
+      const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast.error("Connexion Google impossible", {
+        toast.error(`Connexion ${label} impossible`, {
           description: result.error.message ?? "Réessayez plus tard.",
         });
         setBusy(false);
@@ -186,10 +187,13 @@ function AuthPage() {
       }
       if (result.redirected) return;
     } catch {
-      toast.error("Connexion Google impossible");
+      toast.error(`Connexion ${label} impossible`);
       setBusy(false);
     }
   };
+
+  const onGoogle = () => onOAuth("google");
+  const onMicrosoft = () => onOAuth("microsoft");
 
   if (recovery) {
     return (
