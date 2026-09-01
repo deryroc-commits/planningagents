@@ -89,6 +89,10 @@ const QR_BASE_URL_KEY = "qr_base_url";
 const CANONICAL_BASE_URL = "https://planningdesagents.duvalericlabs.com";
 
 function getDefaultBaseUrl(): string {
+  // Priorité au domaine actuellement utilisé (ex. https://planningagentsucpa.lovable.app)
+  if (typeof window !== "undefined" && /^https?:$/.test(window.location.protocol)) {
+    return window.location.origin.replace(/\/+$/, "");
+  }
   const env = (import.meta as { env?: Record<string, string | undefined> }).env?.VITE_PUBLIC_APP_URL;
   if (env && /^https?:\/\//i.test(env)) return env.replace(/\/+$/, "");
   return CANONICAL_BASE_URL;
