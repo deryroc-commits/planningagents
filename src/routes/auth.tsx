@@ -65,6 +65,12 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  // Calculé après hydratation : `window` n'existe pas lors du rendu serveur.
+  const [lovableHost, setLovableHost] = useState(false);
+
+  useEffect(() => {
+    setLovableHost(isLovableHosted());
+  }, []);
 
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
@@ -344,7 +350,7 @@ function AuthPage() {
         {/* Microsoft et Apple utilisent des identifiants gérés qui ne fonctionnent
             que via le domaine lovable.app. Sur les autres domaines (Vercel, domaine
             perso), l'appel direct échouerait avec "missing OAuth secret". */}
-        {window.location.hostname.endsWith(".lovable.app") && (
+        {lovableHost && (
           <>
             <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
               <MicrosoftIcon /> Continuer avec Microsoft
