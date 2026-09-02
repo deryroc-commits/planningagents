@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PendingSyncCard } from "@/components/planning/PendingSyncCard";
 import { OAuthEnvironmentCard } from "@/components/planning/OAuthEnvironmentCard";
-import { appRedirectUrl, isLovableHosted } from "@/lib/auth/oauth-config";
+import { appRedirectUrl } from "@/lib/auth/oauth-config";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -65,13 +65,6 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
-  // Calculé après hydratation : `window` n'existe pas lors du rendu serveur.
-  const [lovableHost, setLovableHost] = useState(false);
-
-  useEffect(() => {
-    setLovableHost(isLovableHosted());
-  }, []);
-
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -183,21 +176,9 @@ function AuthPage() {
     const label = provider === "google" ? "Google" : provider === "microsoft" ? "Microsoft" : "Apple";
     setBusy(true);
     try {
-      // The Lovable OAuth broker lives at /~oauth and is only available on
-      // Lovable-hosted domains. External deployments (for example Vercel)
-      // must start OAuth directly through the authentication backend.
-      if (!isLovableHosted()) {
-        const directProvider = provider === "microsoft" ? "azure" : provider;
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: directProvider,
-          options: { redirectTo: appRedirectUrl() },
-        });
-        if (error) throw error;
-        return;
-      }
-
       const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: appRedirectUrl(),
+        extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
       });
       if (result.error) {
         toast.error(`Connexion ${label} impossible`, {
@@ -347,19 +328,12 @@ function AuthPage() {
         <Button variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
           <GoogleIcon /> Continuer avec Google
         </Button>
-        {/* Microsoft et Apple utilisent des identifiants gérés qui ne fonctionnent
-            que via le domaine lovable.app. Sur les autres domaines (Vercel, domaine
-            perso), l'appel direct échouerait avec "missing OAuth secret". */}
-        {lovableHost && (
-          <>
-            <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
-              <MicrosoftIcon /> Continuer avec Microsoft
-            </Button>
-            <Button variant="outline" className="mt-2 w-full" onClick={onApple} disabled={busy}>
-              <AppleIcon /> Continuer avec Apple
-            </Button>
-          </>
-        )}
+        <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
+          <MicrosoftIcon /> Continuer avec Microsoft
+        </Button>
+        <Button variant="outline" className="mt-2 w-full" onClick={onApple} disabled={busy}>
+          <AppleIcon /> Continuer avec Apple
+        </Button>
       </div>
     </div>
   );
