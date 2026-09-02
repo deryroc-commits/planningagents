@@ -263,6 +263,7 @@ function AuthPage() {
 
         <OfflineNotice />
         <PendingSyncCard />
+        <OAuthEnvironmentCard />
 
 
 
