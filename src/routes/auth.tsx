@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PendingSyncCard } from "@/components/planning/PendingSyncCard";
+import { OAuthEnvironmentCard } from "@/components/planning/OAuthEnvironmentCard";
+import { appRedirectUrl, isLovableHosted } from "@/lib/auth/oauth-config";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
