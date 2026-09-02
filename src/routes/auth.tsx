@@ -338,12 +338,19 @@ function AuthPage() {
         <Button variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
           <GoogleIcon /> Continuer avec Google
         </Button>
-        <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
-          <MicrosoftIcon /> Continuer avec Microsoft
-        </Button>
-        <Button variant="outline" className="mt-2 w-full" onClick={onApple} disabled={busy}>
-          <AppleIcon /> Continuer avec Apple
-        </Button>
+        {/* Microsoft et Apple utilisent des identifiants gérés qui ne fonctionnent
+            que via le domaine lovable.app. Sur les autres domaines (Vercel, domaine
+            perso), l'appel direct échouerait avec "missing OAuth secret". */}
+        {window.location.hostname.endsWith(".lovable.app") && (
+          <>
+            <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
+              <MicrosoftIcon /> Continuer avec Microsoft
+            </Button>
+            <Button variant="outline" className="mt-2 w-full" onClick={onApple} disabled={busy}>
+              <AppleIcon /> Continuer avec Apple
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
