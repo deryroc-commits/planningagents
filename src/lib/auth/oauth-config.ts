@@ -39,7 +39,7 @@ export function isLovableHosted(hostname = getHostname()): boolean {
 }
 
 /** URL de retour dans l'application après authentification. */
-export function appRedirectUrl(path = "/auth/callback"): string {
+export function appRedirectUrl(path = "/"): string {
   const origin = currentOrigin();
   return origin ? `${origin}${path}` : path;
 }
