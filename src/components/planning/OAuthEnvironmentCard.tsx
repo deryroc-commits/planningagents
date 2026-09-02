@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Copy, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,7 +44,12 @@ function CopyRow({ label, value }: { label: string; value: string }) {
  */
 export function OAuthEnvironmentCard() {
   const [open, setOpen] = useState(false);
-  const env = detectEnvironment();
+  // Le nom d'hôte n'est connu qu'après hydratation (rendu serveur sans `window`).
+  const [env, setEnv] = useState(() => detectEnvironment(""));
+
+  useEffect(() => {
+    setEnv(detectEnvironment());
+  }, []);
 
   return (
     <div className="rounded-lg border bg-card p-3 text-sm">
