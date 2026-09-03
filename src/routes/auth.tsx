@@ -307,11 +307,6 @@ function AuthPage() {
     }
   };
 
-  const fallbackLoginUrl = useMemo(() => {
-    const current = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/auth";
-    return `${FALLBACK_ORIGIN}${current}`;
-  }, []);
-
   const showFallbackLink = customDomain;
 
 
