@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CalendarDays, Loader2, WifiOff, ArrowRight } from "lucide-react";
+import { CalendarDays, Loader2, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
