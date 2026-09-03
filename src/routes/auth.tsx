@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CalendarDays, Loader2, WifiOff, ArrowRight } from "lucide-react";
+import { CalendarDays, Loader2, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -54,9 +54,6 @@ function OfflineNotice() {
   );
 }
 
-const FALLBACK_ORIGIN = "https://planningagentsucpa.lovable.app";
-const FALLBACK_URL = `${FALLBACK_ORIGIN}/auth`;
-
 function AuthPage() {
 
   const navigate = useNavigate();
@@ -68,10 +65,6 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
-  // Domaine personnalisé (hors Lovable / localhost) : détecté côté client.
-  const [customDomain, setCustomDomain] = useState(false);
-  // Redirection automatique vers l'adresse de secours en cas de blocage réseau.
-  const [fallbackRedirect, setFallbackRedirect] = useState(false);
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -80,67 +73,6 @@ function AuthPage() {
     if (window.location.hash.includes("type=recovery")) setRecovery(true);
     return () => sub.subscription.unsubscribe();
   }, []);
-
-  // Détection du domaine personnalisé (hydratation sûre : client uniquement).
-  useEffect(() => {
-    const host = window.location.hostname;
-    setCustomDomain(!isLovableHosted() && host !== "localhost" && host !== "127.0.0.1");
-  }, []);
-
-  const triggerFallback = () => {
-    if (fallbackRedirect) return;
-    setFallbackRedirect(true);
-    // Redirection immédiate vers l'adresse de secours Lovable.
-    // window.location.replace ne conserve pas la page actuelle dans l'historique.
-    if (typeof window !== "undefined") {
-      window.location.replace(FALLBACK_URL);
-    }
-  };
-
-
-  // Sur un domaine personnalisé, vérifie que le backend d'authentification est
-  // joignable. Si le réseau professionnel le bloque, redirection automatique
-  // vers l'adresse de secours Lovable.
-  useEffect(() => {
-    if (!customDomain) return;
-    if (typeof navigator !== "undefined" && navigator.onLine === false) {
-      triggerFallback();
-      return;
-    }
-    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
-    const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? "";
-    if (!base) return;
-
-    let cancelled = false;
-    const controller = new AbortController();
-    // Le timeout compte comme un échec (réseau filtré = requête qui traîne).
-    const timer = window.setTimeout(() => controller.abort("timeout"), 4000);
-
-    (async () => {
-      try {
-        const res = await fetch(`${base.replace(/\/+$/, "")}/auth/v1/health`, {
-          cache: "no-store",
-          signal: controller.signal,
-          headers: key ? { apikey: key } : undefined,
-        });
-        if (cancelled) return;
-        // Un proxy d'entreprise peut répondre une page de blocage (403/407/5xx).
-        if (!res.ok) triggerFallback();
-      } catch {
-        if (!cancelled) triggerFallback();
-      } finally {
-        window.clearTimeout(timer);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customDomain]);
-
 
   const isNetworkError = (err: unknown) => {
     const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
@@ -196,13 +128,9 @@ function AuthPage() {
         if (error) throw error;
       }
     } catch (err) {
-      if (customDomain && isNetworkError(err)) {
-        triggerFallback();
-      } else {
-        toast.error("Échec", {
-          description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
-        });
-      }
+      toast.error("Échec", {
+        description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
+      });
     } finally {
       setBusy(false);
     }
@@ -266,11 +194,7 @@ function AuthPage() {
           },
         });
         if (error) {
-          if (customDomain) {
-            triggerFallback();
-          } else {
-            toast.error(`Connexion ${label} impossible`, { description: error.message });
-          }
+          toast.error(`Connexion ${label} impossible`, { description: error.message });
           setBusy(false);
         }
         return;
@@ -283,31 +207,18 @@ function AuthPage() {
         extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
       });
       if (result.error) {
-        // Sur un domaine personnalisé, toute erreur OAuth (provider non
-        // configuré, secret manquant, etc.) redirige immédiatement vers
-        // l'adresse de secours Lovable.
-        if (customDomain) {
-          triggerFallback();
-        } else {
-          toast.error(`Connexion ${label} impossible`, {
-            description: result.error.message ?? "Réessayez plus tard.",
-          });
-        }
+        toast.error(`Connexion ${label} impossible`, {
+          description: result.error.message ?? "Réessayez plus tard.",
+        });
         setBusy(false);
         return;
       }
       if (result.redirected) return;
     } catch (err) {
-      if (customDomain) {
-        triggerFallback();
-      } else {
-        toast.error(`Connexion ${label} impossible`);
-      }
+      toast.error(`Connexion ${label} impossible`);
       setBusy(false);
     }
   };
-
-  const showFallbackLink = customDomain;
 
 
   const onGoogle = () => onOAuth("google");
@@ -450,33 +361,6 @@ function AuthPage() {
         <Button variant="outline" className="mt-2 w-full" onClick={onApple} disabled={busy}>
           <AppleIcon /> Continuer avec Apple
         </Button>
-
-        {showFallbackLink && (
-          <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-            {fallbackRedirect ? (
-              <p className="flex items-center gap-2 font-medium">
-                <Loader2 className="size-4 animate-spin" />
-                Connexion impossible sur ce domaine. Ouverture de l'adresse de secours…
-              </p>
-            ) : (
-              <>
-                <p className="font-medium">Connexion bloquée sur ce domaine ?</p>
-                <p className="mt-1">
-                  Si votre réseau professionnel bloque cette adresse, cliquez ci-dessous pour ouvrir
-                  directement la page de secours. En cas d'échec, la redirection se fera
-                  automatiquement.
-                </p>
-                <a
-                  href={FALLBACK_URL}
-                  className="mt-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline"
-                >
-                  Ouvrir planningagentsucpa.lovable.app/auth
-                  <ArrowRight className="size-3" />
-                </a>
-              </>
-            )}
-          </div>
-        )}
 
       </div>
     </div>
