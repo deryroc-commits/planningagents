@@ -128,13 +128,9 @@ function AuthPage() {
         if (error) throw error;
       }
     } catch (err) {
-      if (customDomain && isNetworkError(err)) {
-        triggerFallback();
-      } else {
-        toast.error("Échec", {
-          description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
-        });
-      }
+      toast.error("Échec", {
+        description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
+      });
     } finally {
       setBusy(false);
     }
