@@ -215,6 +215,13 @@ function AuthPage() {
     }
   };
 
+  const fallbackLoginUrl = useMemo(() => {
+    const current = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/auth";
+    return `https://planningagentsucpa.lovable.app${current}`;
+  }, []);
+
+  const showFallbackLink = typeof window !== "undefined" && !isLovableHosted() && window.location.hostname !== "localhost";
+
 
   const onGoogle = () => onOAuth("google");
   const onMicrosoft = () => onOAuth("microsoft");
