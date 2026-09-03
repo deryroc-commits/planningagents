@@ -54,9 +54,6 @@ function OfflineNotice() {
   );
 }
 
-const FALLBACK_ORIGIN = "https://planningagentsucpa.lovable.app";
-const FALLBACK_URL = `${FALLBACK_ORIGIN}/auth`;
-
 function AuthPage() {
 
   const navigate = useNavigate();
@@ -68,10 +65,6 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
-  // Domaine personnalisé (hors Lovable / localhost) : détecté côté client.
-  const [customDomain, setCustomDomain] = useState(false);
-  // Redirection automatique vers l'adresse de secours en cas de blocage réseau.
-  const [fallbackRedirect, setFallbackRedirect] = useState(false);
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -80,67 +73,6 @@ function AuthPage() {
     if (window.location.hash.includes("type=recovery")) setRecovery(true);
     return () => sub.subscription.unsubscribe();
   }, []);
-
-  // Détection du domaine personnalisé (hydratation sûre : client uniquement).
-  useEffect(() => {
-    const host = window.location.hostname;
-    setCustomDomain(!isLovableHosted() && host !== "localhost" && host !== "127.0.0.1");
-  }, []);
-
-  const triggerFallback = () => {
-    if (fallbackRedirect) return;
-    setFallbackRedirect(true);
-    // Redirection immédiate vers l'adresse de secours Lovable.
-    // window.location.replace ne conserve pas la page actuelle dans l'historique.
-    if (typeof window !== "undefined") {
-      window.location.replace(FALLBACK_URL);
-    }
-  };
-
-
-  // Sur un domaine personnalisé, vérifie que le backend d'authentification est
-  // joignable. Si le réseau professionnel le bloque, redirection automatique
-  // vers l'adresse de secours Lovable.
-  useEffect(() => {
-    if (!customDomain) return;
-    if (typeof navigator !== "undefined" && navigator.onLine === false) {
-      triggerFallback();
-      return;
-    }
-    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
-    const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? "";
-    if (!base) return;
-
-    let cancelled = false;
-    const controller = new AbortController();
-    // Le timeout compte comme un échec (réseau filtré = requête qui traîne).
-    const timer = window.setTimeout(() => controller.abort("timeout"), 4000);
-
-    (async () => {
-      try {
-        const res = await fetch(`${base.replace(/\/+$/, "")}/auth/v1/health`, {
-          cache: "no-store",
-          signal: controller.signal,
-          headers: key ? { apikey: key } : undefined,
-        });
-        if (cancelled) return;
-        // Un proxy d'entreprise peut répondre une page de blocage (403/407/5xx).
-        if (!res.ok) triggerFallback();
-      } catch {
-        if (!cancelled) triggerFallback();
-      } finally {
-        window.clearTimeout(timer);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customDomain]);
-
 
   const isNetworkError = (err: unknown) => {
     const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
