@@ -176,14 +176,16 @@ function AuthPage() {
     const label = provider === "google" ? "Google" : provider === "microsoft" ? "Microsoft" : "Apple";
     setBusy(true);
     try {
-      // Le broker /~oauth n'existe que sur les domaines Lovable : ailleurs
-      // (Vercel, domaine personnalisé) on passe directement par Supabase.
-      if (!isLovableHosted()) {
+      // Google fonctionne en direct (Supabase) sur les domaines personnalisés.
+      // Microsoft/Apple passent toujours par le broker Lovable : hors domaines
+      // Lovable, on force la redirection vers le domaine lovable.app pour que
+      // la connexion aboutisse et que l'utilisateur y soit authentifié.
+      if (provider === "google" && !isLovableHosted()) {
         const { error } = await supabase.auth.signInWithOAuth({
-          provider: provider === "microsoft" ? "azure" : provider,
+          provider: "google",
           options: {
             redirectTo: appRedirectUrl(),
-            queryParams: provider === "google" ? { prompt: "select_account" } : undefined,
+            queryParams: { prompt: "select_account" },
           },
         });
         if (error) {
@@ -194,7 +196,9 @@ function AuthPage() {
       }
 
       const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: appRedirectUrl(),
+        redirect_uri: isLovableHosted()
+          ? appRedirectUrl()
+          : "https://planningagentsucpa.lovable.app",
         extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
       });
       if (result.error) {
