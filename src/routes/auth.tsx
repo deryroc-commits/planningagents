@@ -362,33 +362,6 @@ function AuthPage() {
           <AppleIcon /> Continuer avec Apple
         </Button>
 
-        {showFallbackLink && (
-          <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-            {fallbackRedirect ? (
-              <p className="flex items-center gap-2 font-medium">
-                <Loader2 className="size-4 animate-spin" />
-                Connexion impossible sur ce domaine. Ouverture de l'adresse de secours…
-              </p>
-            ) : (
-              <>
-                <p className="font-medium">Connexion bloquée sur ce domaine ?</p>
-                <p className="mt-1">
-                  Si votre réseau professionnel bloque cette adresse, cliquez ci-dessous pour ouvrir
-                  directement la page de secours. En cas d'échec, la redirection se fera
-                  automatiquement.
-                </p>
-                <a
-                  href={FALLBACK_URL}
-                  className="mt-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline"
-                >
-                  Ouvrir planningagentsucpa.lovable.app/auth
-                  <ArrowRight className="size-3" />
-                </a>
-              </>
-            )}
-          </div>
-        )}
-
       </div>
     </div>
   );
