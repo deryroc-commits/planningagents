@@ -65,6 +65,8 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [lovableHost, setLovableHost] = useState(false);
+  useEffect(() => setLovableHost(isLovableHosted()), []);
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
