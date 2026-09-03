@@ -126,8 +126,8 @@ const SECTIONS: Section[] = [
         text: "Toute modification faite depuis n'importe quel appareil ou méthode de connexion est synchronisée en temps réel dans le cloud pour tous les membres de l'équipe (selon leurs droits).",
       },
       {
-        title: "Adresse de secours",
-        text: "Si votre domaine personnel (erick-duvall-app.fr) est bloqué par le réseau professionnel, la page de connexion affiche un lien vers l'adresse de secours planningagentsucpa.lovable.app. Connectez-vous là-bas : vous retrouverez les mêmes comptes et données.",
+        title: "Adresse de secours (redirection automatique)",
+        text: "Si votre domaine personnel (erick-duvall-app.fr) est bloqué par le réseau professionnel, la page de connexion détecte le blocage et vous redirige automatiquement vers l'adresse de secours planningagentsucpa.lovable.app. Vous y retrouvez les mêmes comptes et données ; l'accès reste soumis à l'autorisation de l'administrateur (code d'invitation).",
       },
     ],
     tips: [

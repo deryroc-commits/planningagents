@@ -54,6 +54,8 @@ function OfflineNotice() {
   );
 }
 
+const FALLBACK_ORIGIN = "https://planningagentsucpa.lovable.app";
+
 function AuthPage() {
 
   const navigate = useNavigate();
@@ -65,6 +67,10 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  // Domaine personnalisé (hors Lovable / localhost) : détecté côté client.
+  const [customDomain, setCustomDomain] = useState(false);
+  // Redirection automatique vers l'adresse de secours en cas de blocage réseau.
+  const [fallbackRedirect, setFallbackRedirect] = useState(false);
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -73,6 +79,49 @@ function AuthPage() {
     if (window.location.hash.includes("type=recovery")) setRecovery(true);
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // Détection du domaine personnalisé (hydratation sûre : client uniquement).
+  useEffect(() => {
+    const host = window.location.hostname;
+    setCustomDomain(!isLovableHosted() && host !== "localhost" && host !== "127.0.0.1");
+  }, []);
+
+  const triggerFallback = () => {
+    if (fallbackRedirect) return;
+    setFallbackRedirect(true);
+    // Petite pause pour laisser le temps de lire le message, puis redirection.
+    window.setTimeout(() => {
+      window.location.href = `${FALLBACK_ORIGIN}/auth`;
+    }, 2500);
+  };
+
+  // Sur un domaine personnalisé, vérifie que le backend d'authentification est
+  // joignable. Si le réseau professionnel le bloque, redirection automatique
+  // vers l'adresse de secours Lovable.
+  useEffect(() => {
+    if (!customDomain || !navigator.onLine) return;
+    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
+    if (!base) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 4000);
+    fetch(`${base.replace(/\/+$/, "")}/auth/v1/health`, {
+      mode: "no-cors",
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .catch(() => triggerFallback())
+      .finally(() => window.clearTimeout(timer));
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customDomain]);
+
+  const isNetworkError = (err: unknown) => {
+    const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+    return msg.includes("failed to fetch") || msg.includes("networkerror") || msg.includes("load failed") || msg.includes("network request failed");
+  };
 
   const explainAuthError = (message: string) => {
     const lower = message.toLowerCase();
@@ -123,9 +172,13 @@ function AuthPage() {
         if (error) throw error;
       }
     } catch (err) {
-      toast.error("Échec", {
-        description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
-      });
+      if (customDomain && isNetworkError(err)) {
+        triggerFallback();
+      } else {
+        toast.error("Échec", {
+          description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
+        });
+      }
     } finally {
       setBusy(false);
     }
@@ -209,18 +262,22 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
-    } catch {
-      toast.error(`Connexion ${label} impossible`);
+    } catch (err) {
+      if (customDomain && isNetworkError(err)) {
+        triggerFallback();
+      } else {
+        toast.error(`Connexion ${label} impossible`);
+      }
       setBusy(false);
     }
   };
 
   const fallbackLoginUrl = useMemo(() => {
     const current = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/auth";
-    return `https://planningagentsucpa.lovable.app${current}`;
+    return `${FALLBACK_ORIGIN}${current}`;
   }, []);
 
-  const showFallbackLink = typeof window !== "undefined" && !isLovableHosted() && window.location.hostname !== "localhost";
+  const showFallbackLink = customDomain;
 
 
   const onGoogle = () => onOAuth("google");
@@ -366,17 +423,27 @@ function AuthPage() {
 
         {showFallbackLink && (
           <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-            <p className="font-medium">Connexion bloquée sur ce domaine ?</p>
-            <p className="mt-1">
-              Si votre réseau professionnel bloque cette adresse, utilisez l'adresse de secours :
-            </p>
-            <a
-              href={fallbackLoginUrl}
-              className="mt-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline"
-            >
-              Ouvrir planningagentsucpa.lovable.app
-              <ArrowRight className="size-3" />
-            </a>
+            {fallbackRedirect ? (
+              <p className="flex items-center gap-2 font-medium">
+                <Loader2 className="size-4 animate-spin" />
+                Connexion impossible sur ce domaine. Redirection automatique vers l'adresse de secours…
+              </p>
+            ) : (
+              <>
+                <p className="font-medium">Connexion bloquée sur ce domaine ?</p>
+                <p className="mt-1">
+                  Si votre réseau professionnel bloque cette adresse, vous serez redirigé
+                  automatiquement. Sinon, utilisez l'adresse de secours :
+                </p>
+                <a
+                  href={fallbackLoginUrl}
+                  className="mt-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+                >
+                  Ouvrir planningagentsucpa.lovable.app
+                  <ArrowRight className="size-3" />
+                </a>
+              </>
+            )}
           </div>
         )}
 
