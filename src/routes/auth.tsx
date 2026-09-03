@@ -55,6 +55,7 @@ function OfflineNotice() {
 }
 
 const FALLBACK_ORIGIN = "https://planningagentsucpa.lovable.app";
+const FALLBACK_URL = `${FALLBACK_ORIGIN}/auth`;
 
 function AuthPage() {
 
@@ -88,17 +89,12 @@ function AuthPage() {
 
   const triggerFallback = () => {
     if (fallbackRedirect) return;
-    if (typeof window !== "undefined" && window.sessionStorage.getItem("auth_fallback_done") === "1") return;
     setFallbackRedirect(true);
-    try {
-      window.sessionStorage.setItem("auth_fallback_done", "1");
-    } catch {
-      /* stockage indisponible */
+    // Redirection immédiate vers l'adresse de secours Lovable.
+    // window.location.replace ne conserve pas la page actuelle dans l'historique.
+    if (typeof window !== "undefined") {
+      window.location.replace(FALLBACK_URL);
     }
-    // Petite pause pour laisser le temps de lire le message, puis redirection.
-    window.setTimeout(() => {
-      window.location.replace(`${FALLBACK_ORIGIN}/auth`);
-    }, 2000);
   };
 
 
@@ -107,7 +103,10 @@ function AuthPage() {
   // vers l'adresse de secours Lovable.
   useEffect(() => {
     if (!customDomain) return;
-    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      triggerFallback();
+      return;
+    }
     const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
     const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? "";
     if (!base) return;
@@ -115,7 +114,7 @@ function AuthPage() {
     let cancelled = false;
     const controller = new AbortController();
     // Le timeout compte comme un échec (réseau filtré = requête qui traîne).
-    const timer = window.setTimeout(() => controller.abort("timeout"), 6000);
+    const timer = window.setTimeout(() => controller.abort("timeout"), 4000);
 
     (async () => {
       try {
