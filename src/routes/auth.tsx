@@ -80,6 +80,49 @@ function AuthPage() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Détection du domaine personnalisé (hydratation sûre : client uniquement).
+  useEffect(() => {
+    const host = window.location.hostname;
+    setCustomDomain(!isLovableHosted() && host !== "localhost" && host !== "127.0.0.1");
+  }, []);
+
+  const triggerFallback = () => {
+    if (fallbackRedirect) return;
+    setFallbackRedirect(true);
+    // Petite pause pour laisser le temps de lire le message, puis redirection.
+    window.setTimeout(() => {
+      window.location.href = `${FALLBACK_ORIGIN}/auth`;
+    }, 2500);
+  };
+
+  // Sur un domaine personnalisé, vérifie que le backend d'authentification est
+  // joignable. Si le réseau professionnel le bloque, redirection automatique
+  // vers l'adresse de secours Lovable.
+  useEffect(() => {
+    if (!customDomain || !navigator.onLine) return;
+    const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
+    if (!base) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 4000);
+    fetch(`${base.replace(/\/+$/, "")}/auth/v1/health`, {
+      mode: "no-cors",
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .catch(() => triggerFallback())
+      .finally(() => window.clearTimeout(timer));
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customDomain]);
+
+  const isNetworkError = (err: unknown) => {
+    const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+    return msg.includes("failed to fetch") || msg.includes("networkerror") || msg.includes("load failed") || msg.includes("network request failed");
+  };
+
   const explainAuthError = (message: string) => {
     const lower = message.toLowerCase();
     if (lower.includes("already") || lower.includes("registered")) {
