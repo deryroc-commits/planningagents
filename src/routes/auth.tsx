@@ -88,12 +88,19 @@ function AuthPage() {
 
   const triggerFallback = () => {
     if (fallbackRedirect) return;
+    if (typeof window !== "undefined" && window.sessionStorage.getItem("auth_fallback_done") === "1") return;
     setFallbackRedirect(true);
+    try {
+      window.sessionStorage.setItem("auth_fallback_done", "1");
+    } catch {
+      /* stockage indisponible */
+    }
     // Petite pause pour laisser le temps de lire le message, puis redirection.
     window.setTimeout(() => {
-      window.location.href = `${FALLBACK_ORIGIN}/auth`;
-    }, 2500);
+      window.location.replace(`${FALLBACK_ORIGIN}/auth`);
+    }, 2000);
   };
+
 
   // Sur un domaine personnalisé, vérifie que le backend d'authentification est
   // joignable. Si le réseau professionnel le bloque, redirection automatique
