@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PendingSyncCard } from "@/components/planning/PendingSyncCard";
 
-import { appRedirectUrl } from "@/lib/auth/oauth-config";
+import { appRedirectUrl, isLovableHosted } from "@/lib/auth/oauth-config";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -176,6 +176,23 @@ function AuthPage() {
     const label = provider === "google" ? "Google" : provider === "microsoft" ? "Microsoft" : "Apple";
     setBusy(true);
     try {
+      // Le broker /~oauth n'existe que sur les domaines Lovable : ailleurs
+      // (Vercel, domaine personnalisé) on passe directement par Supabase.
+      if (!isLovableHosted()) {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: provider === "microsoft" ? "azure" : provider,
+          options: {
+            redirectTo: appRedirectUrl(),
+            queryParams: provider === "google" ? { prompt: "select_account" } : undefined,
+          },
+        });
+        if (error) {
+          toast.error(`Connexion ${label} impossible`, { description: error.message });
+          setBusy(false);
+        }
+        return;
+      }
+
       const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: appRedirectUrl(),
         extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
@@ -193,6 +210,7 @@ function AuthPage() {
       setBusy(false);
     }
   };
+
 
   const onGoogle = () => onOAuth("google");
   const onMicrosoft = () => onOAuth("microsoft");
