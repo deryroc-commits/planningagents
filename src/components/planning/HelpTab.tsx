@@ -107,6 +107,35 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "comptes",
+    title: "Comptes & connexions multiples",
+    icon: Users,
+    intro:
+      "Vos plannings ne sont pas attachés à une méthode de connexion (Google, Microsoft, Apple ou e-mail), mais à votre compte utilisateur et à l'équipe (workspace).",
+    steps: [
+      {
+        title: "Même adresse e-mail = même compte",
+        text: "Si vous vous connectez avec Google puis avec Microsoft en utilisant la même adresse e-mail, Supabase reconnaît un seul et même compte. Vous retrouvez exactement les mêmes équipes, plannings et paramètres.",
+      },
+      {
+        title: "E-mail différent = compte différent",
+        text: "Une nouvelle adresse e-mail crée un nouveau compte et donc un nouveau workspace vierge. Pour rejoindre un planning existant, utilisez le code d'invitation fourni par l'administrateur avec cette nouvelle adresse.",
+      },
+      {
+        title: "Synchronisation automatique",
+        text: "Toute modification faite depuis n'importe quel appareil ou méthode de connexion est synchronisée en temps réel dans le cloud pour tous les membres de l'équipe (selon leurs droits).",
+      },
+      {
+        title: "Adresse de secours",
+        text: "Si votre domaine personnel (erick-duvall-app.fr) est bloqué par le réseau professionnel, la page de connexion affiche un lien vers l'adresse de secours planningagentsucpa.lovable.app. Connectez-vous là-bas : vous retrouverez les mêmes comptes et données.",
+      },
+    ],
+    tips: [
+      "Vous pouvez définir un mot de passe secondaire depuis l'onglet Équipe pour aussi vous connecter par e-mail.",
+      "L'adresse de secours est identique quel que soit le fournisseur utilisé (Google, Microsoft, Apple, e-mail).",
+    ],
+  },
+  {
     id: "mot-de-passe",
     title: "Mot de passe (changement & réinitialisation)",
     icon: ShieldCheck,
