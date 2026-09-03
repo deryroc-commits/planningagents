@@ -266,7 +266,11 @@ function AuthPage() {
           },
         });
         if (error) {
-          toast.error(`Connexion ${label} impossible`, { description: error.message });
+          if (customDomain) {
+            triggerFallback();
+          } else {
+            toast.error(`Connexion ${label} impossible`, { description: error.message });
+          }
           setBusy(false);
         }
         return;
@@ -279,15 +283,22 @@ function AuthPage() {
         extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
       });
       if (result.error) {
-        toast.error(`Connexion ${label} impossible`, {
-          description: result.error.message ?? "Réessayez plus tard.",
-        });
+        // Sur un domaine personnalisé, toute erreur OAuth (provider non
+        // configuré, secret manquant, etc.) redirige immédiatement vers
+        // l'adresse de secours Lovable.
+        if (customDomain) {
+          triggerFallback();
+        } else {
+          toast.error(`Connexion ${label} impossible`, {
+            description: result.error.message ?? "Réessayez plus tard.",
+          });
+        }
         setBusy(false);
         return;
       }
       if (result.redirected) return;
     } catch (err) {
-      if (customDomain && isNetworkError(err)) {
+      if (customDomain) {
         triggerFallback();
       } else {
         toast.error(`Connexion ${label} impossible`);
