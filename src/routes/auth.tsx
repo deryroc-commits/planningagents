@@ -172,9 +172,13 @@ function AuthPage() {
         if (error) throw error;
       }
     } catch (err) {
-      toast.error("Échec", {
-        description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
-      });
+      if (customDomain && isNetworkError(err)) {
+        triggerFallback();
+      } else {
+        toast.error("Échec", {
+          description: err instanceof Error ? explainAuthError(err.message) : "Une erreur est survenue.",
+        });
+      }
     } finally {
       setBusy(false);
     }
@@ -258,8 +262,12 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
-    } catch {
-      toast.error(`Connexion ${label} impossible`);
+    } catch (err) {
+      if (customDomain && isNetworkError(err)) {
+        triggerFallback();
+      } else {
+        toast.error(`Connexion ${label} impossible`);
+      }
       setBusy(false);
     }
   };
