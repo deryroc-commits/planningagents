@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarDays, Loader2, WifiOff, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
@@ -55,6 +55,7 @@ function OfflineNotice() {
 }
 
 const FALLBACK_ORIGIN = "https://planningagentsucpa.lovable.app";
+const FALLBACK_URL = `${FALLBACK_ORIGIN}/auth`;
 
 function AuthPage() {
 
@@ -88,17 +89,12 @@ function AuthPage() {
 
   const triggerFallback = () => {
     if (fallbackRedirect) return;
-    if (typeof window !== "undefined" && window.sessionStorage.getItem("auth_fallback_done") === "1") return;
     setFallbackRedirect(true);
-    try {
-      window.sessionStorage.setItem("auth_fallback_done", "1");
-    } catch {
-      /* stockage indisponible */
+    // Redirection immédiate vers l'adresse de secours Lovable.
+    // window.location.replace ne conserve pas la page actuelle dans l'historique.
+    if (typeof window !== "undefined") {
+      window.location.replace(FALLBACK_URL);
     }
-    // Petite pause pour laisser le temps de lire le message, puis redirection.
-    window.setTimeout(() => {
-      window.location.replace(`${FALLBACK_ORIGIN}/auth`);
-    }, 2000);
   };
 
 
@@ -107,7 +103,10 @@ function AuthPage() {
   // vers l'adresse de secours Lovable.
   useEffect(() => {
     if (!customDomain) return;
-    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      triggerFallback();
+      return;
+    }
     const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
     const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? "";
     if (!base) return;
@@ -115,7 +114,7 @@ function AuthPage() {
     let cancelled = false;
     const controller = new AbortController();
     // Le timeout compte comme un échec (réseau filtré = requête qui traîne).
-    const timer = window.setTimeout(() => controller.abort("timeout"), 6000);
+    const timer = window.setTimeout(() => controller.abort("timeout"), 4000);
 
     (async () => {
       try {
@@ -267,7 +266,11 @@ function AuthPage() {
           },
         });
         if (error) {
-          toast.error(`Connexion ${label} impossible`, { description: error.message });
+          if (customDomain) {
+            triggerFallback();
+          } else {
+            toast.error(`Connexion ${label} impossible`, { description: error.message });
+          }
           setBusy(false);
         }
         return;
@@ -280,15 +283,22 @@ function AuthPage() {
         extraParams: provider === "google" ? { prompt: "select_account" } : undefined,
       });
       if (result.error) {
-        toast.error(`Connexion ${label} impossible`, {
-          description: result.error.message ?? "Réessayez plus tard.",
-        });
+        // Sur un domaine personnalisé, toute erreur OAuth (provider non
+        // configuré, secret manquant, etc.) redirige immédiatement vers
+        // l'adresse de secours Lovable.
+        if (customDomain) {
+          triggerFallback();
+        } else {
+          toast.error(`Connexion ${label} impossible`, {
+            description: result.error.message ?? "Réessayez plus tard.",
+          });
+        }
         setBusy(false);
         return;
       }
       if (result.redirected) return;
     } catch (err) {
-      if (customDomain && isNetworkError(err)) {
+      if (customDomain) {
         triggerFallback();
       } else {
         toast.error(`Connexion ${label} impossible`);
@@ -296,11 +306,6 @@ function AuthPage() {
       setBusy(false);
     }
   };
-
-  const fallbackLoginUrl = useMemo(() => {
-    const current = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/auth";
-    return `${FALLBACK_ORIGIN}${current}`;
-  }, []);
 
   const showFallbackLink = customDomain;
 
@@ -451,20 +456,21 @@ function AuthPage() {
             {fallbackRedirect ? (
               <p className="flex items-center gap-2 font-medium">
                 <Loader2 className="size-4 animate-spin" />
-                Connexion impossible sur ce domaine. Redirection automatique vers l'adresse de secours…
+                Connexion impossible sur ce domaine. Ouverture de l'adresse de secours…
               </p>
             ) : (
               <>
                 <p className="font-medium">Connexion bloquée sur ce domaine ?</p>
                 <p className="mt-1">
-                  Si votre réseau professionnel bloque cette adresse, vous serez redirigé
-                  automatiquement. Sinon, utilisez l'adresse de secours :
+                  Si votre réseau professionnel bloque cette adresse, cliquez ci-dessous pour ouvrir
+                  directement la page de secours. En cas d'échec, la redirection se fera
+                  automatiquement.
                 </p>
                 <a
-                  href={fallbackLoginUrl}
+                  href={FALLBACK_URL}
                   className="mt-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline"
                 >
-                  Ouvrir planningagentsucpa.lovable.app
+                  Ouvrir planningagentsucpa.lovable.app/auth
                   <ArrowRight className="size-3" />
                 </a>
               </>
