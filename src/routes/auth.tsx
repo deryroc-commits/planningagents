@@ -65,6 +65,8 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [lovableHost, setLovableHost] = useState(false);
+  useEffect(() => setLovableHost(isLovableHosted()), []);
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -346,12 +348,16 @@ function AuthPage() {
         <Button variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
           <GoogleIcon /> Continuer avec Google
         </Button>
-        <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
-          <MicrosoftIcon /> Continuer avec Microsoft
-        </Button>
-        <Button variant="outline" className="mt-2 w-full" onClick={onApple} disabled={busy}>
-          <AppleIcon /> Continuer avec Apple
-        </Button>
+        {lovableHost && (
+          <>
+            <Button variant="outline" className="mt-2 w-full" onClick={onMicrosoft} disabled={busy}>
+              <MicrosoftIcon /> Continuer avec Microsoft
+            </Button>
+            <Button variant="outline" className="mt-2 w-full" onClick={onApple} disabled={busy}>
+              <AppleIcon /> Continuer avec Apple
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
