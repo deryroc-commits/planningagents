@@ -461,20 +461,21 @@ function AuthPage() {
             {fallbackRedirect ? (
               <p className="flex items-center gap-2 font-medium">
                 <Loader2 className="size-4 animate-spin" />
-                Connexion impossible sur ce domaine. Redirection automatique vers l'adresse de secours…
+                Connexion impossible sur ce domaine. Ouverture de l'adresse de secours…
               </p>
             ) : (
               <>
                 <p className="font-medium">Connexion bloquée sur ce domaine ?</p>
                 <p className="mt-1">
-                  Si votre réseau professionnel bloque cette adresse, vous serez redirigé
-                  automatiquement. Sinon, utilisez l'adresse de secours :
+                  Si votre réseau professionnel bloque cette adresse, cliquez ci-dessous pour ouvrir
+                  directement la page de secours. En cas d'échec, la redirection se fera
+                  automatiquement.
                 </p>
                 <a
-                  href={fallbackLoginUrl}
+                  href={FALLBACK_URL}
                   className="mt-2 inline-flex items-center gap-1 font-semibold text-primary hover:underline"
                 >
-                  Ouvrir planningagentsucpa.lovable.app
+                  Ouvrir planningagentsucpa.lovable.app/auth
                   <ArrowRight className="size-3" />
                 </a>
               </>
