@@ -88,35 +88,60 @@ function AuthPage() {
 
   const triggerFallback = () => {
     if (fallbackRedirect) return;
+    if (typeof window !== "undefined" && window.sessionStorage.getItem("auth_fallback_done") === "1") return;
     setFallbackRedirect(true);
+    try {
+      window.sessionStorage.setItem("auth_fallback_done", "1");
+    } catch {
+      /* stockage indisponible */
+    }
     // Petite pause pour laisser le temps de lire le message, puis redirection.
     window.setTimeout(() => {
-      window.location.href = `${FALLBACK_ORIGIN}/auth`;
-    }, 2500);
+      window.location.replace(`${FALLBACK_ORIGIN}/auth`);
+    }, 2000);
   };
+
 
   // Sur un domaine personnalisé, vérifie que le backend d'authentification est
   // joignable. Si le réseau professionnel le bloque, redirection automatique
   // vers l'adresse de secours Lovable.
   useEffect(() => {
-    if (!customDomain || !navigator.onLine) return;
+    if (!customDomain) return;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
     const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
+    const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ?? "";
     if (!base) return;
+
+    let cancelled = false;
     const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), 4000);
-    fetch(`${base.replace(/\/+$/, "")}/auth/v1/health`, {
-      mode: "no-cors",
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .catch(() => triggerFallback())
-      .finally(() => window.clearTimeout(timer));
+    // Le timeout compte comme un échec (réseau filtré = requête qui traîne).
+    const timer = window.setTimeout(() => controller.abort("timeout"), 6000);
+
+    (async () => {
+      try {
+        const res = await fetch(`${base.replace(/\/+$/, "")}/auth/v1/health`, {
+          cache: "no-store",
+          signal: controller.signal,
+          headers: key ? { apikey: key } : undefined,
+        });
+        if (cancelled) return;
+        // Un proxy d'entreprise peut répondre une page de blocage (403/407/5xx).
+        if (!res.ok) triggerFallback();
+      } catch {
+        if (!cancelled) triggerFallback();
+      } finally {
+        window.clearTimeout(timer);
+      }
+    })();
+
     return () => {
+      cancelled = true;
       controller.abort();
       window.clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customDomain]);
+
 
   const isNetworkError = (err: unknown) => {
     const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
