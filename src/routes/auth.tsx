@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarDays, Loader2, WifiOff, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
