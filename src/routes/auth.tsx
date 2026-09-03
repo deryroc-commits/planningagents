@@ -54,6 +54,8 @@ function OfflineNotice() {
   );
 }
 
+const FALLBACK_ORIGIN = "https://planningagentsucpa.lovable.app";
+
 function AuthPage() {
 
   const navigate = useNavigate();
@@ -65,6 +67,10 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  // Domaine personnalisé (hors Lovable / localhost) : détecté côté client.
+  const [customDomain, setCustomDomain] = useState(false);
+  // Redirection automatique vers l'adresse de secours en cas de blocage réseau.
+  const [fallbackRedirect, setFallbackRedirect] = useState(false);
   // Détecte un retour depuis le lien e-mail de réinitialisation.
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
